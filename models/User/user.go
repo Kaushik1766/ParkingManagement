@@ -1,29 +1,16 @@
 package user
 
-import "github.com/google/uuid"
-
-type Role int
-
-const (
-	Customer Role = iota
-	Admin
+import (
+	"github.com/Kaushik1766/ParkingManagement/models/enums"
+	"github.com/google/uuid"
 )
-
-func (r Role) String() string {
-	switch r {
-	case Admin:
-		return "Admin"
-	default:
-		return "Customer"
-	}
-}
 
 type User struct {
 	UserId   uuid.UUID
 	Name     string
 	Email    string
 	Password string
-	Role     Role
+	Role     enums.Role
 }
 
 func (u User) GetId() string {
