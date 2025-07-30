@@ -3,7 +3,7 @@ package slot
 import (
 	"fmt"
 
-	"github.com/Kaushik1766/ParkingManagement/models/enums"
+	"github.com/Kaushik1766/ParkingManagement/internal/models/enums"
 	"github.com/google/uuid"
 )
 

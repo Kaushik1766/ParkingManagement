@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/Kaushik1766/ParkingManagement/models/enums"
+	"github.com/Kaushik1766/ParkingManagement/internal/models/enums"
 	"github.com/google/uuid"
 )
 
@@ -13,6 +13,6 @@ type User struct {
 	Role     enums.Role
 }
 
-func (u User) GetId() string {
+func (u User) GetID() string {
 	return u.UserId.String()
 }
