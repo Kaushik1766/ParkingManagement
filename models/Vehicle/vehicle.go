@@ -11,3 +11,7 @@ type Vehicle struct {
 	UserId      uuid.UUID
 	VehicleType enums.VehicleType
 }
+
+func (v Vehicle) GetID() string {
+	return v.VehicleId.String()
+}

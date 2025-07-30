@@ -14,3 +14,7 @@ type Billing struct {
 	TotalAmount float32
 	CreatedAt   time.Time
 }
+
+func (b Billing) GetId() string {
+	return b.BillId.String()
+}

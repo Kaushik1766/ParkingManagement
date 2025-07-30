@@ -1,6 +1,8 @@
 package slot
 
 import (
+	"fmt"
+
 	"github.com/Kaushik1766/ParkingManagement/models/enums"
 	"github.com/google/uuid"
 )
@@ -10,4 +12,8 @@ type Slot struct {
 	FloorNumber int
 	SlotNumber  int
 	SlotType    enums.VehicleType
+}
+
+func (s Slot) GetID() string {
+	return fmt.Sprintf("%v%v%v", s.BuildingId, s.FloorNumber, s.SlotNumber)
 }
