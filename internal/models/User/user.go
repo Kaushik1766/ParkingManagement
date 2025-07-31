@@ -11,6 +11,7 @@ type User struct {
 	Email    string
 	Password string
 	Role     enums.Role
+	IsActive bool
 }
 
 func (u User) GetID() string {

@@ -3,14 +3,31 @@ package userservice
 import (
 	"context"
 
-	gofiledb "github.com/Kaushik1766/GoFileDB"
-	userModel "github.com/Kaushik1766/ParkingManagement/internal/models/User"
+	user "github.com/Kaushik1766/ParkingManagement/internal/models/User"
+	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/UserRepository"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
-	db gofiledb.Repository[userModel.User]
+	userRepo userrepository.UserStorage
 }
 
-func (s UserService) UpdateProfile(ctx context.Context, name, email, password string) error {
-	prev, err := s.db.GetByParameter()
+func (s *UserService) UpdateProfile(ctx context.Context, name, email, password string) error {
+	currentUser := ctx.Value("user").(user.User)
+	currentUser.Name = name
+	currentUser.Email = email
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	if err != nil {
+		return err
+	}
+	currentUser.Password = string(hashedPassword)
+	err = s.userRepo.Save(currentUser)
+	return err
+}
+
+func (s *UserService) DeleteProfile(ctx context.Context) error {
+	currentUser := ctx.Value("user").(user.User)
+	currentUser.IsActive = false
+	err := s.userRepo.Save(currentUser)
+	return err
 }
