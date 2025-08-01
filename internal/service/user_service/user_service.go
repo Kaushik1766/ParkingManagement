@@ -3,13 +3,19 @@ package userservice
 import (
 	"context"
 
-	user "github.com/Kaushik1766/ParkingManagement/internal/models/User"
-	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/UserRepository"
+	user "github.com/Kaushik1766/ParkingManagement/internal/models/user"
+	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
 	userRepo userrepository.UserStorage
+}
+
+func NewUserService(repo userrepository.UserStorage) *UserService {
+	return &UserService{
+		userRepo: repo,
+	}
 }
 
 func (s *UserService) UpdateProfile(ctx context.Context, name, email, password string) error {
