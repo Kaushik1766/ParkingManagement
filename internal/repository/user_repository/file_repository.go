@@ -3,6 +3,7 @@ package userrepository
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"sync"
 
@@ -21,11 +22,16 @@ func NewFileUserRepository() *FileUserRepository {
 	data, err := os.ReadFile("users.json")
 	if err != nil {
 		os.WriteFile("users.json", []byte("[]"), 0666)
+		data, err = json.Marshal([]user.User{})
+		if err != nil {
+			fmt.Println("unable to marshal")
+		}
 	}
 
 	var userData []user.User
 	err = json.Unmarshal(data, &userData)
 	if err != nil {
+		fmt.Println(err)
 		panic("corrupted data")
 	}
 	return &FileUserRepository{
