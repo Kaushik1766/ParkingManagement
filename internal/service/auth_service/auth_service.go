@@ -5,6 +5,7 @@ import (
 	"net/mail"
 	"time"
 
+	"github.com/Kaushik1766/ParkingManagement/internal/config"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums"
 	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
@@ -32,18 +33,18 @@ func (auth *AuthService) Signup(name, email, password string, role enums.Role) e
 	return err
 }
 
-func (auth *AuthService) Login(email, password string) (*jwt.Token, error) {
+func (auth *AuthService) Login(email, password string) (string, error) {
 	_, err := mail.ParseAddress(email)
 	if err != nil {
-		return &jwt.Token{}, errors.New("invalid email")
+		return "", errors.New("invalid email")
 	}
 	user, err := auth.db.GetUserByEmail(email)
 	if err != nil {
-		return &jwt.Token{}, err
+		return "", err
 	}
 
-	if err = bcrypt.CompareHashAndPassword([]byte(password), []byte(user.Password)); err != nil {
-		return &jwt.Token{}, err
+	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return "", err
 	}
 
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256,
@@ -57,5 +58,9 @@ func (auth *AuthService) Login(email, password string) (*jwt.Token, error) {
 			},
 		},
 	)
-	return jwtToken, nil
+	signedToken, err := jwtToken.SignedString([]byte(config.JWTSecret))
+	if err != nil {
+		return "", err
+	}
+	return signedToken, nil
 }

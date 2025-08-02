@@ -3,7 +3,6 @@ package authhandler
 import (
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums"
 	authservice "github.com/Kaushik1766/ParkingManagement/internal/service/auth_service"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type CliAuthHandler struct {
@@ -16,7 +15,7 @@ func NewCliAuthHandler(authMgr authservice.AuthenticationManager) *CliAuthHandle
 	}
 }
 
-func (auth *CliAuthHandler) Login(email string, password string) (*jwt.Token, error) {
+func (auth *CliAuthHandler) Login(email string, password string) (string, error) {
 	token, err := auth.authMgr.Login(email, password)
 	if err != nil {
 		return token, err

@@ -35,6 +35,7 @@ func NewFileUserRepository() *FileUserRepository {
 		panic("corrupted data")
 	}
 	return &FileUserRepository{
+		Mutex: &sync.Mutex{},
 		users: userData,
 	}
 }

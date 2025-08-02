@@ -2,10 +2,9 @@ package authservice
 
 import (
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type AuthenticationManager interface {
-	Login(email, password string) (*jwt.Token, error)
+	Login(email, password string) (string, error)
 	Signup(name, email, password string, role enums.Role) error
 }
