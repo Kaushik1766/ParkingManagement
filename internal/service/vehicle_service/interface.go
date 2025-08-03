@@ -3,5 +3,6 @@ package vehicleservice
 import "context"
 
 type VehicleMgr interface {
-	Park(ctx context.Context, vehicleId string) error
+	Park(ctx context.Context, numberplate string) (string, error)
+	Unpark(ctx context.Context, numberplate string) error
 }

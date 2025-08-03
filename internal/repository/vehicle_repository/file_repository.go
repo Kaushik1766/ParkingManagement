@@ -27,11 +27,13 @@ func (fvr *FileVehicleRepository) AddVehicle(numberplate string, userid uuid.UUI
 			return errors.New("numberplate already registered")
 		}
 	}
+	// TODO: add assigned slot and update interface
 	fvr.vehicles = append(fvr.vehicles, vehicle.Vehicle{
 		VehicleId:   uuid.New(),
 		NumberPlate: numberplate,
-		UserId:      userid,
 		VehicleType: vehicleType,
+		UserId:      userid,
+		IsActive:    true,
 	})
 	return nil
 }
@@ -41,7 +43,8 @@ func (fvr *FileVehicleRepository) RemoveVehicle(numberplate string) error {
 	defer fvr.Unlock()
 	for i, val := range fvr.vehicles {
 		if val.NumberPlate == numberplate {
-			fvr.vehicles = append(fvr.vehicles[:i], fvr.vehicles[i+1:]...)
+			// fvr.vehicles = append(fvr.vehicles[:i], fvr.vehicles[i+1:]...)
+			fvr.vehicles[i].IsActive = false
 			return nil
 		}
 	}
@@ -52,7 +55,7 @@ func (fvr *FileVehicleRepository) GetVehicleById(vehicleId uuid.UUID) (vehicle.V
 	fvr.Lock()
 	defer fvr.Unlock()
 	for _, val := range fvr.vehicles {
-		if val.UserId == vehicleId {
+		if val.VehicleId == vehicleId {
 			return val, nil
 		}
 	}

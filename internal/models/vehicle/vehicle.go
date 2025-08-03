@@ -6,10 +6,12 @@ import (
 )
 
 type Vehicle struct {
-	VehicleId   uuid.UUID
-	NumberPlate string
-	UserId      uuid.UUID
-	VehicleType enums.VehicleType
+	VehicleId    uuid.UUID
+	NumberPlate  string
+	VehicleType  enums.VehicleType
+	UserId       uuid.UUID
+	AssignedSlot string
+	IsActive     bool
 }
 
 func (v Vehicle) GetID() string {

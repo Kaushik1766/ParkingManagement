@@ -5,12 +5,14 @@ import (
 
 	authhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/auth_handler"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
+	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
 	authservice "github.com/Kaushik1766/ParkingManagement/internal/service/auth_service"
 	userservice "github.com/Kaushik1766/ParkingManagement/internal/service/user_service"
 )
 
 var (
 	userDb         userrepository.UserStorage        = nil
+	vehicleDb      vehiclerepository.VehicleStorage  = nil
 	userService    userservice.UserManager           = nil
 	authService    authservice.AuthenticationManager = nil
 	authController *authhandler.CliAuthHandler       = nil
@@ -18,7 +20,8 @@ var (
 
 func init() {
 	userDb = userrepository.NewFileUserRepository()
-	userService = userservice.NewUserService(userDb)
+	vehicleDb = vehiclerepository.NewFileVehicleRepository(userDb)
+	userService = userservice.NewUserService(userDb, vehicleDb)
 	authService = authservice.NewAuthService(userDb)
 	authController = authhandler.NewCliAuthHandler(authService)
 }

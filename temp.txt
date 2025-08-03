@@ -1,0 +1,1 @@
+whenever user adds new vehicle check if he already has a vehicle of the same type if yes then assign the same slot to the newly added vehicle else assign a new slot of that type
