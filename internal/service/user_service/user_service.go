@@ -7,6 +7,7 @@ import (
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums"
 	user "github.com/Kaushik1766/ParkingManagement/internal/models/user"
+	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/vehicle"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
@@ -19,8 +20,12 @@ type UserService struct {
 }
 
 func (us *UserService) RegisterVehicle(ctx context.Context, numberplate string, vehicleType enums.VehicleType) error {
-	currentUser := ctx.Value(constants.User).(user.User)
-	err := us.vehicleRepo.AddVehicle(numberplate, currentUser.UserId, vehicleType)
+	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
+	currentUser, err := us.userRepo.GetUserById(ctxUser.ID)
+	if err != nil {
+		return err
+	}
+	err = us.vehicleRepo.AddVehicle(numberplate, currentUser.UserId, vehicleType)
 	return err
 }
 
@@ -67,15 +72,31 @@ func NewUserService(repo userrepository.UserStorage, vehicRepo vehiclerepository
 }
 
 func (us *UserService) UpdateProfile(ctx context.Context, name, email, password string) error {
-	currentUser := ctx.Value(constants.User).(user.User)
-	currentUser.Name = name
-	currentUser.Email = email
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	ctxVal := ctx.Value(constants.User)
+	if ctxVal == nil {
+		return errors.New("invalid context")
+	}
+	currentUser := ctxVal.(userjwt.UserJwt)
+
+	updatedUser, err := us.userRepo.GetUserById(currentUser.ID)
 	if err != nil {
 		return err
 	}
-	currentUser.Password = string(hashedPassword)
-	err = us.userRepo.Save(currentUser)
+
+	if name != "" {
+		updatedUser.Name = name
+	}
+	if email != "" {
+		updatedUser.Email = email
+	}
+	if password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updatedUser.Password), 12)
+		if err != nil {
+			return err
+		}
+		updatedUser.Password = string(hashedPassword)
+	}
+	err = us.userRepo.Save(updatedUser)
 	return err
 }
 

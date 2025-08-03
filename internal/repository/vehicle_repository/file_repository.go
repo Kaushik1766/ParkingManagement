@@ -96,3 +96,14 @@ func NewFileVehicleRepository(userRepo userrepository.UserStorage) *FileVehicleR
 		userRepo: userRepo,
 	}
 }
+
+func (db *FileVehicleRepository) SerializeData() error {
+	db.Lock()
+	defer db.Unlock()
+	data, err := json.Marshal(db.vehicles)
+	if err != nil {
+		return err
+	}
+	err = os.WriteFile("vehicles.json", data, 0666)
+	return err
+}

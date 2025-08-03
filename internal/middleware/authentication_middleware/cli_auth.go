@@ -7,38 +7,26 @@ import (
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
-	"github.com/Kaushik1766/ParkingManagement/internal/models/user"
 	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 )
 
 func CliAuthenticate(ctx context.Context, token string) (context.Context, error) {
-	parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (any, error) {
+	var tokenClaims userjwt.UserJwt
+
+	parsedToken, err := jwt.ParseWithClaims(token, &tokenClaims, func(t *jwt.Token) (any, error) {
 		return []byte(config.JWTSecret), nil
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	if claims, ok := parsedToken.Claims.(userjwt.UserJwt); ok {
-		if claims.ExpiresAt.Compare(time.Now()) == -1 {
-			return nil, errors.New("token expired")
-		}
-
-		id, err := uuid.FromBytes([]byte(claims.ID))
-		if err != nil {
-			return nil, err
-		}
-
-		userCtx := context.WithValue(ctx, constants.User, user.UserContext{
-			Id:    id,
-			Email: claims.Email,
-			Role:  claims.Role,
-		})
-
-		return userCtx, nil
-	} else {
-		return nil, nil
+	if !parsedToken.Valid {
+		return nil, errors.New("invalid jwt")
 	}
+	if tokenClaims.ExpiresAt.Compare(time.Now()) == -1 {
+		return nil, errors.New("token expired")
+	}
+	userCtx := context.WithValue(ctx, constants.User, tokenClaims)
+	return userCtx, nil
 }
