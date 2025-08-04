@@ -7,7 +7,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/Kaushik1766/ParkingManagement/internal/models/enums"
+	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/vehicle"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	"github.com/google/uuid"
@@ -19,7 +19,7 @@ type FileVehicleRepository struct {
 	userRepo userrepository.UserStorage
 }
 
-func (fvr *FileVehicleRepository) AddVehicle(numberplate string, userid uuid.UUID, vehicleType enums.VehicleType) error {
+func (fvr *FileVehicleRepository) AddVehicle(numberplate string, userid uuid.UUID, vehicleType vehicletypes.VehicleType) error {
 	fvr.Lock()
 	defer fvr.Unlock()
 	for _, val := range fvr.vehicles {

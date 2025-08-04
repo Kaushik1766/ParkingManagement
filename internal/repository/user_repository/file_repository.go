@@ -7,7 +7,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/Kaushik1766/ParkingManagement/internal/models/enums"
+	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	user "github.com/Kaushik1766/ParkingManagement/internal/models/user"
 	customerrors "github.com/Kaushik1766/ParkingManagement/pkg/customErrors"
 	"github.com/google/uuid"
@@ -75,7 +75,7 @@ func (db *FileUserRepository) Save(user user.User) error {
 	return nil
 }
 
-func (db *FileUserRepository) CreateUser(name, email, password string, role enums.Role) error {
+func (db *FileUserRepository) CreateUser(name, email, password string, role roles.Role) error {
 	for _, val := range db.users {
 		if val.Email == email {
 			return errors.New("email already used")

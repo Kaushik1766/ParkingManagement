@@ -1,12 +1,18 @@
 package main
 
 import (
+	"fmt"
+	"os"
+	"os/exec"
+	"runtime"
+
 	authhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/auth_handler"
 	userhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/user_handler"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
 	authservice "github.com/Kaushik1766/ParkingManagement/internal/service/auth_service"
 	userservice "github.com/Kaushik1766/ParkingManagement/internal/service/user_service"
+	"github.com/fatih/color"
 )
 
 var (
@@ -34,19 +40,60 @@ func cleanup() {
 
 func main() {
 	defer cleanup()
-	// err := authController.CustomerSignup("kaushik", "kaushik@gmail.com", "123")
-	// err := authController.CustomerSignup()
-	// if err != nil {
-	// 	fmt.Println("Error during signup:", err)
-	// }
+	var choice int
+	token := ""
+	for {
+		clearScreen()
+		if token == "" {
+			color.Cyan("Welcome to Parking Management System")
+			color.Yellow("1. Login")
+			color.Yellow("2. Signup")
+			color.Yellow("3. Exit")
+			fmt.Scanf("%d", &choice)
+			switch choice {
+			case 1:
+				clearScreen()
+				jwtToken, err := authController.Login()
+				if err != nil {
+					color.Red("Error during login: %v", err)
+				} else {
+					token = jwtToken
+				}
+			case 2:
+				clearScreen()
+				err := authController.CustomerSignup()
+				fmt.Println(err)
+			default:
+				break
+			}
+		} else {
+			color.Cyan("Enter your choice:")
+			color.Yellow("1. Update profile")
+			color.Yellow("2. Register vehicle")
+			color.Yellow("3. Exit")
+			fmt.Scanf("%d", &choice)
+			switch choice {
+			case 1:
+				clearScreen()
+				userHandler.UpdateProfile(token)
+			case 2:
+				clearScreen()
+				userHandler.RegisterVehicle(token)
+			default:
+				break
+			}
+		}
+	}
+}
 
-	// token, err := authController.Login("kaushik@gmail.com", "123")
-	// token, err := authController.Login()
-	// if err != nil {
-	// 	fmt.Println("Error during login:", err)
-	// }
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTQzMzA4MjMsImlhdCI6MTc1NDI0NDQyMywiaWQiOiIyY2Q2YzE0Mi0wODcxLTQ1Y2YtYTQwNy1hMGQ0OGViMWNiZDMiLCJlbWFpbCI6ImthdXNoaWsxQGdtYWlsLmNvbSIsInJvbGUiOjB9.Ep7xG2GgdzNCaD5KO_w0HCsedxPOxvW67CUpbiIaQPw"
-	// fmt.Println(token)
-	// userHandler.UpdateProfile(token)
-	userHandler.RegisterVehicle(token)
+func clearScreen() {
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "windows":
+		cmd = exec.Command("cmd", "/c", "cls")
+	default:
+		cmd = exec.Command("clear")
+	}
+	cmd.Stdout = os.Stdout
+	cmd.Run()
 }

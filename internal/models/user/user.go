@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/Kaushik1766/ParkingManagement/internal/models/enums"
+	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	"github.com/google/uuid"
 )
 
@@ -10,7 +10,7 @@ type User struct {
 	Name     string
 	Email    string
 	Password string
-	Role     enums.Role
+	Role     roles.Role
 	IsActive bool
 }
 

@@ -3,7 +3,7 @@ package slot
 import (
 	"fmt"
 
-	"github.com/Kaushik1766/ParkingManagement/internal/models/enums"
+	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	"github.com/google/uuid"
 )
 
@@ -11,7 +11,7 @@ type Slot struct {
 	BuildingId  uuid.UUID
 	FloorNumber int
 	SlotNumber  int
-	SlotType    enums.VehicleType
+	SlotType    vehicletypes.VehicleType
 }
 
 func (s Slot) GetID() string {

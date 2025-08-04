@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
-	"github.com/Kaushik1766/ParkingManagement/internal/models/enums"
+	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	"github.com/golang-jwt/jwt/v5"
@@ -23,7 +23,7 @@ func NewAuthService(db userrepository.UserStorage) *AuthService {
 	}
 }
 
-func (auth *AuthService) Signup(name, email, password string, role enums.Role) error {
+func (auth *AuthService) Signup(name, email, password string, role roles.Role) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {
 		return err

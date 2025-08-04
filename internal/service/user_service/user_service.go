@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
-	"github.com/Kaushik1766/ParkingManagement/internal/models/enums"
+	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	user "github.com/Kaushik1766/ParkingManagement/internal/models/user"
 	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/vehicle"
@@ -19,7 +19,7 @@ type UserService struct {
 	vehicleRepo vehiclerepository.VehicleStorage
 }
 
-func (us *UserService) RegisterVehicle(ctx context.Context, numberplate string, vehicleType enums.VehicleType) error {
+func (us *UserService) RegisterVehicle(ctx context.Context, numberplate string, vehicleType vehicletypes.VehicleType) error {
 	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
 	currentUser, err := us.userRepo.GetUserById(ctxUser.ID)
 	if err != nil {

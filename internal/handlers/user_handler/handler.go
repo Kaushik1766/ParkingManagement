@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	authenticationmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/authentication_middleware"
-	"github.com/Kaushik1766/ParkingManagement/internal/models/enums"
+	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	userservice "github.com/Kaushik1766/ParkingManagement/internal/service/user_service"
 	"github.com/fatih/color"
 )
@@ -54,7 +54,7 @@ func (handler *CliUserHandler) RegisterVehicle(token string) {
 	}
 
 	var numberPlate string
-	var vehicleType enums.VehicleType
+	var vehicleType vehicletypes.VehicleType
 	color.Cyan("Enter vehicle details:")
 	color.Cyan("Number Plate:")
 	fmt.Scanln(&numberPlate)

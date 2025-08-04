@@ -1,14 +1,14 @@
 package vehicle
 
 import (
-	"github.com/Kaushik1766/ParkingManagement/internal/models/enums"
+	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	"github.com/google/uuid"
 )
 
 type Vehicle struct {
 	VehicleId    uuid.UUID
 	NumberPlate  string
-	VehicleType  enums.VehicleType
+	VehicleType  vehicletypes.VehicleType
 	UserId       uuid.UUID
 	AssignedSlot string
 	IsActive     bool

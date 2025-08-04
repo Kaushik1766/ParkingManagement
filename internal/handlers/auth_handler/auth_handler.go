@@ -3,7 +3,7 @@ package authhandler
 import (
 	"fmt"
 
-	"github.com/Kaushik1766/ParkingManagement/internal/models/enums"
+	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	authservice "github.com/Kaushik1766/ParkingManagement/internal/service/auth_service"
 	"github.com/fatih/color"
 )
@@ -42,7 +42,7 @@ func (auth *CliAuthHandler) CustomerSignup() error {
 	fmt.Scanln(&email)
 	color.Green("Password:")
 	fmt.Scanln(&password)
-	authErr := auth.authMgr.Signup(name, email, password, enums.Customer)
+	authErr := auth.authMgr.Signup(name, email, password, roles.Customer)
 	return authErr
 }
 
@@ -55,6 +55,6 @@ func (auth *CliAuthHandler) AdminSignup() error {
 	fmt.Scanln(&email)
 	color.Green("Password:")
 	fmt.Scanln(&password)
-	authErr := auth.authMgr.Signup(name, email, password, enums.Admin)
+	authErr := auth.authMgr.Signup(name, email, password, roles.Admin)
 	return authErr
 }

@@ -3,7 +3,7 @@ package userservice
 import (
 	"context"
 
-	"github.com/Kaushik1766/ParkingManagement/internal/models/enums"
+	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/vehicle"
 )
 
@@ -12,7 +12,7 @@ import (
 type UserManager interface {
 	UpdateProfile(ctx context.Context, name, email, password string) error
 	DeleteProfile(ctx context.Context) error
-	RegisterVehicle(ctx context.Context, numberplate string, vehicleType enums.VehicleType) error
+	RegisterVehicle(ctx context.Context, numberplate string, vehicleType vehicletypes.VehicleType) error
 	UnregisterVehicle(ctx context.Context, numberplate string) error
 	GetRegisteredVehicles(ctx context.Context) []vehicle.VehicleDTO
 }
