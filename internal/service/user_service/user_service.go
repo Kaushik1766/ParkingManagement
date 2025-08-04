@@ -3,6 +3,7 @@ package userservice
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
@@ -11,12 +12,28 @@ import (
 	"github.com/Kaushik1766/ParkingManagement/internal/models/vehicle"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
 	userRepo    userrepository.UserStorage
 	vehicleRepo vehiclerepository.VehicleStorage
+}
+
+func (us *UserService) GetUserProfile(ctx context.Context) (user.UserDTO, error) {
+	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
+	currentUser, err := us.userRepo.GetUserById(ctxUser.ID)
+	if err != nil {
+		return user.UserDTO{}, err
+	}
+	userDto := user.UserDTO{
+		UserId: currentUser.UserId.String(),
+		Name:   currentUser.Name,
+		Email:  currentUser.Email,
+		Role:   currentUser.Role.String(),
+	}
+	return userDto, nil
 }
 
 func (us *UserService) RegisterVehicle(ctx context.Context, numberplate string, vehicleType vehicletypes.VehicleType) error {
@@ -48,8 +65,14 @@ func (us *UserService) UnregisterVehicle(ctx context.Context, numberplate string
 }
 
 func (us *UserService) GetRegisteredVehicles(ctx context.Context) []vehicle.VehicleDTO {
-	currentUser := ctx.Value(constants.User).(user.User)
-	userVehicles, err := us.vehicleRepo.GetVehiclesByUserId(currentUser.UserId)
+	currentUser := ctx.Value(constants.User).(userjwt.UserJwt)
+	// fmt.Println(currentUser.ID)
+	uid, err := uuid.Parse(currentUser.ID)
+	if err != nil {
+		log.Println(err)
+		return []vehicle.VehicleDTO{}
+	}
+	userVehicles, err := us.vehicleRepo.GetVehiclesByUserId(uid)
 	if err != nil {
 		return []vehicle.VehicleDTO{}
 	}

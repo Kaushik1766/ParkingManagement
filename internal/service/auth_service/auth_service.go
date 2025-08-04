@@ -1,8 +1,6 @@
 package authservice
 
 import (
-	"errors"
-	"net/mail"
 	"time"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
@@ -34,10 +32,10 @@ func (auth *AuthService) Signup(name, email, password string, role roles.Role) e
 }
 
 func (auth *AuthService) Login(email, password string) (string, error) {
-	_, err := mail.ParseAddress(email)
-	if err != nil {
-		return "", errors.New("invalid email")
-	}
+	// _, err := mail.ParseAddress(email)
+	// if err != nil {
+	// 	return "", errors.New("invalid email")
+	// }
 	user, err := auth.db.GetUserByEmail(email)
 	if err != nil {
 		return "", err

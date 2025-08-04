@@ -49,3 +49,33 @@ func (handler *CliUserHandler) RegisterVehicle(userCtx context.Context) {
 		color.Red("Failed to register vehicle: %v", err)
 	}
 }
+
+func (handler *CliUserHandler) GetUserProfile(userCtx context.Context) {
+	userProfile, err := handler.userService.GetUserProfile(userCtx)
+	if err != nil {
+		color.Red("Failed to fetch user profile: %v", err)
+		return
+	}
+	color.Cyan("User Profile:")
+	color.Yellow("User ID: %s", userProfile.UserId)
+	color.Yellow("Name: %s", userProfile.Name)
+	color.Yellow("Email: %s", userProfile.Email)
+	color.Yellow("Role: %s", userProfile.Role)
+	color.Green("Press Enter to continue...")
+	fmt.Scanln()
+}
+
+func (hanler *CliUserHandler) GetRegisteredVehicles(userCtx context.Context) {
+	vehicles := hanler.userService.GetRegisteredVehicles(userCtx)
+	if len(vehicles) == 0 {
+		color.Red("No registered vehicles found.")
+		return
+	}
+	color.Cyan("Registered Vehicles:")
+	for _, val := range vehicles {
+		color.Yellow("Number Plate: %s", val.NumberPlate)
+		color.Yellow("Vehicle Type: %s", val.VehicleType)
+		color.Yellow("Assigned Slot: %s", val.AssignedSlot)
+		fmt.Println()
+	}
+}

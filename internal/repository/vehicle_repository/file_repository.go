@@ -66,6 +66,8 @@ func (fvr *FileVehicleRepository) GetVehiclesByUserId(userId uuid.UUID) ([]vehic
 	fvr.Lock()
 	defer fvr.Unlock()
 	var result []vehicle.Vehicle
+	// fmt.Println(fvr.vehicles)
+	// fmt.Println(userId.String())
 	for _, val := range fvr.vehicles {
 		if val.UserId == userId {
 			result = append(result, val)
