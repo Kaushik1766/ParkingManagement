@@ -1,6 +1,8 @@
 package buildingservice
 
+import "context"
+
 type BuildingMgr interface {
-	AddBuilding(name string) error
-	DeleteBuilding(name string) error
+	AddBuilding(ctx context.Context, name string) error
+	DeleteBuilding(ctx context.Context, name string) error
 }

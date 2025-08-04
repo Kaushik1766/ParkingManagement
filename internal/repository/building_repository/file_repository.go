@@ -15,6 +15,17 @@ type FileBuildingRepository struct {
 	buildings []building.Building
 }
 
+func (fbr *FileBuildingRepository) GetBuildingByName(name string) (building.Building, error) {
+	fbr.Lock()
+	defer fbr.Unlock()
+	for _, b := range fbr.buildings {
+		if b.BuildingName == name {
+			return b, nil
+		}
+	}
+	return building.Building{}, fmt.Errorf("building with name %s not found", name)
+}
+
 func (fbr *FileBuildingRepository) AddBuilding(name string) error {
 	fbr.Lock()
 	defer fbr.Unlock()

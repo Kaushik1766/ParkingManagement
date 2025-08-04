@@ -15,6 +15,32 @@ type FileFloorRepository struct {
 	floors []floor.Floor
 }
 
+func (ffr *FileFloorRepository) GetFloorsByBuildingId(buildingId uuid.UUID) ([]int, error) {
+	ffr.Lock()
+	defer ffr.Unlock()
+	var floorNumbers []int
+	for _, f := range ffr.floors {
+		if f.BuildingId == buildingId {
+			floorNumbers = append(floorNumbers, f.FloorNumber)
+		}
+	}
+	if len(floorNumbers) == 0 {
+		return nil, fmt.Errorf("no floors found for building %s", buildingId)
+	}
+	return floorNumbers, nil
+}
+
+func (ffr *FileFloorRepository) GetFloor(buildingId uuid.UUID, floorNumber int) (int, error) {
+	ffr.Lock()
+	defer ffr.Unlock()
+	for _, f := range ffr.floors {
+		if f.BuildingId == buildingId && f.FloorNumber == floorNumber {
+			return f.FloorNumber, nil
+		}
+	}
+	return 0, fmt.Errorf("floor %d for building %s not found", floorNumber, buildingId)
+}
+
 func (ffr *FileFloorRepository) AddFloor(buildingId uuid.UUID, floorNumber int) error {
 	ffr.Lock()
 	defer ffr.Unlock()

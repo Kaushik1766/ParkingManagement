@@ -15,6 +15,17 @@ type FileOfficeRepository struct {
 	offices []office.Office
 }
 
+func (fr *FileOfficeRepository) GetBuildingAndFloorByOffice(officeName string) (string, int, error) {
+	fr.Lock()
+	defer fr.Unlock()
+	for _, val := range fr.offices {
+		if val.OfficeName == officeName {
+			return val.BuildingName, val.FloorNumber, nil
+		}
+	}
+	return "", 0, errors.New("office not found")
+}
+
 func NewFileOfficeRepository() *FileOfficeRepository {
 	data, err := os.ReadFile("offices.json")
 	if err != nil {
