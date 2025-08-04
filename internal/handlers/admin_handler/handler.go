@@ -180,3 +180,65 @@ func (h *CliAdminHandler) AddSlots(ctx context.Context) {
 	color.Green("Press Enter to continue...")
 	fmt.Scanln()
 }
+
+func (h *CliAdminHandler) DeleteSlots(ctx context.Context) {
+	color.Blue("Enter the name of the building to delete slots from:")
+	var buildingName string
+	fmt.Scanln(&buildingName)
+
+	floorNumbers, err := h.floorService.GetFloorsByBuildingId(ctx, buildingName)
+	if err != nil {
+		color.Red("Error fetching floors: %v", err)
+		color.Green("Press Enter to continue...")
+		fmt.Scanln()
+		return
+	}
+
+	color.Blue("Available floors in %s: %v", buildingName, floorNumbers)
+
+	color.Blue("Enter the floor number to delete slots from:")
+	var floorNumber int
+	fmt.Scanln(&floorNumber)
+
+	if !slices.Contains(floorNumbers, floorNumber) {
+		color.Red("Floor %d does not exist in building %s", floorNumber, buildingName)
+		color.Green("Press Enter to continue...")
+		fmt.Scanln()
+		return
+	}
+
+	availableSlots, err := h.slotService.GetSlotsByFloor(ctx, buildingName, floorNumber)
+	if err != nil {
+		color.Red("Error fetching slots: %v", err)
+		color.Green("Press Enter to continue...")
+		fmt.Scanln()
+		return
+	}
+
+	color.Blue("Available slots on floor %d in %s: %v", floorNumber, buildingName, availableSlots)
+
+	color.Blue("Enter the slot numbers to delete (space-separated):")
+	var slotNumbersInput string
+	fmt.Scanln(&slotNumbersInput)
+
+	var slotsToDelete []int
+	for _, numStr := range strings.Split(slotNumbersInput, " ") {
+		num, err := strconv.Atoi(numStr)
+		if err != nil {
+			color.Red("Invalid slot number: %s", numStr)
+			color.Green("Press Enter to continue...")
+			fmt.Scanln()
+			return
+		}
+		slotsToDelete = append(slotsToDelete, num)
+	}
+
+	err = h.slotService.DeleteSlots(ctx, buildingName, floorNumber, slotsToDelete)
+	if err != nil {
+		color.Red("Error deleting slots: %v", err)
+	} else {
+		color.Green("Slots deleted successfully.")
+	}
+	color.Green("Press Enter to continue...")
+	fmt.Scanln()
+}

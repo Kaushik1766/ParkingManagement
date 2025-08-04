@@ -5,24 +5,38 @@ import (
 	"fmt"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
+	adminhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/admin_handler"
 	authhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/auth_handler"
 	userhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/user_handler"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
+	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
+	floorrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/floor_repository"
+	slotrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/slot_repository"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
 	authservice "github.com/Kaushik1766/ParkingManagement/internal/service/auth_service"
+	buildingservice "github.com/Kaushik1766/ParkingManagement/internal/service/building_service"
+	floorservice "github.com/Kaushik1766/ParkingManagement/internal/service/floor_service"
+	slotservice "github.com/Kaushik1766/ParkingManagement/internal/service/slot_service"
 	userservice "github.com/Kaushik1766/ParkingManagement/internal/service/user_service"
 	"github.com/fatih/color"
 )
 
 var (
-	userDb         userrepository.UserStorage        = nil
-	vehicleDb      vehiclerepository.VehicleStorage  = nil
-	userService    userservice.UserManager           = nil
-	authService    authservice.AuthenticationManager = nil
-	authController *authhandler.CliAuthHandler       = nil
-	userHandler    *userhandler.CliUserHandler       = nil
+	userDb          userrepository.UserStorage         = nil
+	vehicleDb       vehiclerepository.VehicleStorage   = nil
+	floorDb         floorrepository.FloorStorage       = nil
+	slotDb          slotrepository.SlotStorage         = nil
+	buildingDb      buildingrepository.BuildingStorage = nil
+	userService     userservice.UserManager            = nil
+	authService     authservice.AuthenticationManager  = nil
+	authController  *authhandler.CliAuthHandler        = nil
+	userHandler     *userhandler.CliUserHandler        = nil
+	adminHandler    *adminhandler.CliAdminHandler      = nil
+	floorService    floorservice.FloorMgr              = nil
+	buildingService buildingservice.BuildingMgr        = nil
+	slotService     slotservice.SlotMgr                = nil
 )
 
 func init() {
@@ -32,11 +46,23 @@ func init() {
 	authService = authservice.NewAuthService(userDb)
 	authController = authhandler.NewCliAuthHandler(authService)
 	userHandler = userhandler.NewCliUserHandler(userService)
+
+	buildingDb = buildingrepository.NewFileBuildingRepository()
+	floorDb = floorrepository.NewFileFloorRepository()
+	slotDb = slotrepository.NewFileSlotRepository()
+
+	floorService = floorservice.NewFloorService(floorDb, buildingDb)
+	buildingService = buildingservice.NewBuildingService(buildingDb)
+	slotService = slotservice.NewSlotService(slotDb, buildingDb, floorDb)
+	adminHandler = adminhandler.NewCliAdminHandler(floorService, buildingService, slotService)
 }
 
 func cleanup() {
 	userDb.(*userrepository.FileUserRepository).SerializeData()
 	vehicleDb.(*vehiclerepository.FileVehicleRepository).SerializeData()
+	floorDb.(*floorrepository.FileFloorRepository).SerializeData()
+	slotDb.(*slotrepository.FileSlotRepository).SerializeData()
+	buildingDb.(*buildingrepository.FileBuildingRepository).SerializeData()
 }
 
 func main() {
@@ -49,7 +75,8 @@ func main() {
 			color.Cyan("Welcome to Parking Management System")
 			color.Yellow("1. Login")
 			color.Yellow("2. Signup")
-			color.Yellow("3. Exit")
+			color.Yellow("3. Admin Signup")
+			color.Yellow("4. Exit")
 			fmt.Scanf("%d", &choice)
 			clearScreen()
 			switch choice {
@@ -66,6 +93,9 @@ func main() {
 				}
 			case 2:
 				err := authController.CustomerSignup()
+				fmt.Println(err)
+			case 3:
+				err := authController.AdminSignup()
 				fmt.Println(err)
 			default:
 				return
@@ -101,7 +131,38 @@ func main() {
 					return
 				}
 			} else {
-				fmt.Println("Admin functionalities are not implemented in CLI version yet.")
+				clearScreen()
+				color.Cyan("Admin page: ")
+				color.Yellow("Enter your choice:")
+				color.Yellow("1. Add Building")
+				color.Yellow("2. Delete Building")
+				color.Yellow("3. Add Floor")
+				color.Yellow("4. Delete Floor")
+				color.Yellow("5. Add Slots")
+				color.Yellow("6. Delete Slots")
+				color.Yellow("7. Logout")
+				color.Yellow("8. Exit")
+				fmt.Scanf("%d", &choice)
+				clearScreen()
+				switch choice {
+				case 1:
+					adminHandler.AddBuilding(ctx)
+				case 2:
+					adminHandler.DeleteBuilding(ctx)
+				case 3:
+					adminHandler.AddFloors(ctx)
+				case 4:
+					adminHandler.DeleteFloors(ctx)
+				case 5:
+					adminHandler.AddSlots(ctx)
+				case 6:
+					adminHandler.DeleteSlots(ctx)
+				case 7:
+					ctx = authController.Logout()
+				default:
+					return
+				}
+
 			}
 		}
 	}

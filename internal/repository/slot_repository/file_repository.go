@@ -16,6 +16,21 @@ type FileSlotRepository struct {
 	slots []slot.Slot
 }
 
+func (fsr *FileSlotRepository) GetSlotsByFloor(buildingId uuid.UUID, floorNumber int) ([]slot.Slot, error) {
+	fsr.Lock()
+	defer fsr.Unlock()
+	var slots []slot.Slot
+	for _, s := range fsr.slots {
+		if s.BuildingId == buildingId && s.FloorNumber == floorNumber {
+			slots = append(slots, s)
+		}
+	}
+	if len(slots) == 0 {
+		return nil, fmt.Errorf("no slots found for building %s, floor %d", buildingId, floorNumber)
+	}
+	return slots, nil
+}
+
 func (fsr *FileSlotRepository) AddSlot(buildingId uuid.UUID, floorNumber int, slotNumber int, slotType vehicletypes.VehicleType) error {
 	fsr.Lock()
 	defer fsr.Unlock()
