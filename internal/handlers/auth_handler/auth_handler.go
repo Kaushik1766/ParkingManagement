@@ -1,8 +1,10 @@
 package authhandler
 
 import (
+	"context"
 	"fmt"
 
+	authenticationmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/authentication_middleware"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	authservice "github.com/Kaushik1766/ParkingManagement/internal/service/auth_service"
 	"github.com/fatih/color"
@@ -18,7 +20,7 @@ func NewCliAuthHandler(authMgr authservice.AuthenticationManager) *CliAuthHandle
 	}
 }
 
-func (auth *CliAuthHandler) Login() (string, error) {
+func (auth *CliAuthHandler) Login(baseCtx context.Context) (context.Context, error) {
 	color.Cyan("Enter your credentials to login:")
 	color.Yellow("Email:")
 	var email, password string
@@ -27,10 +29,11 @@ func (auth *CliAuthHandler) Login() (string, error) {
 	fmt.Scanln(&password)
 	token, err := auth.authMgr.Login(email, password)
 	if err != nil {
-		return token, err
+		return nil, err
 	}
+	userCtx, err := authenticationmiddleware.CliAuthenticate(baseCtx, token)
 
-	return token, nil
+	return userCtx, err
 }
 
 func (auth *CliAuthHandler) CustomerSignup() error {
@@ -57,4 +60,8 @@ func (auth *CliAuthHandler) AdminSignup() error {
 	fmt.Scanln(&password)
 	authErr := auth.authMgr.Signup(name, email, password, roles.Admin)
 	return authErr
+}
+
+func (auth *CliAuthHandler) Logout() context.Context {
+	return nil
 }

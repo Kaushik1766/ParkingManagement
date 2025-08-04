@@ -1,13 +1,17 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"runtime"
 
+	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	authhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/auth_handler"
 	userhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/user_handler"
+	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
+	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
 	authservice "github.com/Kaushik1766/ParkingManagement/internal/service/auth_service"
@@ -41,10 +45,10 @@ func cleanup() {
 func main() {
 	defer cleanup()
 	var choice int
-	token := ""
+	var ctx context.Context = nil
 	for {
-		clearScreen()
-		if token == "" {
+		if ctx == nil {
+			clearScreen()
 			color.Cyan("Welcome to Parking Management System")
 			color.Yellow("1. Login")
 			color.Yellow("2. Signup")
@@ -52,35 +56,49 @@ func main() {
 			fmt.Scanf("%d", &choice)
 			switch choice {
 			case 1:
-				clearScreen()
-				jwtToken, err := authController.Login()
+				ctx = context.Background()
+				userCtx, err := authController.Login(ctx)
 				if err != nil {
 					color.Red("Error during login: %v", err)
+					color.Cyan("Please try again or signup if you don't have an account.")
+					ctx = nil
+					fmt.Scanln()
 				} else {
-					token = jwtToken
+					ctx = userCtx
 				}
 			case 2:
-				clearScreen()
 				err := authController.CustomerSignup()
 				fmt.Println(err)
 			default:
-				break
+				return
 			}
 		} else {
-			color.Cyan("Enter your choice:")
-			color.Yellow("1. Update profile")
-			color.Yellow("2. Register vehicle")
-			color.Yellow("3. Exit")
-			fmt.Scanf("%d", &choice)
-			switch choice {
-			case 1:
-				clearScreen()
-				userHandler.UpdateProfile(token)
-			case 2:
-				clearScreen()
-				userHandler.RegisterVehicle(token)
-			default:
-				break
+			user, ok := ctx.Value(constants.User).(userjwt.UserJwt)
+			if !ok {
+				continue
+			}
+			if user.Role == roles.Customer {
+				color.Cyan("Enter your choice:")
+				color.Yellow("1. Update profile")
+				color.Yellow("2. Register vehicle")
+				color.Yellow("3. Logout")
+				color.Yellow("4. Exit")
+				fmt.Scanf("%d", &choice)
+				switch choice {
+				case 1:
+					clearScreen()
+					userHandler.UpdateProfile(ctx)
+				case 2:
+					clearScreen()
+					userHandler.RegisterVehicle(ctx)
+				case 3:
+					clearScreen()
+					ctx = authController.Logout()
+				default:
+					return
+				}
+			} else {
+				fmt.Println("Admin functionalities are not implemented in CLI version yet.")
 			}
 		}
 	}

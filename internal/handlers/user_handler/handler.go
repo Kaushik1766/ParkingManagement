@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	authenticationmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/authentication_middleware"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	userservice "github.com/Kaushik1766/ParkingManagement/internal/service/user_service"
 	"github.com/fatih/color"
@@ -20,15 +19,7 @@ func NewCliUserHandler(userService userservice.UserManager) *CliUserHandler {
 	}
 }
 
-func (handler *CliUserHandler) UpdateProfile(token string) {
-	ctx := context.Background()
-
-	userCtx, err := authenticationmiddleware.CliAuthenticate(ctx, token)
-	if err != nil {
-		color.Red("Authentication failed: %v", err)
-		return
-	}
-
+func (handler *CliUserHandler) UpdateProfile(userCtx context.Context) {
 	var name, email, password string
 	color.Cyan("Enter your new details to update profile:")
 	color.Cyan("Name (leave blank to skip):")
@@ -38,21 +29,13 @@ func (handler *CliUserHandler) UpdateProfile(token string) {
 	color.Green("Password (leave blank to skip):")
 	fmt.Scanln(&password)
 
-	err = handler.userService.UpdateProfile(userCtx, name, email, password)
+	err := handler.userService.UpdateProfile(userCtx, name, email, password)
 	if err != nil {
 		color.Red("Failed to update profile: %v", err)
 	}
 }
 
-func (handler *CliUserHandler) RegisterVehicle(token string) {
-	ctx := context.Background()
-
-	userCtx, err := authenticationmiddleware.CliAuthenticate(ctx, token)
-	if err != nil {
-		color.Red("Authentication failed: %v", err)
-		return
-	}
-
+func (handler *CliUserHandler) RegisterVehicle(userCtx context.Context) {
 	var numberPlate string
 	var vehicleType vehicletypes.VehicleType
 	color.Cyan("Enter vehicle details:")
@@ -61,7 +44,7 @@ func (handler *CliUserHandler) RegisterVehicle(token string) {
 	color.Yellow("Vehicle Type (0 for Two Wheeler , 2 for Four Wheeler):")
 	fmt.Scanln(&vehicleType)
 
-	err = handler.userService.RegisterVehicle(userCtx, numberPlate, vehicleType)
+	err := handler.userService.RegisterVehicle(userCtx, numberPlate, vehicleType)
 	if err != nil {
 		color.Red("Failed to register vehicle: %v", err)
 	}
