@@ -3,6 +3,7 @@ package authhandler
 import (
 	"context"
 	"fmt"
+	"os"
 
 	authenticationmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/authentication_middleware"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
@@ -31,6 +32,8 @@ func (auth *CliAuthHandler) Login(baseCtx context.Context) (context.Context, err
 	if err != nil {
 		return nil, err
 	}
+
+	_ = os.WriteFile("token.txt", []byte(token), 0666)
 	userCtx, err := authenticationmiddleware.CliAuthenticate(baseCtx, token)
 
 	return userCtx, err
@@ -63,5 +66,6 @@ func (auth *CliAuthHandler) AdminSignup() error {
 }
 
 func (auth *CliAuthHandler) Logout() context.Context {
+	os.Remove("token.txt")
 	return nil
 }

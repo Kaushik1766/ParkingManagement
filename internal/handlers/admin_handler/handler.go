@@ -1,6 +1,7 @@
 package adminhandler
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"slices"
@@ -19,29 +20,34 @@ type CliAdminHandler struct {
 	floorService    floorservice.FloorMgr
 	buildingService buildingservice.BuildingMgr
 	slotService     slotservice.SlotMgr
+	reader          bufio.Reader
 }
 
 func NewCliAdminHandler(
 	floorService floorservice.FloorMgr,
 	buildingService buildingservice.BuildingMgr,
 	slotService slotservice.SlotMgr,
+	reader *bufio.Reader,
 ) *CliAdminHandler {
 	return &CliAdminHandler{
 		floorService:    floorService,
 		buildingService: buildingService,
 		slotService:     slotService,
+		reader:          *reader,
 	}
 }
 
 func (h *CliAdminHandler) AddBuilding(ctx context.Context) {
 	color.Blue("Enter the name of the building to add:")
-	var buildingName string
-	fmt.Scanln(&buildingName)
-	err := h.buildingService.AddBuilding(ctx, buildingName)
+	buildingName, err := h.reader.ReadString('\n')
+	buildingName = strings.TrimRight(buildingName, "\r\n")
 	if err != nil {
-		color.Red("Error adding building: %v", err)
-		color.Green("Press Enter to continue...")
-		fmt.Scanln()
+		customerrors.DisplayError(fmt.Sprintf("Error reading building name: %v", err))
+		return
+	}
+	err = h.buildingService.AddBuilding(ctx, buildingName)
+	if err != nil {
+		customerrors.DisplayError(fmt.Sprintf("Error adding building: %v", err))
 	}
 }
 
@@ -53,7 +59,7 @@ func (h *CliAdminHandler) DeleteBuilding(ctx context.Context) {
 		return
 	}
 	for i, name := range buildingNames {
-		fmt.Println(color.BlueString("%d. %s", i+1, name))
+		fmt.Println(color.BlueString("%d. %s\t", i+1, name))
 		if i%5 == 0 {
 			fmt.Println("")
 		}

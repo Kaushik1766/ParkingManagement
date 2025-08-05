@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"os"
@@ -11,6 +12,7 @@ import (
 	adminhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/admin_handler"
 	authhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/auth_handler"
 	userhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/user_handler"
+	authenticationmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/authentication_middleware"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
 	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
@@ -40,6 +42,8 @@ var (
 	floorService    floorservice.FloorMgr              = nil
 	buildingService buildingservice.BuildingMgr        = nil
 	slotService     slotservice.SlotMgr                = nil
+	reader          *bufio.Reader                      = nil
+	ctx             context.Context                    = nil
 )
 
 func init() {
@@ -57,7 +61,16 @@ func init() {
 	floorService = floorservice.NewFloorService(floorDb, buildingDb)
 	buildingService = buildingservice.NewBuildingService(buildingDb)
 	slotService = slotservice.NewSlotService(slotDb, buildingDb, floorDb)
-	adminHandler = adminhandler.NewCliAdminHandler(floorService, buildingService, slotService)
+	reader = bufio.NewReader(os.Stdin)
+	adminHandler = adminhandler.NewCliAdminHandler(floorService, buildingService, slotService, reader)
+
+	loadLogin()
+}
+
+func loadLogin() {
+	data, _ := os.ReadFile("token.txt")
+	token := string(data)
+	ctx, _ = authenticationmiddleware.CliAuthenticate(context.Background(), token)
 }
 
 func cleanup() {
@@ -80,7 +93,6 @@ func main() {
 		os.Exit(0)
 	}()
 	var choice int
-	var ctx context.Context = nil
 	for {
 		if ctx == nil {
 			clearScreen()
