@@ -124,7 +124,7 @@ func (us *UserService) UpdateProfile(ctx context.Context, name, email, password 
 }
 
 func (us *UserService) DeleteProfile(ctx context.Context) error {
-	currentUser := ctx.Value("user").(user.User)
+	currentUser := ctx.Value(constants.User).(user.User)
 	currentUser.IsActive = false
 	err := us.userRepo.Save(currentUser)
 	return err

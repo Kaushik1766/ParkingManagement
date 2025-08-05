@@ -14,6 +14,22 @@ type BuildingService struct {
 	buildingRepo buildingrepository.BuildingStorage
 }
 
+func (bs *BuildingService) GetAllBuildings(ctx context.Context) ([]string, error) {
+	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
+	if ctxUser.Role != roles.Admin {
+		return nil, errors.New("unauthorized: only admin can view buildings")
+	}
+	buildings, err := bs.buildingRepo.GetAllBuildings()
+	if err != nil {
+		return nil, err
+	}
+	var buildingNames []string
+	for _, building := range buildings {
+		buildingNames = append(buildingNames, building.BuildingName)
+	}
+	return buildingNames, nil
+}
+
 func NewBuildingService(repo buildingrepository.BuildingStorage) *BuildingService {
 	return &BuildingService{
 		buildingRepo: repo,

@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	adminhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/admin_handler"
@@ -58,6 +61,7 @@ func init() {
 }
 
 func cleanup() {
+	color.Green("Cleaning up...")
 	userDb.(*userrepository.FileUserRepository).SerializeData()
 	vehicleDb.(*vehiclerepository.FileVehicleRepository).SerializeData()
 	floorDb.(*floorrepository.FileFloorRepository).SerializeData()
@@ -67,6 +71,14 @@ func cleanup() {
 
 func main() {
 	defer cleanup()
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGTSTP)
+
+	go func() {
+		<-ch
+		cleanup()
+		os.Exit(0)
+	}()
 	var choice int
 	var ctx context.Context = nil
 	for {

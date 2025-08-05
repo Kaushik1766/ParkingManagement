@@ -6,4 +6,5 @@ type BuildingStorage interface {
 	AddBuilding(name string) error
 	DeleteBuilding(name string) error
 	GetBuildingByName(name string) (building.Building, error)
+	GetAllBuildings() ([]building.Building, error)
 }

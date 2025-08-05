@@ -5,4 +5,5 @@ import "context"
 type BuildingMgr interface {
 	AddBuilding(ctx context.Context, name string) error
 	DeleteBuilding(ctx context.Context, name string) error
+	GetAllBuildings(ctx context.Context) ([]string, error)
 }

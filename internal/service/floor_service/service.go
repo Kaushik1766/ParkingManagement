@@ -51,7 +51,7 @@ func (fs *FloorService) GetFloorsByBuildingId(ctx context.Context, buildingName 
 }
 
 func (fs *FloorService) AddFloors(ctx context.Context, buildingName string, floorNumbers []int) error {
-	ctxUser := ctx.Value("User").(userjwt.UserJwt)
+	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return errors.New("unauthorized: only admin can add floors")
 	}
@@ -69,7 +69,7 @@ func (fs *FloorService) AddFloors(ctx context.Context, buildingName string, floo
 }
 
 func (fs *FloorService) AddFloor(ctx context.Context, buildingName string, floorNumber int) error {
-	ctxUser := ctx.Value("User").(userjwt.UserJwt)
+	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return errors.New("unauthorized: only admin can add floors")
 	}
@@ -81,7 +81,7 @@ func (fs *FloorService) AddFloor(ctx context.Context, buildingName string, floor
 }
 
 func (fs *FloorService) DeleteFloor(ctx context.Context, buildingName string, floorNumber int) error {
-	ctxUser := ctx.Value("User").(userjwt.UserJwt)
+	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return errors.New("unauthorized: only admin can delete floors")
 	}
