@@ -3,6 +3,7 @@ package floorservice
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
@@ -62,7 +63,7 @@ func (fs *FloorService) AddFloors(ctx context.Context, buildingName string, floo
 	for _, floorNumber := range floorNumbers {
 		err = fs.floorRepo.AddFloor(building.BuildingId, floorNumber)
 		if err != nil {
-			return err
+			return fmt.Errorf("error adding floor %d to building %s: %w", floorNumber, building.BuildingName, err)
 		}
 	}
 	return nil

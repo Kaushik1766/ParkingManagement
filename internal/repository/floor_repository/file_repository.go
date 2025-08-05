@@ -45,8 +45,8 @@ func (ffr *FileFloorRepository) AddFloor(buildingId uuid.UUID, floorNumber int) 
 	ffr.Lock()
 	defer ffr.Unlock()
 	for _, f := range ffr.floors {
-		if f.BuildingId == buildingId {
-			return fmt.Errorf("floor for building %s already exists", buildingId)
+		if f.BuildingId == buildingId && f.FloorNumber == floorNumber {
+			return fmt.Errorf("floor %d already exists", floorNumber)
 		}
 	}
 	ffr.floors = append(ffr.floors, floor.Floor{
