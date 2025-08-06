@@ -38,7 +38,7 @@ func ReadIntList(msg string, reader *bufio.Reader) ([]int, error) {
 
 func PrintListInRows(list []string) {
 	for i, name := range list {
-		fmt.Print(color.BlueString("%d. %s\t", i+1, name))
+		fmt.Print(color.BlueString("%2d.%-15s", i+1, name))
 		if (i+1)%5 == 0 {
 			fmt.Println("")
 		}

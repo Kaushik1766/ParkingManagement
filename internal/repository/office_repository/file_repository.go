@@ -76,6 +76,24 @@ func (fr *FileOfficeRepository) DeleteOffice(officeName string) error {
 	return errors.New("office not found")
 }
 
+func (fr *FileOfficeRepository) GetOfficesByBuilding(buildingName string) ([]office.Office, error) {
+	fr.Lock()
+	defer fr.Unlock()
+	var offices []office.Office
+	for _, val := range fr.offices {
+		if val.BuildingName == buildingName {
+			offices = append(offices, val)
+		}
+	}
+	return offices, nil
+}
+
+func (fr *FileOfficeRepository) GetAllOffices() ([]office.Office, error) {
+	fr.Lock()
+	defer fr.Unlock()
+	return fr.offices, nil
+}
+
 func (fr *FileOfficeRepository) SerializeData() error {
 	fr.Lock()
 	defer fr.Unlock()

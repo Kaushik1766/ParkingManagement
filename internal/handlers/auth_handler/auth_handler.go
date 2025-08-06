@@ -9,6 +9,7 @@ import (
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	authservice "github.com/Kaushik1766/ParkingManagement/internal/service/auth_service"
 	"github.com/fatih/color"
+	"golang.org/x/term"
 )
 
 type CliAuthHandler struct {
@@ -23,11 +24,15 @@ func NewCliAuthHandler(authMgr authservice.AuthenticationManager) *CliAuthHandle
 
 func (auth *CliAuthHandler) Login(baseCtx context.Context) (context.Context, error) {
 	color.Cyan("Enter your credentials to login:")
-	color.Yellow("Email:")
+	fmt.Print(color.YellowString("Email:"))
 	var email, password string
 	fmt.Scanln(&email)
-	color.Green("Password:")
-	fmt.Scanln(&password)
+	fmt.Print(color.GreenString("Password:"))
+	passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
+	if err != nil {
+		return nil, fmt.Errorf("failed to read password: %w", err)
+	}
+	password = string(passwordBytes)
 	token, err := auth.authMgr.Login(email, password)
 	if err != nil {
 		return nil, err

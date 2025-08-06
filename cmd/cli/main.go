@@ -17,12 +17,14 @@ import (
 	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
 	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
 	floorrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/floor_repository"
+	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
 	slotrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/slot_repository"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
 	authservice "github.com/Kaushik1766/ParkingManagement/internal/service/auth_service"
 	buildingservice "github.com/Kaushik1766/ParkingManagement/internal/service/building_service"
 	floorservice "github.com/Kaushik1766/ParkingManagement/internal/service/floor_service"
+	officeservice "github.com/Kaushik1766/ParkingManagement/internal/service/office_service"
 	slotservice "github.com/Kaushik1766/ParkingManagement/internal/service/slot_service"
 	userservice "github.com/Kaushik1766/ParkingManagement/internal/service/user_service"
 	"github.com/fatih/color"
@@ -34,8 +36,10 @@ var (
 	floorDb         floorrepository.FloorStorage       = nil
 	slotDb          slotrepository.SlotStorage         = nil
 	buildingDb      buildingrepository.BuildingStorage = nil
+	officeDb        officerepository.OfficeStorage     = nil
 	userService     userservice.UserManager            = nil
 	authService     authservice.AuthenticationManager  = nil
+	officeService   officeservice.OfficeMgr            = nil
 	authController  *authhandler.CliAuthHandler        = nil
 	userHandler     *userhandler.CliUserHandler        = nil
 	adminHandler    *adminhandler.CliAdminHandler      = nil
@@ -57,12 +61,14 @@ func init() {
 	buildingDb = buildingrepository.NewFileBuildingRepository()
 	floorDb = floorrepository.NewFileFloorRepository()
 	slotDb = slotrepository.NewFileSlotRepository()
+	officeDb = officerepository.NewFileOfficeRepository()
 
 	floorService = floorservice.NewFloorService(floorDb, buildingDb)
 	buildingService = buildingservice.NewBuildingService(buildingDb)
 	slotService = slotservice.NewSlotService(slotDb, buildingDb, floorDb)
+	officeService = officeservice.NewOfficeService(officeDb, buildingDb, floorDb)
 	reader = bufio.NewReader(os.Stdin)
-	adminHandler = adminhandler.NewCliAdminHandler(floorService, buildingService, slotService, reader)
+	adminHandler = adminhandler.NewCliAdminHandler(floorService, buildingService, slotService, reader, officeService)
 
 	loadLogin()
 }
@@ -157,37 +163,124 @@ func main() {
 			} else {
 				clearScreen()
 				color.Cyan("Admin page: ")
+				color.Cyan("1. Building Management")
+				color.Cyan("2. Floor Management")
+				color.Cyan("3. Slot Management")
+				color.Cyan("4. Office Management")
+				color.Cyan("5. Logout")
+				color.Cyan("6. Exit")
+
 				color.Yellow("Enter your choice:")
-				color.Yellow("1. Add Building")
-				color.Yellow("2. Delete Building")
-				color.Yellow("3. Add Floor")
-				color.Yellow("4. Delete Floor")
-				color.Yellow("5. Add Slots")
-				color.Yellow("6. Delete Slots")
-				color.Yellow("7. Logout")
-				color.Yellow("8. Exit")
 				fmt.Scanf("%d", &choice)
 				clearScreen()
 				switch choice {
 				case 1:
-					adminHandler.AddBuilding(ctx)
+					buildingManagement()
 				case 2:
-					adminHandler.DeleteBuilding(ctx)
+					floorManagement()
 				case 3:
-					adminHandler.AddFloors(ctx)
+					slotManagement()
 				case 4:
-					adminHandler.DeleteFloors(ctx)
+					officeManagement()
 				case 5:
-					adminHandler.AddSlots(ctx)
-				case 6:
-					adminHandler.DeleteSlots(ctx)
-				case 7:
 					ctx = authController.Logout()
 				default:
 					return
 				}
 
 			}
+		}
+	}
+}
+
+func buildingManagement() {
+	for {
+		color.Yellow("Enter your choice:")
+		color.Yellow("1. Add Building")
+		color.Yellow("2. Delete Building")
+		color.Yellow("3. List Buildings")
+		color.Yellow("4. Exit")
+		var choice int
+		fmt.Scanf("%d", &choice)
+		clearScreen()
+		switch choice {
+		case 1:
+			adminHandler.AddBuilding(ctx)
+		case 2:
+			adminHandler.DeleteBuilding(ctx)
+		case 3:
+			adminHandler.ListBuildings(ctx)
+		default:
+			return
+		}
+	}
+}
+
+func floorManagement() {
+	for {
+		color.Yellow("Enter your choice:")
+		color.Yellow("1. Add Floor")
+		color.Yellow("2. Delete Floor")
+		color.Yellow("3. List Floors")
+		color.Yellow("4. Exit")
+		var choice int
+		fmt.Scanf("%d", &choice)
+		clearScreen()
+		switch choice {
+		case 1:
+			adminHandler.AddFloors(ctx)
+		case 2:
+			adminHandler.DeleteFloors(ctx)
+		case 3:
+			adminHandler.ListFloors(ctx)
+		default:
+			return
+		}
+	}
+}
+
+func slotManagement() {
+	for {
+		color.Yellow("Enter your choice:")
+		color.Yellow("1. Add Slots")
+		color.Yellow("2. Delete Slots")
+		color.Yellow("3. View Slots")
+		color.Yellow("4. Exit")
+		var choice int
+		fmt.Scanf("%d", &choice)
+		clearScreen()
+		switch choice {
+		case 1:
+			adminHandler.AddSlots(ctx)
+		case 2:
+			adminHandler.DeleteSlots(ctx)
+		case 3:
+			adminHandler.ListSlots(ctx)
+		default:
+			return
+		}
+	}
+}
+
+func officeManagement() {
+	for {
+		color.Yellow("Enter your choice:")
+		color.Yellow("1. Add Office")
+		color.Yellow("2. Remove Office")
+		color.Yellow("3. List Offices")
+		color.Yellow("4. Exit")
+		var choice int
+		fmt.Scanf("%d", &choice)
+		clearScreen()
+		switch choice {
+		case 1:
+			adminHandler.AddOffice(ctx)
+		case 2:
+			adminHandler.RemoveOffice(ctx)
+		case 3:
+			adminHandler.ListOffices(ctx)
+		default:
+			return
 		}
 	}
 }

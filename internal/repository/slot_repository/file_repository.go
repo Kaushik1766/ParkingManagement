@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 	"sync"
 
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
@@ -25,9 +26,12 @@ func (fsr *FileSlotRepository) GetSlotsByFloor(buildingId uuid.UUID, floorNumber
 			slots = append(slots, s)
 		}
 	}
-	if len(slots) == 0 {
-		return nil, fmt.Errorf("no slots found for building %s, floor %d", buildingId, floorNumber)
-	}
+	sort.Slice(slots, func(i, j int) bool {
+		return slots[i].SlotNumber < slots[j].SlotNumber
+	})
+	// if len(slots) == 0 {
+	// 	return nil, fmt.Errorf("no slots found for building %s, floor %d", buildingId, floorNumber)
+	// }
 	return slots, nil
 }
 

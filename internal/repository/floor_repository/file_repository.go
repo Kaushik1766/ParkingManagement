@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 	"sync"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/models/floor"
@@ -24,9 +25,10 @@ func (ffr *FileFloorRepository) GetFloorsByBuildingId(buildingId uuid.UUID) ([]i
 			floorNumbers = append(floorNumbers, f.FloorNumber)
 		}
 	}
-	if len(floorNumbers) == 0 {
-		return nil, fmt.Errorf("no floors found for building %s", buildingId)
-	}
+	sort.Ints(floorNumbers)
+	// if len(floorNumbers) == 0 {
+	// 	return nil, fmt.Errorf("no floors found for building %s", buildingId)
+	// }
 	return floorNumbers, nil
 }
 
