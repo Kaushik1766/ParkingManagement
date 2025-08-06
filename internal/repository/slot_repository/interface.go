@@ -10,4 +10,6 @@ type SlotStorage interface {
 	AddSlot(buildingId uuid.UUID, floorNumber, slotNumber int, slotType vehicletypes.VehicleType) error
 	DeleteSlot(buildingId uuid.UUID, floorNumber, slotNumber int) error
 	GetSlotsByFloor(buildingId uuid.UUID, floorNumber int) ([]slot.Slot, error)
+	GetFreeSlotsByFloor(buildingId uuid.UUID, floorNumber int) ([]slot.Slot, error)
+	Save(slot slot.Slot) error
 }

@@ -7,7 +7,7 @@ import (
 
 type UserJwt struct {
 	jwt.RegisteredClaims
-	ID    string     `json:"id"`
-	Email string     `json:"email"`
-	Role  roles.Role `json:"role"`
+	Email  string     `json:"email"`
+	Role   roles.Role `json:"role"`
+	Office string     `json:"office"`
 }

@@ -19,6 +19,19 @@ type FileVehicleRepository struct {
 	userRepo userrepository.UserStorage
 }
 
+func (fvr *FileVehicleRepository) Save(vehicle vehicle.Vehicle) error {
+	fvr.Lock()
+	defer fvr.Unlock()
+	for i, val := range fvr.vehicles {
+		if val.VehicleId == vehicle.VehicleId {
+			fvr.vehicles[i] = vehicle
+			return nil
+		}
+	}
+	fvr.vehicles = append(fvr.vehicles, vehicle)
+	return nil
+}
+
 func (fvr *FileVehicleRepository) AddVehicle(numberplate string, userid uuid.UUID, vehicleType vehicletypes.VehicleType) error {
 	fvr.Lock()
 	defer fvr.Unlock()

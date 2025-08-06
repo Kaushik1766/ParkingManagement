@@ -65,11 +65,11 @@ func init() {
 	officeService = officeservice.NewOfficeService(officeDb, buildingDb, floorDb)
 	userService = userservice.NewUserService(userDb, vehicleDb, officeDb)
 
+	reader = bufio.NewReader(os.Stdin)
+
 	authController = authhandler.NewCliAuthHandler(authService, officeService)
 	userHandler = userhandler.NewCliUserHandler(userService)
 	adminHandler = adminhandler.NewCliAdminHandler(floorService, buildingService, slotService, reader, officeService)
-
-	reader = bufio.NewReader(os.Stdin)
 
 	loadLogin()
 }

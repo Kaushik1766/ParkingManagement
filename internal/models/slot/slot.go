@@ -22,6 +22,9 @@ func (s Slot) GetID() string {
 }
 
 func (s Slot) String() string {
+	if s.BuildingId == uuid.Nil {
+		return "unassigned"
+	}
 	return fmt.Sprintf("%v_%v_%v", s.BuildingId, s.FloorNumber, s.SlotNumber)
 }
 
