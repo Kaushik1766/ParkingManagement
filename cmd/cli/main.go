@@ -53,22 +53,23 @@ var (
 func init() {
 	userDb = userrepository.NewFileUserRepository()
 	vehicleDb = vehiclerepository.NewFileVehicleRepository(userDb)
-	userService = userservice.NewUserService(userDb, vehicleDb)
-	authService = authservice.NewAuthService(userDb)
-	authController = authhandler.NewCliAuthHandler(authService)
-	userHandler = userhandler.NewCliUserHandler(userService)
-
 	buildingDb = buildingrepository.NewFileBuildingRepository()
 	floorDb = floorrepository.NewFileFloorRepository()
 	slotDb = slotrepository.NewFileSlotRepository()
 	officeDb = officerepository.NewFileOfficeRepository()
 
+	authService = authservice.NewAuthService(userDb, officeDb)
 	floorService = floorservice.NewFloorService(floorDb, buildingDb)
 	buildingService = buildingservice.NewBuildingService(buildingDb)
 	slotService = slotservice.NewSlotService(slotDb, buildingDb, floorDb)
 	officeService = officeservice.NewOfficeService(officeDb, buildingDb, floorDb)
-	reader = bufio.NewReader(os.Stdin)
+	userService = userservice.NewUserService(userDb, vehicleDb, officeDb)
+
+	authController = authhandler.NewCliAuthHandler(authService, officeService)
+	userHandler = userhandler.NewCliUserHandler(userService)
 	adminHandler = adminhandler.NewCliAdminHandler(floorService, buildingService, slotService, reader, officeService)
+
+	reader = bufio.NewReader(os.Stdin)
 
 	loadLogin()
 }
@@ -105,8 +106,7 @@ func main() {
 			color.Cyan("Welcome to Parking Management System")
 			color.Yellow("1. Login")
 			color.Yellow("2. Signup")
-			color.Yellow("3. Admin Signup")
-			color.Yellow("4. Exit")
+			color.Yellow("3. Exit")
 			fmt.Scanf("%d", &choice)
 			clearScreen()
 			switch choice {
@@ -122,11 +122,7 @@ func main() {
 					ctx = userCtx
 				}
 			case 2:
-				err := authController.CustomerSignup()
-				fmt.Println(err)
-			case 3:
-				err := authController.AdminSignup()
-				fmt.Println(err)
+				authController.CustomerSignup()
 			default:
 				return
 			}

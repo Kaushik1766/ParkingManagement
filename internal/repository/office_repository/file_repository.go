@@ -94,6 +94,17 @@ func (fr *FileOfficeRepository) GetAllOffices() ([]office.Office, error) {
 	return fr.offices, nil
 }
 
+func (fr *FileOfficeRepository) GetOfficeByName(officeName string) (office.Office, error) {
+	fr.Lock()
+	defer fr.Unlock()
+	for _, val := range fr.offices {
+		if val.OfficeName == officeName {
+			return val, nil
+		}
+	}
+	return office.Office{}, errors.New("office not found")
+}
+
 func (fr *FileOfficeRepository) SerializeData() error {
 	fr.Lock()
 	defer fr.Unlock()

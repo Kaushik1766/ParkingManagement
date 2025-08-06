@@ -60,3 +60,16 @@ func (officeServ *OfficeService) ListOfficesByBuilding(ctx context.Context, buil
 	}
 	return officeMap, nil
 }
+
+func (officeServ *OfficeService) GetAllOfficeNames(ctx context.Context) ([]string, error) {
+	offices, err := officeServ.officeRepo.GetAllOffices()
+	if err != nil {
+		return nil, errors.New("no offices found")
+	}
+
+	var officeNames []string
+	for _, office := range offices {
+		officeNames = append(officeNames, office.OfficeName)
+	}
+	return officeNames, nil
+}

@@ -20,7 +20,7 @@ func NewCliUserHandler(userService userservice.UserManager) *CliUserHandler {
 }
 
 func (handler *CliUserHandler) UpdateProfile(userCtx context.Context) {
-	var name, email, password string
+	var name, email, password, office string
 	color.Cyan("Enter your new details to update profile:")
 	color.Cyan("Name (leave blank to skip):")
 	fmt.Scanln(&name)
@@ -28,8 +28,10 @@ func (handler *CliUserHandler) UpdateProfile(userCtx context.Context) {
 	fmt.Scanln(&email)
 	color.Green("Password (leave blank to skip):")
 	fmt.Scanln(&password)
+	color.Magenta("Office (leave blank to skip):")
+	fmt.Scanln(&office)
 
-	err := handler.userService.UpdateProfile(userCtx, name, email, password)
+	err := handler.userService.UpdateProfile(userCtx, name, email, password, office)
 	if err != nil {
 		color.Red("Failed to update profile: %v", err)
 	}

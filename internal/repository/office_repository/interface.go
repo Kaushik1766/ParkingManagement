@@ -8,4 +8,5 @@ type OfficeStorage interface {
 	GetBuildingAndFloorByOffice(officeName string) (string, int, error)
 	GetOfficesByBuilding(buildingName string) ([]office.Office, error)
 	GetAllOffices() ([]office.Office, error)
+	GetOfficeByName(officeName string) (office.Office, error)
 }

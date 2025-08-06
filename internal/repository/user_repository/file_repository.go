@@ -75,7 +75,7 @@ func (db *FileUserRepository) Save(user user.User) error {
 	return nil
 }
 
-func (db *FileUserRepository) CreateUser(name, email, password string, role roles.Role) error {
+func (db *FileUserRepository) CreateUser(name, email, password, office string, role roles.Role) error {
 	for _, val := range db.users {
 		if val.Email == email {
 			return errors.New("email already used")
@@ -89,6 +89,7 @@ func (db *FileUserRepository) CreateUser(name, email, password string, role role
 		Password: password,
 		Role:     role,
 		IsActive: true,
+		Office:   office,
 	})
 	return nil
 }

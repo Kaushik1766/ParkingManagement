@@ -1,33 +1,45 @@
 package authservice
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
+	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
-	db userrepository.UserStorage
+	userDb   userrepository.UserStorage
+	officeDb officerepository.OfficeStorage
 }
 
-func NewAuthService(db userrepository.UserStorage) *AuthService {
+func NewAuthService(
+	db userrepository.UserStorage,
+	officeDb officerepository.OfficeStorage,
+) *AuthService {
 	return &AuthService{
-		db: db,
+		userDb:   db,
+		officeDb: officeDb,
 	}
 }
 
-func (auth *AuthService) Signup(name, email, password string, role roles.Role) error {
+func (auth *AuthService) Signup(name, email, password, office string, role roles.Role) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {
 		return err
 	}
 
-	err = auth.db.CreateUser(name, email, string(hashedPassword), role)
+	_, err = auth.officeDb.GetOfficeByName(office)
+	if err != nil {
+		return fmt.Errorf("error in signup service: %w", err)
+	}
+
+	err = auth.userDb.CreateUser(name, email, string(hashedPassword), office, role)
 	return err
 }
 
@@ -36,7 +48,7 @@ func (auth *AuthService) Login(email, password string) (string, error) {
 	// if err != nil {
 	// 	return "", errors.New("invalid email")
 	// }
-	user, err := auth.db.GetUserByEmail(email)
+	user, err := auth.userDb.GetUserByEmail(email)
 	if err != nil {
 		return "", err
 	}

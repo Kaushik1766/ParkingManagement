@@ -12,6 +12,7 @@ type User struct {
 	Password string
 	Role     roles.Role
 	IsActive bool
+	Office   string
 }
 
 func (u User) GetID() string {

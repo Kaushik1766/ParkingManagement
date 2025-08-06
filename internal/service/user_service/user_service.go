@@ -10,6 +10,7 @@ import (
 	user "github.com/Kaushik1766/ParkingManagement/internal/models/user"
 	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/vehicle"
+	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
 	"github.com/google/uuid"
@@ -19,6 +20,7 @@ import (
 type UserService struct {
 	userRepo    userrepository.UserStorage
 	vehicleRepo vehiclerepository.VehicleStorage
+	officeRepo  officerepository.OfficeStorage
 }
 
 func (us *UserService) GetUserProfile(ctx context.Context) (user.UserDTO, error) {
@@ -87,14 +89,19 @@ func (us *UserService) GetRegisteredVehicles(ctx context.Context) []vehicle.Vehi
 	return userVehicleDTO
 }
 
-func NewUserService(repo userrepository.UserStorage, vehicRepo vehiclerepository.VehicleStorage) *UserService {
+func NewUserService(
+	repo userrepository.UserStorage,
+	vehicRepo vehiclerepository.VehicleStorage,
+	officeRepo officerepository.OfficeStorage,
+) *UserService {
 	return &UserService{
 		userRepo:    repo,
 		vehicleRepo: vehicRepo,
+		officeRepo:  officeRepo,
 	}
 }
 
-func (us *UserService) UpdateProfile(ctx context.Context, name, email, password string) error {
+func (us *UserService) UpdateProfile(ctx context.Context, name, email, password, office string) error {
 	ctxVal := ctx.Value(constants.User)
 	if ctxVal == nil {
 		return errors.New("invalid context")
@@ -111,6 +118,13 @@ func (us *UserService) UpdateProfile(ctx context.Context, name, email, password 
 	}
 	if email != "" {
 		updatedUser.Email = email
+	}
+	if office != "" {
+		_, err = us.officeRepo.GetOfficeByName(office)
+		if err != nil {
+			return errors.New("office does not exist")
+		}
+		updatedUser.Office = office
 	}
 	if password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updatedUser.Password), 12)

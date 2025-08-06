@@ -9,7 +9,7 @@ import (
 )
 
 type UserManager interface {
-	UpdateProfile(ctx context.Context, name, email, password string) error
+	UpdateProfile(ctx context.Context, name, email, password, office string) error
 	DeleteProfile(ctx context.Context) error
 	RegisterVehicle(ctx context.Context, numberplate string, vehicleType vehicletypes.VehicleType) error
 	UnregisterVehicle(ctx context.Context, numberplate string) error
