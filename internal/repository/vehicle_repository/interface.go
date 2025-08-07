@@ -7,7 +7,7 @@ import (
 )
 
 type VehicleStorage interface {
-	AddVehicle(numberplate string, userid uuid.UUID, vehicleType vehicletypes.VehicleType) error
+	AddVehicle(numberplate string, userid uuid.UUID, vehicleType vehicletypes.VehicleType) (vehicle.Vehicle, error)
 	RemoveVehicle(numberplate string) error
 	GetVehicleById(vehicleId uuid.UUID) (vehicle.Vehicle, error)
 	GetVehiclesByUserId(userId uuid.UUID) ([]vehicle.Vehicle, error)

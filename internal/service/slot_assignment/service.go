@@ -23,6 +23,22 @@ type SlotAssignmentService struct {
 	officeRepo   officerepository.OfficeStorage
 }
 
+func NewSlotAssignmentService(
+	vehicleRepo vehiclerepository.VehicleStorage,
+	floorRepo floorrepository.FloorStorage,
+	buildingRepo buildingrepository.BuildingStorage,
+	slotRepo slotrepository.SlotStorage,
+	officeRepo officerepository.OfficeStorage,
+) *SlotAssignmentService {
+	return &SlotAssignmentService{
+		vehicleRepo:  vehicleRepo,
+		floorRepo:    floorRepo,
+		buildingRepo: buildingRepo,
+		slotRepo:     slotRepo,
+		officeRepo:   officeRepo,
+	}
+}
+
 func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId string) error {
 	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
 
@@ -31,27 +47,28 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 		return err
 	}
 	userVehicles, err := sas.vehicleRepo.GetVehiclesByUserId(uid)
+	if err != nil {
+		return err
+	}
 
 	vehicleUuid, err := uuid.Parse(vehicleId)
 	if err != nil {
 		return err
 	}
-	newVehicle, err := sas.vehicleRepo.GetVehicleById(vehicleUuid)
+	vehicle, err := sas.vehicleRepo.GetVehicleById(vehicleUuid)
 	if err != nil {
 		return err
 	}
 
 	for _, val := range userVehicles {
-		if val.VehicleType == newVehicle.VehicleType {
-			newVehicle.AssignedSlot = val.AssignedSlot
+		if val.VehicleType == vehicle.VehicleType && val.AssignedSlot.BuildingId != uuid.Nil {
+			vehicle.AssignedSlot = val.AssignedSlot
+			err = sas.vehicleRepo.Save(vehicle)
+			if err != nil {
+				return err
+			}
+			return nil
 		}
-	}
-	if newVehicle.AssignedSlot.BuildingId != uuid.Nil {
-		err = sas.vehicleRepo.Save(newVehicle)
-		if err != nil {
-			return err
-		}
-		return nil
 	}
 
 	userOffice, err := sas.officeRepo.GetOfficeByName(ctxUser.Office)
@@ -73,9 +90,9 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 		return errors.New("no free slots available please contact admin")
 	}
 
-	newVehicle.AssignedSlot = freeSlots[0]
+	vehicle.AssignedSlot = freeSlots[0]
 	freeSlots[0].IsOccupied = true
-	err = sas.vehicleRepo.Save(newVehicle)
+	err = sas.vehicleRepo.Save(vehicle)
 	if err != nil {
 		return err
 	}

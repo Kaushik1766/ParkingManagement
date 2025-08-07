@@ -32,12 +32,12 @@ func (fvr *FileVehicleRepository) Save(vehicle vehicle.Vehicle) error {
 	return nil
 }
 
-func (fvr *FileVehicleRepository) AddVehicle(numberplate string, userid uuid.UUID, vehicleType vehicletypes.VehicleType) error {
+func (fvr *FileVehicleRepository) AddVehicle(numberplate string, userid uuid.UUID, vehicleType vehicletypes.VehicleType) (vehicle.Vehicle, error) {
 	fvr.Lock()
 	defer fvr.Unlock()
 	for _, val := range fvr.vehicles {
 		if val.NumberPlate == numberplate {
-			return errors.New("numberplate already registered")
+			return vehicle.Vehicle{}, errors.New("numberplate already registered")
 		}
 	}
 	// TODO: add assigned slot and update interface
@@ -48,7 +48,7 @@ func (fvr *FileVehicleRepository) AddVehicle(numberplate string, userid uuid.UUI
 		UserId:      userid,
 		IsActive:    true,
 	})
-	return nil
+	return fvr.vehicles[len(fvr.vehicles)-1], nil
 }
 
 func (fvr *FileVehicleRepository) RemoveVehicle(numberplate string) error {
@@ -112,10 +112,10 @@ func NewFileVehicleRepository(userRepo userrepository.UserStorage) *FileVehicleR
 	}
 }
 
-func (db *FileVehicleRepository) SerializeData() error {
-	db.Lock()
-	defer db.Unlock()
-	data, err := json.Marshal(db.vehicles)
+func (fvr *FileVehicleRepository) SerializeData() error {
+	fvr.Lock()
+	defer fvr.Unlock()
+	data, err := json.Marshal(fvr.vehicles)
 	if err != nil {
 		return err
 	}

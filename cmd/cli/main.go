@@ -25,29 +25,31 @@ import (
 	buildingservice "github.com/Kaushik1766/ParkingManagement/internal/service/building_service"
 	floorservice "github.com/Kaushik1766/ParkingManagement/internal/service/floor_service"
 	officeservice "github.com/Kaushik1766/ParkingManagement/internal/service/office_service"
+	slotassignment "github.com/Kaushik1766/ParkingManagement/internal/service/slot_assignment"
 	slotservice "github.com/Kaushik1766/ParkingManagement/internal/service/slot_service"
 	userservice "github.com/Kaushik1766/ParkingManagement/internal/service/user_service"
 	"github.com/fatih/color"
 )
 
 var (
-	userDb          userrepository.UserStorage         = nil
-	vehicleDb       vehiclerepository.VehicleStorage   = nil
-	floorDb         floorrepository.FloorStorage       = nil
-	slotDb          slotrepository.SlotStorage         = nil
-	buildingDb      buildingrepository.BuildingStorage = nil
-	officeDb        officerepository.OfficeStorage     = nil
-	userService     userservice.UserManager            = nil
-	authService     authservice.AuthenticationManager  = nil
-	officeService   officeservice.OfficeMgr            = nil
-	authController  *authhandler.CliAuthHandler        = nil
-	userHandler     *userhandler.CliUserHandler        = nil
-	adminHandler    *adminhandler.CliAdminHandler      = nil
-	floorService    floorservice.FloorMgr              = nil
-	buildingService buildingservice.BuildingMgr        = nil
-	slotService     slotservice.SlotMgr                = nil
-	reader          *bufio.Reader                      = nil
-	ctx             context.Context                    = nil
+	userDb            userrepository.UserStorage         = nil
+	vehicleDb         vehiclerepository.VehicleStorage   = nil
+	floorDb           floorrepository.FloorStorage       = nil
+	slotDb            slotrepository.SlotStorage         = nil
+	buildingDb        buildingrepository.BuildingStorage = nil
+	officeDb          officerepository.OfficeStorage     = nil
+	userService       userservice.UserManager            = nil
+	authService       authservice.AuthenticationManager  = nil
+	officeService     officeservice.OfficeMgr            = nil
+	authController    *authhandler.CliAuthHandler        = nil
+	userHandler       *userhandler.CliUserHandler        = nil
+	adminHandler      *adminhandler.CliAdminHandler      = nil
+	floorService      floorservice.FloorMgr              = nil
+	buildingService   buildingservice.BuildingMgr        = nil
+	slotService       slotservice.SlotMgr                = nil
+	assignmentService slotassignment.SlotAssignmentMgr   = nil
+	reader            *bufio.Reader                      = nil
+	ctx               context.Context                    = nil
 )
 
 func init() {
@@ -63,7 +65,8 @@ func init() {
 	buildingService = buildingservice.NewBuildingService(buildingDb)
 	slotService = slotservice.NewSlotService(slotDb, buildingDb, floorDb)
 	officeService = officeservice.NewOfficeService(officeDb, buildingDb, floorDb)
-	userService = userservice.NewUserService(userDb, vehicleDb, officeDb)
+	assignmentService = slotassignment.NewSlotAssignmentService(vehicleDb, floorDb, buildingDb, slotDb, officeDb)
+	userService = userservice.NewUserService(userDb, vehicleDb, officeDb, assignmentService)
 
 	reader = bufio.NewReader(os.Stdin)
 
@@ -87,6 +90,7 @@ func cleanup() {
 	floorDb.(*floorrepository.FileFloorRepository).SerializeData()
 	slotDb.(*slotrepository.FileSlotRepository).SerializeData()
 	buildingDb.(*buildingrepository.FileBuildingRepository).SerializeData()
+	officeDb.(*officerepository.FileOfficeRepository).SerializeData()
 }
 
 func main() {
@@ -138,8 +142,9 @@ func main() {
 				color.Yellow("2. Register vehicle")
 				color.Yellow("3. View Profile")
 				color.Yellow("4. View Registered Vehicles")
-				color.Yellow("5. Logout")
-				color.Yellow("6. Exit")
+				color.Yellow("5. Unregister Vehicle")
+				color.Yellow("6. Logout")
+				color.Yellow("7. Exit")
 				fmt.Scanf("%d", &choice)
 				clearScreen()
 				switch choice {
@@ -152,6 +157,8 @@ func main() {
 				case 4:
 					userHandler.GetRegisteredVehicles(ctx)
 				case 5:
+					userHandler.UnregisterVehicle(ctx)
+				case 6:
 					ctx = authController.Logout()
 				default:
 					return

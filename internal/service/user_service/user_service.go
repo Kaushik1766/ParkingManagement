@@ -3,6 +3,7 @@ package userservice
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
@@ -13,14 +14,16 @@ import (
 	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
+	slotassignment "github.com/Kaushik1766/ParkingManagement/internal/service/slot_assignment"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
-	userRepo    userrepository.UserStorage
-	vehicleRepo vehiclerepository.VehicleStorage
-	officeRepo  officerepository.OfficeStorage
+	userRepo          userrepository.UserStorage
+	vehicleRepo       vehiclerepository.VehicleStorage
+	officeRepo        officerepository.OfficeStorage
+	assignmentService slotassignment.SlotAssignmentMgr
 }
 
 func (us *UserService) GetUserProfile(ctx context.Context) (user.UserDTO, error) {
@@ -44,13 +47,22 @@ func (us *UserService) RegisterVehicle(ctx context.Context, numberplate string, 
 	if err != nil {
 		return err
 	}
-	err = us.vehicleRepo.AddVehicle(numberplate, currentUser.UserId, vehicleType)
+	newVehicle, err := us.vehicleRepo.AddVehicle(numberplate, currentUser.UserId, vehicleType)
+	if err != nil {
+		return err
+	}
+
+	err = us.assignmentService.AutoAssignSlot(ctx, newVehicle.VehicleId.String())
+	if err != nil {
+		return fmt.Errorf("failed to assign slot: %w", err)
+	}
+
 	return err
 }
 
 func (us *UserService) UnregisterVehicle(ctx context.Context, numberplate string) error {
-	currentUser := ctx.Value(constants.User).(user.User)
-	userVehicles, err := us.vehicleRepo.GetVehiclesByUserId(currentUser.UserId)
+	currentUser := ctx.Value(constants.User).(userjwt.UserJwt)
+	userVehicles, err := us.vehicleRepo.GetVehiclesByUserId(uuid.MustParse(currentUser.ID))
 	if err != nil {
 		return err
 	}
@@ -93,11 +105,13 @@ func NewUserService(
 	repo userrepository.UserStorage,
 	vehicRepo vehiclerepository.VehicleStorage,
 	officeRepo officerepository.OfficeStorage,
+	assignmentService slotassignment.SlotAssignmentMgr,
 ) *UserService {
 	return &UserService{
-		userRepo:    repo,
-		vehicleRepo: vehicRepo,
-		officeRepo:  officeRepo,
+		userRepo:          repo,
+		vehicleRepo:       vehicRepo,
+		officeRepo:        officeRepo,
+		assignmentService: assignmentService,
 	}
 }
 

@@ -73,49 +73,27 @@ func (h *CliAdminHandler) RemoveOffice(ctx context.Context) {
 
 	buildingName := buildings[buildingNumber-1]
 
-	color.Yellow("Select floor number:")
-	floorNumbers, err := h.floorService.GetFloorsByBuildingId(ctx, buildingName)
-	if err != nil {
-		customerrors.DisplayError(fmt.Sprintf("error while fetching floors: %v", err))
-		return
-	}
-
-	floorNumbersStr := make([]string, len(floorNumbers))
-
-	for i, floor := range floorNumbers {
-		floorNumbersStr[i] = fmt.Sprintf("Floor %d", floor)
-	}
-
-	utils.PrintListInRows(floorNumbersStr)
-
-	var floorNumber int
-	fmt.Scanf("%d", &floorNumber)
-
-	color.Yellow("Select office number to remove:")
-	officesMap, err := h.officeService.ListOfficesByBuilding(ctx, buildingName)
+	color.Yellow("Enter the floor number of office to remove:")
+	offices, err := h.officeService.ListOfficesByBuilding(ctx, buildingName)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("error while fetching offices: %v", err))
 		return
 	}
 
-	floorOffices, ok := officesMap[floorNumber]
-	if !ok {
-		customerrors.DisplayError(fmt.Sprintf("no offices found on floor %d in building %s", floorNumber, buildingName))
-		return
+	for floor, office := range offices {
+		color.Green("Floor %d: %s", floor, office)
 	}
+	var floorNumber int
+	fmt.Scanf("%d", &floorNumber)
 
-	utils.PrintListInRows(floorOffices)
+	officeName := offices[floorNumber]
 
-	color.Yellow("Enter office number to remove:")
-	var officeNumber int
-	fmt.Scanf("%d", &officeNumber)
-	officeName := floorOffices[officeNumber-1]
 	err = h.officeService.RemoveOffice(ctx, officeName)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("error while removing office: %v", err))
 		return
 	}
-	color.Green("Office %s removed successfully from building %s on floor %d", officeName, buildingName, floorNumber)
+	color.Green("Office removed successfully")
 	color.Green("Press Enter to continue...")
 	fmt.Scanln()
 }
@@ -141,9 +119,8 @@ func (h *CliAdminHandler) ListOffices(ctx context.Context) {
 		return
 	}
 
-	for floor, offices := range officesMap {
-		color.Green("Floor %d:", floor)
-		utils.PrintListInRows(offices)
+	for floor, office := range officesMap {
+		color.Green("Floor %d: %v", floor, office)
 	}
 
 	color.Green("Press Enter to continue...")

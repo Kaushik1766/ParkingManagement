@@ -6,6 +6,8 @@ import (
 
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	userservice "github.com/Kaushik1766/ParkingManagement/internal/service/user_service"
+	customerrors "github.com/Kaushik1766/ParkingManagement/pkg/customErrors"
+	"github.com/Kaushik1766/ParkingManagement/utils"
 	"github.com/fatih/color"
 )
 
@@ -50,6 +52,30 @@ func (handler *CliUserHandler) RegisterVehicle(userCtx context.Context) {
 	if err != nil {
 		color.Red("Failed to register vehicle: %v", err)
 	}
+}
+
+func (handler *CliUserHandler) UnregisterVehicle(userCtx context.Context) {
+	registeredVehicles := handler.userService.GetRegisteredVehicles(userCtx)
+
+	color.Cyan("Enter number of the vehicle to unregister")
+	var vehiclesStr []string
+	for _, val := range registeredVehicles {
+		vehiclesStr = append(vehiclesStr, val.String())
+	}
+
+	utils.PrintListInRows(vehiclesStr)
+
+	var vehicleNumber int
+	fmt.Scanf("%d", &vehicleNumber)
+	numberPlate := registeredVehicles[vehicleNumber-1].NumberPlate
+	err := handler.userService.UnregisterVehicle(userCtx, numberPlate)
+	if err != nil {
+		customerrors.DisplayError("Failed to unregister vehicle")
+		return
+	}
+	color.Green("Unregistered successfully")
+	color.Green("Press Enter to continue...")
+	fmt.Scanln()
 }
 
 func (handler *CliUserHandler) GetUserProfile(userCtx context.Context) {

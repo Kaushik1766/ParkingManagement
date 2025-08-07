@@ -48,15 +48,15 @@ func (officeServ *OfficeService) RemoveOffice(ctx context.Context, officeName st
 	return officeServ.officeRepo.DeleteOffice(officeName)
 }
 
-func (officeServ *OfficeService) ListOfficesByBuilding(ctx context.Context, buildingName string) (map[int][]string, error) {
+func (officeServ *OfficeService) ListOfficesByBuilding(ctx context.Context, buildingName string) (map[int]string, error) {
 	offices, err := officeServ.officeRepo.GetOfficesByBuilding(buildingName)
 	if err != nil {
 		return nil, errors.New("no offices in building")
 	}
 
-	officeMap := make(map[int][]string)
+	officeMap := make(map[int]string)
 	for _, office := range offices {
-		officeMap[office.FloorNumber] = append(officeMap[office.FloorNumber], office.OfficeName)
+		officeMap[office.FloorNumber] = office.OfficeName
 	}
 	return officeMap, nil
 }
