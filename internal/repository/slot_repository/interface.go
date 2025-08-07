@@ -11,5 +11,6 @@ type SlotStorage interface {
 	DeleteSlot(buildingId uuid.UUID, floorNumber, slotNumber int) error
 	GetSlotsByFloor(buildingId uuid.UUID, floorNumber int) ([]slot.Slot, error)
 	GetFreeSlotsByFloor(buildingId uuid.UUID, floorNumber int) ([]slot.Slot, error)
+	SetSlotOccupied(buildingId uuid.UUID, floorNumber, slotNumber int, isOccupied bool) error
 	Save(slot slot.Slot) error
 }

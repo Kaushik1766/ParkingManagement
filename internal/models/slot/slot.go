@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// Slot is slot, isoccupied is for is assigned
 type Slot struct {
 	BuildingId  uuid.UUID
 	FloorNumber int

@@ -17,6 +17,18 @@ type FileSlotRepository struct {
 	slots []slot.Slot
 }
 
+func (fsr *FileSlotRepository) SetSlotOccupied(buildingId uuid.UUID, floorNumber, slotNumber int, isOccupied bool) error {
+	fsr.Lock()
+	defer fsr.Unlock()
+	for i, s := range fsr.slots {
+		if s.BuildingId == buildingId && s.FloorNumber == floorNumber && s.SlotNumber == slotNumber {
+			fsr.slots[i].IsOccupied = isOccupied
+			return nil
+		}
+	}
+	return fmt.Errorf("slot not found at building %s, floor %d, slot %d", buildingId, floorNumber, slotNumber)
+}
+
 func (fsr *FileSlotRepository) GetSlotsByFloor(buildingId uuid.UUID, floorNumber int) ([]slot.Slot, error) {
 	fsr.Lock()
 	defer fsr.Unlock()

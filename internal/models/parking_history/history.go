@@ -10,6 +10,7 @@ type ParkingHistory struct {
 	ParkingId   uuid.UUID
 	NumberPlate string
 	BuildingId  string
+	UserId      uuid.UUID
 	FLoorNumber int
 	SlotNumber  int
 	StartTime   time.Time

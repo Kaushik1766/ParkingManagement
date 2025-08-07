@@ -32,6 +32,17 @@ func (fvr *FileVehicleRepository) Save(vehicle vehicle.Vehicle) error {
 	return nil
 }
 
+func (fvr *FileVehicleRepository) GetVehicleByNumberPlate(numberplate string) (vehicle.Vehicle, error) {
+	fvr.Lock()
+	defer fvr.Unlock()
+	for _, val := range fvr.vehicles {
+		if val.NumberPlate == numberplate {
+			return val, nil
+		}
+	}
+	return vehicle.Vehicle{}, errors.New("vehicle not found")
+}
+
 func (fvr *FileVehicleRepository) AddVehicle(numberplate string, userid uuid.UUID, vehicleType vehicletypes.VehicleType) (vehicle.Vehicle, error) {
 	fvr.Lock()
 	defer fvr.Unlock()

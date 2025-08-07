@@ -1,13 +1,56 @@
 package vehicleservice
 
-import "context"
+import (
+	"context"
 
-type VehicleService struct{}
+	"github.com/Kaushik1766/ParkingManagement/internal/constants"
+	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
+	parkinghistoryrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/parking_history_repository"
+	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
+	customerrors "github.com/Kaushik1766/ParkingManagement/pkg/customErrors"
+)
+
+type VehicleService struct {
+	vehicleRepo vehiclerepository.VehicleStorage
+	parkingRepo parkinghistoryrepository.ParkingHistoryStorage
+}
 
 func (vs *VehicleService) Park(ctx context.Context, numberplate string) (string, error) {
-	panic("not implemented") // TODO: Implement
+	userCtx := ctx.Value(constants.User).(userjwt.UserJwt)
+
+	vehicle, err := vs.vehicleRepo.GetVehicleByNumberPlate(numberplate)
+	if err != nil {
+		return "", err
+	}
+
+	if vehicle.UserId.String() != userCtx.ID {
+		return "", customerrors.Unathorized{}
+	}
+
+	ticketId, err := vs.parkingRepo.AddParking(vehicle)
+	if err != nil {
+		return "", err
+	}
+
+	return ticketId, nil
 }
 
 func (vs *VehicleService) Unpark(ctx context.Context, numberplate string) error {
-	panic("not implemented") // TODO: Implement
+	userCtx := ctx.Value(constants.User).(userjwt.UserJwt)
+
+	vehicle, err := vs.vehicleRepo.GetVehicleByNumberPlate(numberplate)
+	if err != nil {
+		return err
+	}
+
+	if vehicle.UserId.String() != userCtx.ID {
+		return customerrors.Unathorized{}
+	}
+
+	err = vs.parkingRepo.Unpark(vehicle.VehicleId.String())
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
