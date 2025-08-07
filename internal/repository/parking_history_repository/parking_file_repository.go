@@ -1,11 +1,16 @@
 package parkinghistoryrepository
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"log"
+	"os"
 	"sync"
 	"time"
 
 	parkinghistory "github.com/Kaushik1766/ParkingManagement/internal/models/parking_history"
+	"github.com/Kaushik1766/ParkingManagement/internal/models/slot"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/vehicle"
 	"github.com/google/uuid"
 )
@@ -73,7 +78,7 @@ func (fpr *FileParkingRepository) AddParking(vehicle vehicle.Vehicle) (string, e
 		StartTime:   time.Now(),
 		EndTime:     time.Time{},
 	}
-
+	log.Printf("Adding new parking: %+v", newParking)
 	fpr.parkings = append(fpr.parkings, newParking)
 
 	return newParking.ParkingId.String(), nil
@@ -99,4 +104,60 @@ func (fpr *FileParkingRepository) GetParkingHistoryByNumberPlate(numberplate str
 		}
 	}
 	return history, nil
+}
+
+func (fpr *FileParkingRepository) GetActiveUserParkings(userId string) ([]parkinghistory.ParkingHistoryDTO, error) {
+	fpr.Lock()
+	defer fpr.Unlock()
+
+	var activeParkings []parkinghistory.ParkingHistoryDTO
+
+	for _, parking := range fpr.parkings {
+		if parking.UserId.String() == userId && parking.EndTime.IsZero() {
+			activeParkings = append(activeParkings, parkinghistory.ParkingHistoryDTO{
+				TicketId:    parking.ParkingId.String(),
+				NumberPlate: parking.NumberPlate,
+				BuildingId:  parking.BuildingId,
+				FLoorNumber: parking.FLoorNumber,
+				SlotNumber:  parking.SlotNumber,
+				StartTime:   parking.StartTime.Local().String(),
+				EndTime:     parking.EndTime.Local().String(),
+			})
+		}
+	}
+	return activeParkings, nil
+}
+
+func NewFileParkingHistoryRepository() *FileParkingRepository {
+	data, err := os.ReadFile("parkinghistory.json")
+	if err != nil {
+		os.WriteFile("parkinghistory.json", []byte("[]"), 0666)
+		data, err = json.Marshal([]slot.Slot{})
+		if err != nil {
+			fmt.Println("unable to marshal")
+		}
+	}
+
+	var parkingData []parkinghistory.ParkingHistory
+	err = json.Unmarshal(data, &parkingData)
+	if err != nil {
+		fmt.Println(err)
+		panic("corrupted data")
+	}
+	return &FileParkingRepository{
+		Mutex:    &sync.Mutex{},
+		parkings: parkingData,
+	}
+}
+
+func (fpr *FileParkingRepository) SerializeData() {
+	data, err := json.Marshal(fpr.parkings)
+	if err != nil {
+		fmt.Println("unable to marshal parking data")
+		return
+	}
+	err = os.WriteFile("parkinghistory.json", data, 0666)
+	if err != nil {
+		fmt.Println("unable to write parking data to file")
+	}
 }

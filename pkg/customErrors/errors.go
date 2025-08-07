@@ -2,6 +2,7 @@ package customerrors
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/fatih/color"
 )
@@ -19,6 +20,7 @@ func (e Unathorized) Error() string {
 }
 
 func DisplayError(msg string) {
+	log.Printf("Error: %s\n", msg)
 	color.Red(msg)
 	color.Green("Press Enter to continue...")
 	fmt.Scanln()

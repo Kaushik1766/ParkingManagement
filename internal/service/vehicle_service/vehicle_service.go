@@ -35,22 +35,29 @@ func (vs *VehicleService) Park(ctx context.Context, numberplate string) (string,
 	return ticketId, nil
 }
 
-func (vs *VehicleService) Unpark(ctx context.Context, numberplate string) error {
-	userCtx := ctx.Value(constants.User).(userjwt.UserJwt)
+func (vs *VehicleService) Unpark(ctx context.Context, ticketId string) error {
+	// userCtx := ctx.Value(constants.User).(userjwt.UserJwt)
 
-	vehicle, err := vs.vehicleRepo.GetVehicleByNumberPlate(numberplate)
-	if err != nil {
-		return err
-	}
+	// vehicle, err := vs.vehicleRepo.GetVehicleByNumberPlate(ticketId)
+	// if err != nil {
+	// 	return err
+	// }
+	//
+	// if vehicle.UserId.String() != userCtx.ID {
+	// 	return customerrors.Unathorized{}
+	// }
 
-	if vehicle.UserId.String() != userCtx.ID {
-		return customerrors.Unathorized{}
-	}
-
-	err = vs.parkingRepo.Unpark(vehicle.VehicleId.String())
+	err := vs.parkingRepo.Unpark(ticketId)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func NewVehicleService(vehicleRepo vehiclerepository.VehicleStorage, parkingRepo parkinghistoryrepository.ParkingHistoryStorage) *VehicleService {
+	return &VehicleService{
+		vehicleRepo: vehicleRepo,
+		parkingRepo: parkingRepo,
+	}
 }

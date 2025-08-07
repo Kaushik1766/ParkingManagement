@@ -49,7 +49,11 @@ func (h *CliAdminHandler) AddBuilding(ctx context.Context) {
 	err = h.buildingService.AddBuilding(ctx, buildingName)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Error adding building: %v", err))
+		return
 	}
+	color.Green("Building added successfully.")
+	color.Green("Press Enter to continue...")
+	fmt.Scanln()
 }
 
 func (h *CliAdminHandler) DeleteBuilding(ctx context.Context) {
@@ -72,7 +76,11 @@ func (h *CliAdminHandler) DeleteBuilding(ctx context.Context) {
 	err = h.buildingService.DeleteBuilding(ctx, buildingName)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Error deleting building: %v", err))
+		return
 	}
+	color.Green("Building deleted successfully.")
+	color.Green("Press Enter to continue...")
+	fmt.Scanln()
 }
 
 func (h *CliAdminHandler) AddFloors(ctx context.Context) {
@@ -159,7 +167,7 @@ func (h *CliAdminHandler) DeleteFloors(ctx context.Context) {
 
 	err = h.floorService.DeleteFloors(ctx, buildingName, floorsToDelete)
 	if err != nil {
-		color.Red("Error deleting floors: %v", err)
+		customerrors.DisplayError(fmt.Sprintf("Error deleting floors: %v", err))
 	} else {
 		color.Green("Floors deleted successfully.")
 	}
@@ -218,7 +226,7 @@ func (h *CliAdminHandler) AddSlots(ctx context.Context) {
 	err = h.slotService.AddSlots(ctx, buildingName, floorNumber, slotNumbers, slotType)
 
 	if err != nil {
-		color.Red("Error adding slots: %v", err)
+		customerrors.DisplayError(fmt.Sprintf("Error adding slots: %v", err))
 	} else {
 		color.Green("Slots added successfully.")
 	}
@@ -293,7 +301,8 @@ func (h *CliAdminHandler) DeleteSlots(ctx context.Context) {
 
 	err = h.slotService.DeleteSlots(ctx, buildingName, floorNumber, slotsToDelete)
 	if err != nil {
-		color.Red("Error deleting slots: %v", err)
+		customerrors.DisplayError(fmt.Sprintf("Error deleting slots: %v", err))
+		return
 	} else {
 		color.Green("Slots deleted successfully.")
 	}

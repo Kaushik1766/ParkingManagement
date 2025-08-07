@@ -12,4 +12,5 @@ type ParkingHistoryStorage interface {
 	Unpark(id string) error
 	GetParkingHistoryByNumberPlate(numberplate string, startTime, endTime time.Time) ([]parkinghistory.ParkingHistoryDTO, error)
 	GetParkingHistoryByUser(userId string, startTime, endTime time.Time) ([]parkinghistory.ParkingHistoryDTO, error)
+	GetActiveUserParkings(userId string) ([]parkinghistory.ParkingHistoryDTO, error)
 }

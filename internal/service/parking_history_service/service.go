@@ -18,6 +18,27 @@ type ParkingHistoryService struct {
 	vehicleRepo vehiclerepository.VehicleStorage
 }
 
+func (phs *ParkingHistoryService) GetParkingHistory(ctx context.Context, startTime string, endTime string) ([]parkinghistory.ParkingHistoryDTO, error) {
+	userCtx := ctx.Value(constants.User).(userjwt.UserJwt)
+
+	startTimeParsed, err := time.Parse(time.DateOnly, startTime)
+	if err != nil {
+		return nil, err
+	}
+
+	endTimeParsed, err := time.Parse(time.DateOnly, endTime)
+	if err != nil {
+		return nil, err
+	}
+
+	parkingHistory, err := phs.parkingRepo.GetParkingHistoryByUser(userCtx.ID, startTimeParsed, endTimeParsed)
+	if err != nil {
+		return nil, err
+	}
+
+	return parkingHistory, nil
+}
+
 func (phs *ParkingHistoryService) GetParkingHistoryByNumberPlate(ctx context.Context, numberplate string, startTime string, endTime string) ([]parkinghistory.ParkingHistoryDTO, error) {
 	userCtx := ctx.Value(constants.User).(userjwt.UserJwt)
 
@@ -71,4 +92,22 @@ func (phs *ParkingHistoryService) GetParkingHistoryByUser(ctx context.Context, u
 	}
 
 	return parkingHistory, nil
+}
+
+func (phs *ParkingHistoryService) GetActiveUserParkings(ctx context.Context) ([]parkinghistory.ParkingHistoryDTO, error) {
+	userCtx := ctx.Value(constants.User).(userjwt.UserJwt)
+
+	activeParkings, err := phs.parkingRepo.GetActiveUserParkings(userCtx.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return activeParkings, nil
+}
+
+func NewParkingHistoryService(parkingRepo parkinghistoryrepository.ParkingHistoryStorage, vehicleRepo vehiclerepository.VehicleStorage) *ParkingHistoryService {
+	return &ParkingHistoryService{
+		parkingRepo: parkingRepo,
+		vehicleRepo: vehicleRepo,
+	}
 }

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,6 +12,7 @@ import (
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	adminhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/admin_handler"
 	authhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/auth_handler"
+	parkinghandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/parking_handler"
 	slotassignmenthandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/slot_assignment_handler"
 	userhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/user_handler"
 	authenticationmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/authentication_middleware"
@@ -19,6 +21,7 @@ import (
 	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
 	floorrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/floor_repository"
 	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
+	parkinghistoryrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/parking_history_repository"
 	slotrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/slot_repository"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
@@ -26,32 +29,38 @@ import (
 	buildingservice "github.com/Kaushik1766/ParkingManagement/internal/service/building_service"
 	floorservice "github.com/Kaushik1766/ParkingManagement/internal/service/floor_service"
 	officeservice "github.com/Kaushik1766/ParkingManagement/internal/service/office_service"
+	parkinghistoryservice "github.com/Kaushik1766/ParkingManagement/internal/service/parking_history_service"
 	slotassignment "github.com/Kaushik1766/ParkingManagement/internal/service/slot_assignment"
 	slotservice "github.com/Kaushik1766/ParkingManagement/internal/service/slot_service"
 	userservice "github.com/Kaushik1766/ParkingManagement/internal/service/user_service"
+	vehicleservice "github.com/Kaushik1766/ParkingManagement/internal/service/vehicle_service"
 	"github.com/fatih/color"
 )
 
 var (
-	userDb     userrepository.UserStorage         = nil
-	vehicleDb  vehiclerepository.VehicleStorage   = nil
-	floorDb    floorrepository.FloorStorage       = nil
-	slotDb     slotrepository.SlotStorage         = nil
-	buildingDb buildingrepository.BuildingStorage = nil
-	officeDb   officerepository.OfficeStorage     = nil
+	userDb     userrepository.UserStorage                     = nil
+	vehicleDb  vehiclerepository.VehicleStorage               = nil
+	floorDb    floorrepository.FloorStorage                   = nil
+	slotDb     slotrepository.SlotStorage                     = nil
+	buildingDb buildingrepository.BuildingStorage             = nil
+	officeDb   officerepository.OfficeStorage                 = nil
+	parkingDb  parkinghistoryrepository.ParkingHistoryStorage = nil
 
-	userService       userservice.UserManager           = nil
-	authService       authservice.AuthenticationManager = nil
-	officeService     officeservice.OfficeMgr           = nil
-	floorService      floorservice.FloorMgr             = nil
-	buildingService   buildingservice.BuildingMgr       = nil
-	slotService       slotservice.SlotMgr               = nil
-	assignmentService slotassignment.SlotAssignmentMgr  = nil
+	userService           userservice.UserManager                 = nil
+	authService           authservice.AuthenticationManager       = nil
+	officeService         officeservice.OfficeMgr                 = nil
+	floorService          floorservice.FloorMgr                   = nil
+	buildingService       buildingservice.BuildingMgr             = nil
+	slotService           slotservice.SlotMgr                     = nil
+	assignmentService     slotassignment.SlotAssignmentMgr        = nil
+	vehicleService        vehicleservice.VehicleMgr               = nil
+	parkingHistoryService parkinghistoryservice.ParkingHistoryMgr = nil
 
 	authController        *authhandler.CliAuthHandler                     = nil
 	userHandler           *userhandler.CliUserHandler                     = nil
 	adminHandler          *adminhandler.CliAdminHandler                   = nil
 	slotAssignmentHandler *slotassignmenthandler.CliSlotAssignmentHandler = nil
+	parkingHandler        *parkinghandler.CliParkingHandler               = nil
 
 	reader *bufio.Reader   = nil
 	ctx    context.Context = nil
@@ -64,6 +73,7 @@ func init() {
 	floorDb = floorrepository.NewFileFloorRepository()
 	slotDb = slotrepository.NewFileSlotRepository()
 	officeDb = officerepository.NewFileOfficeRepository()
+	parkingDb = parkinghistoryrepository.NewFileParkingHistoryRepository()
 
 	authService = authservice.NewAuthService(userDb, officeDb)
 	floorService = floorservice.NewFloorService(floorDb, buildingDb)
@@ -72,6 +82,8 @@ func init() {
 	officeService = officeservice.NewOfficeService(officeDb, buildingDb, floorDb)
 	assignmentService = slotassignment.NewSlotAssignmentService(vehicleDb, floorDb, buildingDb, slotDb, officeDb)
 	userService = userservice.NewUserService(userDb, vehicleDb, officeDb, assignmentService)
+	vehicleService = vehicleservice.NewVehicleService(vehicleDb, parkingDb)
+	parkingHistoryService = parkinghistoryservice.NewParkingHistoryService(parkingDb, vehicleDb)
 
 	reader = bufio.NewReader(os.Stdin)
 
@@ -79,6 +91,7 @@ func init() {
 	userHandler = userhandler.NewCliUserHandler(userService)
 	adminHandler = adminhandler.NewCliAdminHandler(floorService, buildingService, slotService, reader, officeService)
 	slotAssignmentHandler = slotassignmenthandler.NewCliSlotAssignmentHandler(assignmentService, userService, slotService, officeService)
+	parkingHandler = parkinghandler.NewCliParkingHandler(vehicleService, userService, parkingHistoryService)
 
 	loadLogin()
 }
@@ -97,10 +110,16 @@ func cleanup() {
 	slotDb.(*slotrepository.FileSlotRepository).SerializeData()
 	buildingDb.(*buildingrepository.FileBuildingRepository).SerializeData()
 	officeDb.(*officerepository.FileOfficeRepository).SerializeData()
+	parkingDb.(*parkinghistoryrepository.FileParkingRepository).SerializeData()
 }
 
 func main() {
 	defer cleanup()
+	logFile, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		log.Panic(err)
+	}
+	log.SetOutput(logFile)
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGTSTP)
 
@@ -153,8 +172,9 @@ func main() {
 				color.Yellow("3. View Profile")
 				color.Yellow("4. View Registered Vehicles")
 				color.Yellow("5. Unregister Vehicle")
-				color.Yellow("6. Logout")
-				color.Yellow("7. Exit")
+				color.Yellow("6. Parking Menu")
+				color.Yellow("7. Logout")
+				color.Yellow("8. Exit")
 				fmt.Scanf("%d", &choice)
 				clearScreen()
 				switch choice {
@@ -169,6 +189,8 @@ func main() {
 				case 5:
 					userHandler.UnregisterVehicle(ctx)
 				case 6:
+					parkingMenu()
+				case 7:
 					ctx = authController.Logout()
 				default:
 					return
@@ -205,6 +227,29 @@ func main() {
 				}
 
 			}
+		}
+	}
+}
+
+func parkingMenu() {
+	for {
+		color.Cyan("Parking Menu:")
+		color.Yellow("1. Park Vehicle")
+		color.Yellow("2. Unpark Vehicle")
+		color.Yellow("3. View Parkings")
+		color.Yellow("4. Exit")
+		var choice int
+		fmt.Scanf("%d", &choice)
+		clearScreen()
+		switch choice {
+		case 1:
+			parkingHandler.Park(ctx)
+		case 2:
+			parkingHandler.Unpark(ctx)
+		case 3:
+			parkingHandler.ViewParkingHistory(ctx)
+		default:
+			return
 		}
 	}
 }

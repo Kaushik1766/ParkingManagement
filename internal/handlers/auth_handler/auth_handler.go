@@ -3,7 +3,6 @@ package authhandler
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
@@ -42,7 +41,7 @@ func (auth *CliAuthHandler) Login(baseCtx context.Context) (context.Context, err
 	password = string(passwordBytes)
 	token, err := auth.authMgr.Login(email, password)
 	if err != nil {
-		log.Println(err)
+		customerrors.DisplayError("Login failed: " + err.Error())
 		return nil, err
 	}
 

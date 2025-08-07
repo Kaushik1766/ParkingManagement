@@ -35,8 +35,12 @@ func (handler *CliUserHandler) UpdateProfile(userCtx context.Context) {
 
 	err := handler.userService.UpdateProfile(userCtx, name, email, password, office)
 	if err != nil {
-		color.Red("Failed to update profile: %v", err)
+		customerrors.DisplayError(fmt.Sprintf("Failed to update profile: %v", err))
+		return
 	}
+	color.Green("Profile updated successfully")
+	color.Green("Press Enter to continue...")
+	fmt.Scanln()
 }
 
 func (handler *CliUserHandler) RegisterVehicle(userCtx context.Context) {
@@ -50,8 +54,12 @@ func (handler *CliUserHandler) RegisterVehicle(userCtx context.Context) {
 
 	err := handler.userService.RegisterVehicle(userCtx, numberPlate, vehicleType)
 	if err != nil {
-		color.Red("Failed to register vehicle: %v", err)
+		customerrors.DisplayError(fmt.Sprintf("Failed to register vehicle: %v", err))
+		return
 	}
+	color.Green("Vehicle registered successfully")
+	color.Green("Press Enter to continue...")
+	fmt.Scanln()
 }
 
 func (handler *CliUserHandler) UnregisterVehicle(userCtx context.Context) {
@@ -81,7 +89,7 @@ func (handler *CliUserHandler) UnregisterVehicle(userCtx context.Context) {
 func (handler *CliUserHandler) GetUserProfile(userCtx context.Context) {
 	userProfile, err := handler.userService.GetUserProfile(userCtx)
 	if err != nil {
-		color.Red("Failed to fetch user profile: %v", err)
+		customerrors.DisplayError(fmt.Sprintf("Failed to fetch user profile: %v", err))
 		return
 	}
 	color.Cyan("User Profile:")
@@ -107,4 +115,6 @@ func (hanler *CliUserHandler) GetRegisteredVehicles(userCtx context.Context) {
 		color.Yellow("Assigned Slot: %s", val.AssignedSlot)
 		fmt.Println()
 	}
+	color.Green("Press Enter to continue...")
+	fmt.Scanln()
 }

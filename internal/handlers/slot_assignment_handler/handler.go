@@ -37,6 +37,7 @@ func (sah *CliSlotAssignmentHandler) ViewVehiclesWithUnassignedSlots(ctx context
 	unassignedVehicles, err := sah.assignmentService.GetVehiclesWithUnassignedSlots(ctx)
 	if err != nil {
 		customerrors.DisplayError("error fetching vehicles")
+		return
 	}
 
 	for i, vehicle := range unassignedVehicles {
@@ -51,6 +52,7 @@ func (sah *CliSlotAssignmentHandler) AssignSlot(ctx context.Context) {
 	unassignedVehicles, err := sah.assignmentService.GetVehiclesWithUnassignedSlots(ctx)
 	if err != nil {
 		customerrors.DisplayError("error fetching vehicles")
+		return
 	}
 
 	for i, vehicle := range unassignedVehicles {
