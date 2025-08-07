@@ -37,8 +37,24 @@ func (us *UserService) GetUserProfile(ctx context.Context) (user.UserDTO, error)
 		Name:   currentUser.Name,
 		Email:  currentUser.Email,
 		Role:   currentUser.Role.String(),
+		Office: currentUser.Office,
 	}
 	return userDto, nil
+}
+
+func (us *UserService) GetUserById(ctx context.Context, userId string) (user.UserDTO, error) {
+	userStruct, err := us.userRepo.GetUserById(userId)
+	if err != nil {
+		return user.UserDTO{}, err
+	}
+
+	return user.UserDTO{
+		UserId: userStruct.UserId.String(),
+		Name:   userStruct.Name,
+		Email:  userStruct.Email,
+		Role:   userStruct.Role.String(),
+		Office: userStruct.Office,
+	}, nil
 }
 
 func (us *UserService) RegisterVehicle(ctx context.Context, numberplate string, vehicleType vehicletypes.VehicleType) error {

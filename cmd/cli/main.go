@@ -11,6 +11,7 @@ import (
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	adminhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/admin_handler"
 	authhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/auth_handler"
+	slotassignmenthandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/slot_assignment_handler"
 	userhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/user_handler"
 	authenticationmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/authentication_middleware"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
@@ -32,24 +33,28 @@ import (
 )
 
 var (
-	userDb            userrepository.UserStorage         = nil
-	vehicleDb         vehiclerepository.VehicleStorage   = nil
-	floorDb           floorrepository.FloorStorage       = nil
-	slotDb            slotrepository.SlotStorage         = nil
-	buildingDb        buildingrepository.BuildingStorage = nil
-	officeDb          officerepository.OfficeStorage     = nil
-	userService       userservice.UserManager            = nil
-	authService       authservice.AuthenticationManager  = nil
-	officeService     officeservice.OfficeMgr            = nil
-	authController    *authhandler.CliAuthHandler        = nil
-	userHandler       *userhandler.CliUserHandler        = nil
-	adminHandler      *adminhandler.CliAdminHandler      = nil
-	floorService      floorservice.FloorMgr              = nil
-	buildingService   buildingservice.BuildingMgr        = nil
-	slotService       slotservice.SlotMgr                = nil
-	assignmentService slotassignment.SlotAssignmentMgr   = nil
-	reader            *bufio.Reader                      = nil
-	ctx               context.Context                    = nil
+	userDb     userrepository.UserStorage         = nil
+	vehicleDb  vehiclerepository.VehicleStorage   = nil
+	floorDb    floorrepository.FloorStorage       = nil
+	slotDb     slotrepository.SlotStorage         = nil
+	buildingDb buildingrepository.BuildingStorage = nil
+	officeDb   officerepository.OfficeStorage     = nil
+
+	userService       userservice.UserManager           = nil
+	authService       authservice.AuthenticationManager = nil
+	officeService     officeservice.OfficeMgr           = nil
+	floorService      floorservice.FloorMgr             = nil
+	buildingService   buildingservice.BuildingMgr       = nil
+	slotService       slotservice.SlotMgr               = nil
+	assignmentService slotassignment.SlotAssignmentMgr  = nil
+
+	authController        *authhandler.CliAuthHandler                     = nil
+	userHandler           *userhandler.CliUserHandler                     = nil
+	adminHandler          *adminhandler.CliAdminHandler                   = nil
+	slotAssignmentHandler *slotassignmenthandler.CliSlotAssignmentHandler = nil
+
+	reader *bufio.Reader   = nil
+	ctx    context.Context = nil
 )
 
 func init() {
@@ -73,6 +78,7 @@ func init() {
 	authController = authhandler.NewCliAuthHandler(authService, officeService)
 	userHandler = userhandler.NewCliUserHandler(userService)
 	adminHandler = adminhandler.NewCliAdminHandler(floorService, buildingService, slotService, reader, officeService)
+	slotAssignmentHandler = slotassignmenthandler.NewCliSlotAssignmentHandler(assignmentService, userService, slotService, officeService)
 
 	loadLogin()
 }
@@ -110,7 +116,8 @@ func main() {
 			color.Cyan("Welcome to Parking Management System")
 			color.Yellow("1. Login")
 			color.Yellow("2. Signup")
-			color.Yellow("3. Exit")
+			color.Yellow("3. Admin Signup(for demo)")
+			color.Yellow("4. Exit")
 			fmt.Scanf("%d", &choice)
 			clearScreen()
 			switch choice {
@@ -127,6 +134,9 @@ func main() {
 				}
 			case 2:
 				authController.CustomerSignup()
+			case 3:
+				err := authController.AdminSignup()
+				fmt.Println(err)
 			default:
 				return
 			}
@@ -170,8 +180,9 @@ func main() {
 				color.Cyan("2. Floor Management")
 				color.Cyan("3. Slot Management")
 				color.Cyan("4. Office Management")
-				color.Cyan("5. Logout")
-				color.Cyan("6. Exit")
+				color.Cyan("5. Unassigned Slot Management")
+				color.Cyan("6. Logout")
+				color.Cyan("7. Exit")
 
 				color.Yellow("Enter your choice:")
 				fmt.Scanf("%d", &choice)
@@ -186,12 +197,34 @@ func main() {
 				case 4:
 					officeManagement()
 				case 5:
+					unassignedSlotManagement()
+				case 6:
 					ctx = authController.Logout()
 				default:
 					return
 				}
 
 			}
+		}
+	}
+}
+
+func unassignedSlotManagement() {
+	for {
+		color.Yellow("Enter your choice:")
+		color.Yellow("1. View Vehicles with Unassigned Slots")
+		color.Yellow("2. Assign Slot to Vehicle")
+		color.Yellow("3. Exit")
+		var choice int
+		fmt.Scanf("%d", &choice)
+		clearScreen()
+		switch choice {
+		case 1:
+			slotAssignmentHandler.ViewVehiclesWithUnassignedSlots(ctx)
+		case 2:
+			slotAssignmentHandler.AssignSlot(ctx)
+		default:
+			return
 		}
 	}
 }

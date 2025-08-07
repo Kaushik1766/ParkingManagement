@@ -39,7 +39,7 @@ func (auth *AuthService) Signup(name, email, password, office string, role roles
 	}
 
 	_, err = auth.officeDb.GetOfficeByName(office)
-	if err != nil {
+	if role != roles.Admin && err != nil {
 		return fmt.Errorf("error in signup service: %w", err)
 	}
 

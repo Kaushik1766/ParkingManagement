@@ -89,6 +89,7 @@ func (handler *CliUserHandler) GetUserProfile(userCtx context.Context) {
 	color.Yellow("Name: %s", userProfile.Name)
 	color.Yellow("Email: %s", userProfile.Email)
 	color.Yellow("Role: %s", userProfile.Role)
+	color.Yellow("Office: %s", userProfile.Office)
 	color.Green("Press Enter to continue...")
 	fmt.Scanln()
 }

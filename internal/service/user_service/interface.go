@@ -15,4 +15,5 @@ type UserManager interface {
 	UnregisterVehicle(ctx context.Context, numberplate string) error
 	GetRegisteredVehicles(ctx context.Context) []vehicle.VehicleDTO
 	GetUserProfile(ctx context.Context) (user.UserDTO, error)
+	GetUserById(ctx context.Context, userId string) (user.UserDTO, error)
 }

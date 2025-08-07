@@ -101,3 +101,23 @@ func (ss *SlotService) DeleteSlots(ctx context.Context, buildingName string, flo
 	}
 	return nil
 }
+
+func (ss *SlotService) GetFreeSlotsByBuilding(ctx context.Context, buildingName string, vehicleType vehicletypes.VehicleType) ([]slot.Slot, error) {
+	building, err := ss.buildingRepo.GetBuildingByName(buildingName)
+	if err != nil {
+		return nil, err
+	}
+
+	freeSlots, err := ss.slotRepo.GetFreeSlotsByBuilding(building.BuildingId)
+	if err != nil {
+		return nil, err
+	}
+
+	var filteredSlots []slot.Slot
+	for _, s := range freeSlots {
+		if s.SlotType == vehicleType {
+			filteredSlots = append(filteredSlots, s)
+		}
+	}
+	return filteredSlots, nil
+}

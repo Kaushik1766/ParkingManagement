@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	authenticationmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/authentication_middleware"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	authservice "github.com/Kaushik1766/ParkingManagement/internal/service/auth_service"
@@ -90,18 +91,18 @@ func (auth *CliAuthHandler) CustomerSignup() {
 	fmt.Scanln()
 }
 
-// func (auth *CliAuthHandler) AdminSignup() error {
-// 	var name, email, password string
-// 	color.Cyan("Enter your details to signup as an admin:")
-// 	color.Cyan("Name:")
-// 	fmt.Scanln(&name)
-// 	color.Yellow("Email:")
-// 	fmt.Scanln(&email)
-// 	color.Green("Password:")
-// 	fmt.Scanln(&password)
-// 	authErr := auth.authMgr.Signup(name, email, password, constants.AdminOffice, roles.Admin)
-// 	return authErr
-// }
+func (auth *CliAuthHandler) AdminSignup() error {
+	var name, email, password string
+	color.Cyan("Enter your details to signup as an admin:")
+	color.Cyan("Name:")
+	fmt.Scanln(&name)
+	color.Yellow("Email:")
+	fmt.Scanln(&email)
+	color.Green("Password:")
+	fmt.Scanln(&password)
+	authErr := auth.authMgr.Signup(name, email, password, constants.AdminOffice, roles.Admin)
+	return authErr
+}
 
 func (auth *CliAuthHandler) Logout() context.Context {
 	os.Remove("token.txt")

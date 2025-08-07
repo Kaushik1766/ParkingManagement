@@ -4,13 +4,33 @@ import (
 	"context"
 	"fmt"
 
+	officeservice "github.com/Kaushik1766/ParkingManagement/internal/service/office_service"
 	slotassignment "github.com/Kaushik1766/ParkingManagement/internal/service/slot_assignment"
+	slotservice "github.com/Kaushik1766/ParkingManagement/internal/service/slot_service"
+	userservice "github.com/Kaushik1766/ParkingManagement/internal/service/user_service"
 	customerrors "github.com/Kaushik1766/ParkingManagement/pkg/customErrors"
 	"github.com/fatih/color"
 )
 
 type CliSlotAssignmentHandler struct {
 	assignmentService slotassignment.SlotAssignmentMgr
+	userService       userservice.UserManager
+	slotService       slotservice.SlotMgr
+	officeService     officeservice.OfficeMgr
+}
+
+func NewCliSlotAssignmentHandler(
+	assignmentService slotassignment.SlotAssignmentMgr,
+	userService userservice.UserManager,
+	slotService slotservice.SlotMgr,
+	officeService officeservice.OfficeMgr,
+) *CliSlotAssignmentHandler {
+	return &CliSlotAssignmentHandler{
+		assignmentService: assignmentService,
+		userService:       userService,
+		slotService:       slotService,
+		officeService:     officeService,
+	}
 }
 
 func (sah *CliSlotAssignmentHandler) ViewVehiclesWithUnassignedSlots(ctx context.Context) {
@@ -26,21 +46,59 @@ func (sah *CliSlotAssignmentHandler) ViewVehiclesWithUnassignedSlots(ctx context
 	fmt.Scanln()
 }
 
-// func (sah *CliSlotAssignmentHandler) AssignSlot(ctx context.Context) {
-// 	color.Cyan("Select the number of vehicle to assign a slot to:")
-// 	unassignedVehicles, err := sah.assignmentService.GetVehiclesWithUnassignedSlots(ctx)
-// 	if err != nil {
-// 		customerrors.DisplayError("error fetching vehicles")
-// 	}
-//
-// 	for i, vehicle := range unassignedVehicles {
-// 		fmt.Printf("%d. UserId: %s, NumberPlate: %s, Vehicle Type: %s\n", i, vehicle.UserId.String(), vehicle.NumberPlate, vehicle.VehicleType)
-// 	}
-//
-// 	var vehicleNumber int
-// 	fmt.Scanf("%d", &vehicleNumber)
-//
-// 	vehicle := unassignedVehicles[vehicleNumber-1]
-//
-// 	// err:= sah.assignmentService.AssignSlot(ctx, vehicle.VehicleId.String(), slot slot.Slot)
-// }
+func (sah *CliSlotAssignmentHandler) AssignSlot(ctx context.Context) {
+	color.Cyan("Select the number of vehicle to assign a slot to:")
+	unassignedVehicles, err := sah.assignmentService.GetVehiclesWithUnassignedSlots(ctx)
+	if err != nil {
+		customerrors.DisplayError("error fetching vehicles")
+	}
+
+	for i, vehicle := range unassignedVehicles {
+		color.Magenta("%d. UserId: %s, NumberPlate: %s, Vehicle Type: %s\n", i+1, vehicle.UserId, vehicle.NumberPlate, vehicle.VehicleType)
+	}
+
+	var vehicleNumber int
+	fmt.Scanf("%d", &vehicleNumber)
+
+	vehicle := unassignedVehicles[vehicleNumber-1]
+
+	user, err := sah.userService.GetUserById(ctx, vehicle.UserId.String())
+	if err != nil {
+		customerrors.DisplayError("error fetching user details")
+		return
+	}
+
+	office, err := sah.officeService.GetOfficeByName(ctx, user.Office)
+	if err != nil {
+		customerrors.DisplayError("error fetching office details")
+		return
+	}
+
+	freeSlots, err := sah.slotService.GetFreeSlotsByBuilding(ctx, office.BuildingName, vehicle.VehicleType)
+	if err != nil {
+		customerrors.DisplayError("error fetching free slots")
+		return
+	}
+
+	color.Cyan("Select a slot to assign to the vehicle:")
+
+	for i, slot := range freeSlots {
+		color.Blue("%d. Floor Number: %d, Slot Number: %d, Slot Type: %s\n", i+1, slot.FloorNumber, slot.SlotNumber, slot.SlotType)
+	}
+
+	var slotNumber int
+	fmt.Scanf("%d", &slotNumber)
+
+	if slotNumber < 1 || slotNumber > len(freeSlots) {
+		customerrors.DisplayError("invalid slot number selected")
+		return
+	}
+	slot := freeSlots[slotNumber-1]
+	if err := sah.assignmentService.AssignSlot(ctx, vehicle.VehicleId.String(), slot); err != nil {
+		customerrors.DisplayError("error assigning slot to vehicle")
+		return
+	}
+	color.Green("Slot assigned successfully to vehicle %s", vehicle.NumberPlate)
+	color.Green("Press enter to continue...")
+	fmt.Scanln()
+}

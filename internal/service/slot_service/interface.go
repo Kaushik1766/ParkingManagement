@@ -11,4 +11,5 @@ type SlotMgr interface {
 	AddSlots(ctx context.Context, buildingName string, floorNumber int, slotNumbers []int, slotType vehicletypes.VehicleType) error
 	DeleteSlots(ctx context.Context, buildingName string, floorNumber int, slotNumbers []int) error
 	GetSlotsByFloor(ctx context.Context, buildingName string, floorNumber int) ([]slot.Slot, error)
+	GetFreeSlotsByBuilding(ctx context.Context, buildingName string, vehicleType vehicletypes.VehicleType) ([]slot.Slot, error)
 }
