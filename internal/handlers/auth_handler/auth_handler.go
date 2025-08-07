@@ -3,6 +3,7 @@ package authhandler
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	authenticationmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/authentication_middleware"
@@ -40,6 +41,7 @@ func (auth *CliAuthHandler) Login(baseCtx context.Context) (context.Context, err
 	password = string(passwordBytes)
 	token, err := auth.authMgr.Login(email, password)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 

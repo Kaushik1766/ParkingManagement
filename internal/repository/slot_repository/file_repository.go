@@ -47,6 +47,18 @@ func (fsr *FileSlotRepository) GetSlotsByFloor(buildingId uuid.UUID, floorNumber
 	return slots, nil
 }
 
+func (fsr *FileSlotRepository) GetFreeSlotsByBuilding(buildingId uuid.UUID) ([]slot.Slot, error) {
+	fsr.Lock()
+	defer fsr.Unlock()
+	var slots []slot.Slot
+	for _, s := range fsr.slots {
+		if s.BuildingId == buildingId && !s.IsOccupied {
+			slots = append(slots, s)
+		}
+	}
+	return slots, nil
+}
+
 func (fsr *FileSlotRepository) GetFreeSlotsByFloor(buildingId uuid.UUID, floorNumber int) ([]slot.Slot, error) {
 	fsr.Lock()
 	defer fsr.Unlock()

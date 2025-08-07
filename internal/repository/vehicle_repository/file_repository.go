@@ -36,11 +36,23 @@ func (fvr *FileVehicleRepository) GetVehicleByNumberPlate(numberplate string) (v
 	fvr.Lock()
 	defer fvr.Unlock()
 	for _, val := range fvr.vehicles {
-		if val.NumberPlate == numberplate {
+		if val.NumberPlate == numberplate && val.IsActive {
 			return val, nil
 		}
 	}
 	return vehicle.Vehicle{}, errors.New("vehicle not found")
+}
+
+func (fvr *FileVehicleRepository) GetVehiclesWithUnassignedSlots() ([]vehicle.Vehicle, error) {
+	fvr.Lock()
+	defer fvr.Unlock()
+	var result []vehicle.Vehicle
+	for _, val := range fvr.vehicles {
+		if val.IsActive && val.AssignedSlot.BuildingId == uuid.Nil {
+			result = append(result, val)
+		}
+	}
+	return result, nil
 }
 
 func (fvr *FileVehicleRepository) AddVehicle(numberplate string, userid uuid.UUID, vehicleType vehicletypes.VehicleType) (vehicle.Vehicle, error) {
@@ -93,7 +105,7 @@ func (fvr *FileVehicleRepository) GetVehiclesByUserId(userId uuid.UUID) ([]vehic
 	// fmt.Println(fvr.vehicles)
 	// fmt.Println(userId.String())
 	for _, val := range fvr.vehicles {
-		if val.UserId == userId {
+		if val.UserId == userId && val.IsActive {
 			result = append(result, val)
 		}
 	}

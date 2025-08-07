@@ -5,13 +5,16 @@ import (
 	"errors"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
+	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/slot"
 	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
+	"github.com/Kaushik1766/ParkingManagement/internal/models/vehicle"
 	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
 	floorrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/floor_repository"
 	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
 	slotrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/slot_repository"
 	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
+	customerrors "github.com/Kaushik1766/ParkingManagement/pkg/customErrors"
 	"github.com/google/uuid"
 )
 
@@ -101,6 +104,21 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 		return err
 	}
 	return nil
+}
+
+func (sas *SlotAssignmentService) GetVehiclesWithUnassignedSlots(ctx context.Context) ([]vehicle.Vehicle, error) {
+	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
+
+	if ctxUser.Role != roles.Admin {
+		return nil, customerrors.Unathorized{}
+	}
+
+	vehicles, err := sas.vehicleRepo.GetVehiclesWithUnassignedSlots()
+	if err != nil {
+		return nil, err
+	}
+
+	return vehicles, nil
 }
 
 func (sas *SlotAssignmentService) UnassignSlot(ctx context.Context, vehicleId string) error {

@@ -12,5 +12,6 @@ type VehicleStorage interface {
 	GetVehicleById(vehicleId uuid.UUID) (vehicle.Vehicle, error)
 	GetVehiclesByUserId(userId uuid.UUID) ([]vehicle.Vehicle, error)
 	GetVehicleByNumberPlate(numberplate string) (vehicle.Vehicle, error)
+	GetVehiclesWithUnassignedSlots() (vehicles []vehicle.Vehicle, err error)
 	Save(vehicle vehicle.Vehicle) error
 }
