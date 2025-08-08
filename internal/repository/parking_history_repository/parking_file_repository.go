@@ -41,7 +41,7 @@ func (fpr *FileParkingRepository) GetParkingHistoryByUser(userId string, startTi
 	var history []parkinghistory.ParkingHistoryDTO
 
 	for _, parking := range fpr.parkings {
-		if parking.UserId.String() == userId && parking.StartTime.After(startTime) && parking.EndTime.Before(endTime) {
+		if parking.UserId.String() == userId && (parking.StartTime.After(startTime) || parking.StartTime.Equal(startTime)) && (parking.EndTime.Before(endTime) || parking.EndTime.Equal(endTime)) {
 			history = append(history, parkinghistory.ParkingHistoryDTO{
 				TicketId:     parking.ParkingId.String(),
 				NumberPlate:  parking.NumberPlate,
@@ -60,6 +60,10 @@ func (fpr *FileParkingRepository) GetParkingHistoryByUser(userId string, startTi
 func (fpr *FileParkingRepository) AddParking(vehicle vehicle.Vehicle) (string, error) {
 	fpr.Lock()
 	defer fpr.Unlock()
+
+	if vehicle.AssignedSlot.BuildingId == uuid.Nil {
+		return "", errors.New("no slot assigned contact the admin")
+	}
 
 	for _, parking := range fpr.parkings {
 		if parking.BuildingId == vehicle.AssignedSlot.BuildingId.String() &&

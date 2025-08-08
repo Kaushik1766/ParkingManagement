@@ -35,8 +35,8 @@ func (fvr *FileVehicleRepository) Save(vehicle vehicle.Vehicle) error {
 func (fvr *FileVehicleRepository) GetVehicleByNumberPlate(numberplate string) (vehicle.Vehicle, error) {
 	fvr.Lock()
 	defer fvr.Unlock()
-	fmt.Println(fvr.vehicles)
-	fmt.Println(numberplate)
+	// fmt.Println(fvr.vehicles)
+	// fmt.Println(numberplate)
 	for _, val := range fvr.vehicles {
 		if val.NumberPlate == numberplate && val.IsActive {
 			return val, nil

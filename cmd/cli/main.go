@@ -242,8 +242,8 @@ func main() {
 }
 
 func parkingMenu() {
-	clearScreen()
 	for {
+		clearScreen()
 		color.Cyan(menuconstants.ParkingMenuTitle)
 		color.Yellow(menuconstants.ParkVehicle)
 		color.Yellow(menuconstants.UnparkVehicle)

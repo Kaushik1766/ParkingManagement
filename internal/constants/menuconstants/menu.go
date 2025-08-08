@@ -75,7 +75,7 @@ const (
 	// building operations
 	AvailableBuildings         = "Available buildings:"
 	EnterBuildingNumber        = "Enter the number of the building to delete:"
-	SelectBuildingNumber       = "Select the number of the building to add slots:"
+	SelectBuildingNumber       = "Select the number of the building :"
 	SelectBuildingToDeleteFrom = "Select the number of the building to delete slots from:"
 	SelectBuildingToList       = "Select the number of the building to list floors:"
 	SelectBuildingToListSlots  = "Select the number of the building to list slots:"
@@ -127,4 +127,3 @@ const (
 	VehicleUnparkedSuccess = "Vehicle unparked successfully. Ticket ID: %s"
 	ParkingHistoryTitle    = "Parking History:"
 )
-
