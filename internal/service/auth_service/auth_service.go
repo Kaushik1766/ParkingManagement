@@ -1,7 +1,9 @@
 package authservice
 
 import (
+	"errors"
 	"fmt"
+	"net/mail"
 	"time"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
@@ -29,10 +31,10 @@ func NewAuthService(
 }
 
 func (auth *AuthService) Signup(name, email, password, office string, role roles.Role) error {
-	// _, err := mail.ParseAddress(email)
-	// if err != nil {
-	// 	return "", errors.New("invalid email")
-	// }
+	_, err := mail.ParseAddress(email)
+	if err != nil {
+		return errors.New("invalid email")
+	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {
 		return err
@@ -48,10 +50,10 @@ func (auth *AuthService) Signup(name, email, password, office string, role roles
 }
 
 func (auth *AuthService) Login(email, password string) (string, error) {
-	// _, err := mail.ParseAddress(email)
-	// if err != nil {
-	// 	return "", errors.New("invalid email")
-	// }
+	_, err := mail.ParseAddress(email)
+	if err != nil {
+		return "", errors.New("invalid email")
+	}
 	user, err := auth.userDb.GetUserByEmail(email)
 	if err != nil {
 		return "", err

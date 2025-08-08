@@ -93,17 +93,24 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 		return errors.New("no free slots available please contact admin")
 	}
 
-	vehicle.AssignedSlot = freeSlots[0]
-	freeSlots[0].IsOccupied = true
-	err = sas.vehicleRepo.Save(vehicle)
-	if err != nil {
-		return err
+	for _, val := range freeSlots {
+		if val.SlotType == vehicle.VehicleType {
+			vehicle.AssignedSlot = val
+			val.IsOccupied = true
+			err := sas.vehicleRepo.Save(vehicle)
+			if err != nil {
+				return err
+			}
+
+			err = sas.slotRepo.Save(val)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
 	}
-	err = sas.slotRepo.Save(freeSlots[0])
-	if err != nil {
-		return err
-	}
-	return nil
+
+	return errors.New("no free slot available please contact the admin")
 }
 
 func (sas *SlotAssignmentService) GetVehiclesWithUnassignedSlots(ctx context.Context) ([]vehicle.Vehicle, error) {

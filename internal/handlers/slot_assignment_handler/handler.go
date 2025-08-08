@@ -41,7 +41,7 @@ func (sah *CliSlotAssignmentHandler) ViewVehiclesWithUnassignedSlots(ctx context
 	}
 
 	for i, vehicle := range unassignedVehicles {
-		fmt.Printf("%d. UserId: %s, NumberPlate: %s, Vehicle Type: %s\n", i, vehicle.UserId.String(), vehicle.NumberPlate, vehicle.VehicleType)
+		color.Magenta("%d. UserId: %s, NumberPlate: %s, Vehicle Type: %s\n", i, vehicle.UserId.String(), vehicle.NumberPlate, vehicle.VehicleType)
 	}
 	color.Green("Press enter to continue...")
 	fmt.Scanln()

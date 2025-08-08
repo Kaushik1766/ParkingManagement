@@ -49,7 +49,7 @@ func (handler *CliUserHandler) RegisterVehicle(userCtx context.Context) {
 	color.Cyan("Enter vehicle details:")
 	color.Cyan("Number Plate:")
 	fmt.Scanln(&numberPlate)
-	color.Yellow("Vehicle Type (0 for Two Wheeler , 2 for Four Wheeler):")
+	color.Yellow("Vehicle Type (0 for Two Wheeler , 1 for Four Wheeler):")
 	fmt.Scanln(&vehicleType)
 
 	err := handler.userService.RegisterVehicle(userCtx, numberPlate, vehicleType)
@@ -102,10 +102,10 @@ func (handler *CliUserHandler) GetUserProfile(userCtx context.Context) {
 	fmt.Scanln()
 }
 
-func (hanler *CliUserHandler) GetRegisteredVehicles(userCtx context.Context) {
-	vehicles := hanler.userService.GetRegisteredVehicles(userCtx)
+func (handler *CliUserHandler) GetRegisteredVehicles(userCtx context.Context) {
+	vehicles := handler.userService.GetRegisteredVehicles(userCtx)
 	if len(vehicles) == 0 {
-		color.Red("No registered vehicles found.")
+		customerrors.DisplayError("no vehicles registered")
 		return
 	}
 	color.Cyan("Registered Vehicles:")

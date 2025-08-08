@@ -59,7 +59,11 @@ func (auth *CliAuthHandler) CustomerSignup() {
 	color.Yellow("Email:")
 	fmt.Scanln(&email)
 	color.Green("Password:")
-	fmt.Scanln(&password)
+	passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
+	if err != nil {
+		customerrors.DisplayError("Failed to read password: " + err.Error())
+	}
+	password = string(passwordBytes)
 
 	color.Cyan("Select office number:")
 	offices, err := auth.officeMgr.GetAllOfficeNames(context.Background())

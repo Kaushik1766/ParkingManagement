@@ -18,6 +18,15 @@ type FileUserRepository struct {
 	users []user.User
 }
 
+func (db *FileUserRepository) GetAllUsers() ([]user.User, error) {
+	db.Lock()
+	defer db.Unlock()
+	if len(db.users) == 0 {
+		return []user.User{}, customerrors.UserNotFound{}
+	}
+	return db.users, nil
+}
+
 func NewFileUserRepository() *FileUserRepository {
 	data, err := os.ReadFile("users.json")
 	if err != nil {

@@ -76,6 +76,20 @@ func (us *UserService) RegisterVehicle(ctx context.Context, numberplate string, 
 	return err
 }
 
+func (us *UserService) GetAllUsers(ctx context.Context) ([]user.User, error) {
+	allUsers, err := us.userRepo.GetAllUsers()
+	if err != nil {
+		return nil, err
+	}
+	var activeUsers []user.User
+	for _, u := range allUsers {
+		if u.IsActive {
+			activeUsers = append(activeUsers, u)
+		}
+	}
+	return activeUsers, nil
+}
+
 func (us *UserService) UnregisterVehicle(ctx context.Context, numberplate string) error {
 	currentUser := ctx.Value(constants.User).(userjwt.UserJwt)
 	userVehicles, err := us.vehicleRepo.GetVehiclesByUserId(uuid.MustParse(currentUser.ID))

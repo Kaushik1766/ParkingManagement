@@ -8,6 +8,7 @@ import (
 type UserStorage interface {
 	GetUserByEmail(email string) (user.User, error)
 	GetUserById(id string) (user.User, error)
+	GetAllUsers() ([]user.User, error)
 	Save(user user.User) error
 	CreateUser(name, email, password, office string, role roles.Role) error
 }

@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"os/signal"
+	"runtime"
 	"syscall"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
@@ -367,13 +369,13 @@ func officeManagement() {
 }
 
 func clearScreen() {
-	// var cmd *exec.Cmd
-	// switch runtime.GOOS {
-	// case "windows":
-	// 	cmd = exec.Command("cmd", "/c", "cls")
-	// default:
-	// 	cmd = exec.Command("clear")
-	// }
-	// cmd.Stdout = os.Stdout
-	// cmd.Run()
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "windows":
+		cmd = exec.Command("cmd", "/c", "cls")
+	default:
+		cmd = exec.Command("clear")
+	}
+	cmd.Stdout = os.Stdout
+	cmd.Run()
 }

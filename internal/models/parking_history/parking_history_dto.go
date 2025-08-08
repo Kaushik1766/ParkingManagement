@@ -1,5 +1,7 @@
 package parkinghistory
 
+import "fmt"
+
 type ParkingHistoryDTO struct {
 	TicketId    string
 	NumberPlate string
@@ -8,4 +10,9 @@ type ParkingHistoryDTO struct {
 	SlotNumber  int
 	StartTime   string
 	EndTime     string
+}
+
+func (phdto *ParkingHistoryDTO) String() string {
+	return fmt.Sprintf("TicketId: %s, NumberPlate: %s, BuildingId: %s, FloorNumber: %d, SlotNumber: %d, StartTime: %s, EndTime: %s",
+		phdto.TicketId, phdto.NumberPlate, phdto.BuildingId, phdto.FLoorNumber, phdto.SlotNumber, phdto.StartTime, phdto.EndTime)
 }

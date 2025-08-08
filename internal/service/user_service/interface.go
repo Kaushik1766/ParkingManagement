@@ -16,4 +16,5 @@ type UserManager interface {
 	GetRegisteredVehicles(ctx context.Context) []vehicle.VehicleDTO
 	GetUserProfile(ctx context.Context) (user.UserDTO, error)
 	GetUserById(ctx context.Context, userId string) (user.UserDTO, error)
+	GetAllUsers(ctx context.Context) ([]user.User, error)
 }
