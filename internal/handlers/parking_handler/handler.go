@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Kaushik1766/ParkingManagement/internal/constants/menuconstants"
 	parkinghistoryservice "github.com/Kaushik1766/ParkingManagement/internal/service/parking_history_service"
 	userservice "github.com/Kaushik1766/ParkingManagement/internal/service/user_service"
 	vehicleservice "github.com/Kaushik1766/ParkingManagement/internal/service/vehicle_service"
@@ -19,7 +20,7 @@ type CliParkingHandler struct {
 }
 
 func (handler *CliParkingHandler) Park(ctx context.Context) {
-	color.Cyan("Select the vehicle to park:")
+	color.Cyan(menuconstants.SelectVehicleToPark)
 
 	vehicles := handler.userService.GetRegisteredVehicles(ctx)
 
@@ -42,8 +43,8 @@ func (handler *CliParkingHandler) Park(ctx context.Context) {
 		return
 	}
 
-	color.Green("Vehicle parked successfully. Ticket ID: %s", ticket)
-	color.Green("Press Enter to continue...")
+	color.Green(menuconstants.VehicleParkedSuccess, ticket)
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }
 
@@ -54,7 +55,7 @@ func (handler *CliParkingHandler) Unpark(ctx context.Context) {
 		return
 	}
 
-	color.Cyan("Select the parking to unpark:")
+	color.Cyan(menuconstants.SelectParkingToUnpark)
 
 	for i, parking := range activeParkings {
 		color.Magenta("%d. Ticket ID: %s, Vehicle Number Plate: %s, StartTime: %s", i+1, parking.TicketId, parking.NumberPlate, parking.StartTime)
@@ -74,8 +75,8 @@ func (handler *CliParkingHandler) Unpark(ctx context.Context) {
 		customerrors.DisplayError(fmt.Sprintf("Failed to unpark vehicle: %v", err))
 		return
 	}
-	color.Green("Vehicle unparked successfully. Ticket ID: %s", selectedParking.TicketId)
-	color.Green("Press Enter to continue...")
+	color.Green(menuconstants.VehicleUnparkedSuccess, selectedParking.TicketId)
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }
 
@@ -88,13 +89,13 @@ func (handler *CliParkingHandler) ViewParkingHistory(ctx context.Context) {
 		return
 	}
 
-	color.Cyan("Parking History:")
+	color.Cyan(menuconstants.ParkingHistoryTitle)
 	for _, record := range history {
 		color.Magenta("Ticket ID: %s, Vehicle Number Plate: %s, Start Time: %s, End Time: %s",
 			record.TicketId, record.NumberPlate, record.StartTime, record.EndTime)
 	}
 
-	color.Green("Press Enter to continue...")
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }
 

@@ -12,6 +12,7 @@ import (
 	"syscall"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
+	"github.com/Kaushik1766/ParkingManagement/internal/constants/menuconstants"
 	adminhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/admin_handler"
 	authhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/auth_handler"
 	parkinghandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/parking_handler"
@@ -28,6 +29,7 @@ import (
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
 	authservice "github.com/Kaushik1766/ParkingManagement/internal/service/auth_service"
+	billingservice "github.com/Kaushik1766/ParkingManagement/internal/service/billing_service"
 	buildingservice "github.com/Kaushik1766/ParkingManagement/internal/service/building_service"
 	floorservice "github.com/Kaushik1766/ParkingManagement/internal/service/floor_service"
 	officeservice "github.com/Kaushik1766/ParkingManagement/internal/service/office_service"
@@ -57,6 +59,7 @@ var (
 	assignmentService     slotassignment.SlotAssignmentMgr        = nil
 	vehicleService        vehicleservice.VehicleMgr               = nil
 	parkingHistoryService parkinghistoryservice.ParkingHistoryMgr = nil
+	billingService        billingservice.BillingMgr               = nil
 
 	authController        *authhandler.CliAuthHandler                     = nil
 	userHandler           *userhandler.CliUserHandler                     = nil
@@ -86,6 +89,7 @@ func init() {
 	userService = userservice.NewUserService(userDb, vehicleDb, officeDb, assignmentService)
 	vehicleService = vehicleservice.NewVehicleService(vehicleDb, parkingDb)
 	parkingHistoryService = parkinghistoryservice.NewParkingHistoryService(parkingDb, vehicleDb)
+	billingService = billingservice.NewBillingService(userService, parkingHistoryService)
 
 	reader = bufio.NewReader(os.Stdin)
 
@@ -130,15 +134,19 @@ func main() {
 		cleanup()
 		os.Exit(0)
 	}()
+
+	go func() {
+		billingService.GenerateMonthlyInvoice()
+	}()
 	var choice int
 	for {
 		if ctx == nil {
 			clearScreen()
-			color.Cyan("Welcome to Parking Management System")
-			color.Yellow("1. Login")
-			color.Yellow("2. Signup")
-			color.Yellow("3. Admin Signup(for demo)")
-			color.Yellow("4. Exit")
+			color.Cyan(menuconstants.WelcomeMessage)
+			color.Yellow(menuconstants.LoginOption)
+			color.Yellow(menuconstants.SignupOption)
+			color.Yellow(menuconstants.AdminSignupOption)
+			color.Yellow(menuconstants.ExitOption)
 			fmt.Scanf("%d", &choice)
 			clearScreen()
 			switch choice {
@@ -147,7 +155,7 @@ func main() {
 				userCtx, err := authController.Login(ctx)
 				if err != nil {
 					color.Red("Error during login: %v", err)
-					color.Cyan("Please try again or signup if you don't have an account.")
+					color.Cyan(menuconstants.LoginRetryMessage)
 					ctx = nil
 					fmt.Scanln()
 				} else {
@@ -168,15 +176,15 @@ func main() {
 			}
 			if user.Role == roles.Customer {
 				clearScreen()
-				color.Cyan("Enter your choice:")
-				color.Yellow("1. Update profile")
-				color.Yellow("2. Register vehicle")
-				color.Yellow("3. View Profile")
-				color.Yellow("4. View Registered Vehicles")
-				color.Yellow("5. Unregister Vehicle")
-				color.Yellow("6. Parking Menu")
-				color.Yellow("7. Logout")
-				color.Yellow("8. Exit")
+				color.Cyan(menuconstants.EnterYourChoice)
+				color.Yellow(menuconstants.CustomerUpdateProfile)
+				color.Yellow(menuconstants.CustomerRegisterVehicle)
+				color.Yellow(menuconstants.CustomerViewProfile)
+				color.Yellow(menuconstants.CustomerViewVehicles)
+				color.Yellow(menuconstants.CustomerUnregisterVehicle)
+				color.Yellow(menuconstants.CustomerParkingMenu)
+				color.Yellow(menuconstants.CustomerLogout)
+				color.Yellow(menuconstants.CustomerExit)
 				fmt.Scanf("%d", &choice)
 				clearScreen()
 				switch choice {
@@ -199,16 +207,16 @@ func main() {
 				}
 			} else {
 				clearScreen()
-				color.Cyan("Admin page: ")
-				color.Cyan("1. Building Management")
-				color.Cyan("2. Floor Management")
-				color.Cyan("3. Slot Management")
-				color.Cyan("4. Office Management")
-				color.Cyan("5. Unassigned Slot Management")
-				color.Cyan("6. Logout")
-				color.Cyan("7. Exit")
+				color.Cyan(menuconstants.AdminPageTitle)
+				color.Cyan(menuconstants.AdminBuildingManagement)
+				color.Cyan(menuconstants.AdminFloorManagement)
+				color.Cyan(menuconstants.AdminSlotManagement)
+				color.Cyan(menuconstants.AdminOfficeManagement)
+				color.Cyan(menuconstants.AdminUnassignedSlotMgmt)
+				color.Cyan(menuconstants.AdminLogout)
+				color.Cyan(menuconstants.AdminExit)
 
-				color.Yellow("Enter your choice:")
+				color.Yellow(menuconstants.EnterYourChoice)
 				fmt.Scanf("%d", &choice)
 				clearScreen()
 				switch choice {
@@ -234,12 +242,13 @@ func main() {
 }
 
 func parkingMenu() {
+	clearScreen()
 	for {
-		color.Cyan("Parking Menu:")
-		color.Yellow("1. Park Vehicle")
-		color.Yellow("2. Unpark Vehicle")
-		color.Yellow("3. View Parkings")
-		color.Yellow("4. Exit")
+		color.Cyan(menuconstants.ParkingMenuTitle)
+		color.Yellow(menuconstants.ParkVehicle)
+		color.Yellow(menuconstants.UnparkVehicle)
+		color.Yellow(menuconstants.ViewParkings)
+		color.Yellow(menuconstants.ParkingExit)
 		var choice int
 		fmt.Scanf("%d", &choice)
 		clearScreen()
@@ -258,10 +267,11 @@ func parkingMenu() {
 
 func unassignedSlotManagement() {
 	for {
-		color.Yellow("Enter your choice:")
-		color.Yellow("1. View Vehicles with Unassigned Slots")
-		color.Yellow("2. Assign Slot to Vehicle")
-		color.Yellow("3. Exit")
+		clearScreen()
+		color.Yellow(menuconstants.EnterYourChoice)
+		color.Yellow(menuconstants.ViewUnassignedSlots)
+		color.Yellow(menuconstants.AssignSlot)
+		color.Yellow(menuconstants.UnassignedSlotExit)
 		var choice int
 		fmt.Scanf("%d", &choice)
 		clearScreen()
@@ -278,11 +288,12 @@ func unassignedSlotManagement() {
 
 func buildingManagement() {
 	for {
-		color.Yellow("Enter your choice:")
-		color.Yellow("1. Add Building")
-		color.Yellow("2. Delete Building")
-		color.Yellow("3. List Buildings")
-		color.Yellow("4. Exit")
+		clearScreen()
+		color.Yellow(menuconstants.EnterYourChoice)
+		color.Yellow(menuconstants.AddBuilding)
+		color.Yellow(menuconstants.DeleteBuilding)
+		color.Yellow(menuconstants.ListBuildings)
+		color.Yellow(menuconstants.BuildingExit)
 		var choice int
 		fmt.Scanf("%d", &choice)
 		clearScreen()
@@ -301,11 +312,12 @@ func buildingManagement() {
 
 func floorManagement() {
 	for {
-		color.Yellow("Enter your choice:")
-		color.Yellow("1. Add Floor")
-		color.Yellow("2. Delete Floor")
-		color.Yellow("3. List Floors")
-		color.Yellow("4. Exit")
+		clearScreen()
+		color.Yellow(menuconstants.EnterYourChoice)
+		color.Yellow(menuconstants.AddFloor)
+		color.Yellow(menuconstants.DeleteFloor)
+		color.Yellow(menuconstants.ListFloors)
+		color.Yellow(menuconstants.FloorExit)
 		var choice int
 		fmt.Scanf("%d", &choice)
 		clearScreen()
@@ -324,11 +336,12 @@ func floorManagement() {
 
 func slotManagement() {
 	for {
-		color.Yellow("Enter your choice:")
-		color.Yellow("1. Add Slots")
-		color.Yellow("2. Delete Slots")
-		color.Yellow("3. View Slots")
-		color.Yellow("4. Exit")
+		clearScreen()
+		color.Yellow(menuconstants.EnterYourChoice)
+		color.Yellow(menuconstants.AddSlots)
+		color.Yellow(menuconstants.DeleteSlots)
+		color.Yellow(menuconstants.ViewSlots)
+		color.Yellow(menuconstants.SlotExit)
 		var choice int
 		fmt.Scanf("%d", &choice)
 		clearScreen()
@@ -347,11 +360,12 @@ func slotManagement() {
 
 func officeManagement() {
 	for {
-		color.Yellow("Enter your choice:")
-		color.Yellow("1. Add Office")
-		color.Yellow("2. Remove Office")
-		color.Yellow("3. List Offices")
-		color.Yellow("4. Exit")
+		clearScreen()
+		color.Yellow(menuconstants.EnterYourChoice)
+		color.Yellow(menuconstants.AddOffice)
+		color.Yellow(menuconstants.RemoveOffice)
+		color.Yellow(menuconstants.ListOffices)
+		color.Yellow(menuconstants.OfficeExit)
 		var choice int
 		fmt.Scanf("%d", &choice)
 		clearScreen()

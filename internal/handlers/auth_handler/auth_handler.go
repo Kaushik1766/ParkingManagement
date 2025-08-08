@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
+	"github.com/Kaushik1766/ParkingManagement/internal/constants/menuconstants"
 	authenticationmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/authentication_middleware"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	authservice "github.com/Kaushik1766/ParkingManagement/internal/service/auth_service"
@@ -90,7 +91,7 @@ func (auth *CliAuthHandler) CustomerSignup() {
 		return
 	}
 	color.Green("Signup successful")
-	color.Green("Press Enter to continue...")
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }
 

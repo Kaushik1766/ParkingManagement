@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/Kaushik1766/ParkingManagement/internal/constants/menuconstants"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	buildingservice "github.com/Kaushik1766/ParkingManagement/internal/service/building_service"
 	floorservice "github.com/Kaushik1766/ParkingManagement/internal/service/floor_service"
@@ -41,7 +42,7 @@ func NewCliAdminHandler(
 }
 
 func (h *CliAdminHandler) AddBuilding(ctx context.Context) {
-	buildingName, err := utils.ReadAndSanitizeInput("Enter name of the building to add: ", &h.reader)
+	buildingName, err := utils.ReadAndSanitizeInput(menuconstants.AddBuildingPrompt, &h.reader)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Error reading building name: %v", err))
 		return
@@ -51,20 +52,20 @@ func (h *CliAdminHandler) AddBuilding(ctx context.Context) {
 		customerrors.DisplayError(fmt.Sprintf("Error adding building: %v", err))
 		return
 	}
-	color.Green("Building added successfully.")
-	color.Green("Press Enter to continue...")
+	color.Green(menuconstants.BuildingAddedSuccess)
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }
 
 func (h *CliAdminHandler) DeleteBuilding(ctx context.Context) {
-	color.Blue("Available buildings:")
+	color.Blue(menuconstants.AvailableBuildings)
 	buildingNames, err := h.buildingService.GetAllBuildings(ctx)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Error fetching buildings: %v", err))
 		return
 	}
 	utils.PrintListInRows(buildingNames)
-	color.Yellow("Enter the number of the building to delete:")
+	color.Yellow(menuconstants.EnterBuildingNumber)
 	var buildingNumber int
 	fmt.Scanln(&buildingNumber)
 	if buildingNumber < 1 || buildingNumber > len(buildingNames) {
@@ -78,20 +79,20 @@ func (h *CliAdminHandler) DeleteBuilding(ctx context.Context) {
 		customerrors.DisplayError(fmt.Sprintf("Error deleting building: %v", err))
 		return
 	}
-	color.Green("Building deleted successfully.")
-	color.Green("Press Enter to continue...")
+	color.Green(menuconstants.BuildingDeletedSuccess)
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }
 
 func (h *CliAdminHandler) AddFloors(ctx context.Context) {
-	color.Blue("Available buildings:")
+	color.Blue(menuconstants.AvailableBuildings)
 	buildingNames, err := h.buildingService.GetAllBuildings(ctx)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Error fetching buildings: %v", err))
 		return
 	}
 	utils.PrintListInRows(buildingNames)
-	color.Yellow("Enter the number of the building to add floors to:")
+	color.Yellow(menuconstants.SelectBuildingForFloors)
 	var buildingNumber int
 	fmt.Scanln(&buildingNumber)
 	if buildingNumber < 1 || buildingNumber > len(buildingNames) {
@@ -100,7 +101,7 @@ func (h *CliAdminHandler) AddFloors(ctx context.Context) {
 	}
 	buildingName := buildingNames[buildingNumber-1]
 
-	color.Blue("Available floors in %s:", buildingName)
+	color.Blue(menuconstants.AvailableFloors, buildingName)
 	availableFloorNumbers, err := h.floorService.GetFloorsByBuildingId(ctx, buildingName)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Error fetching floors: %v", err))
@@ -114,7 +115,7 @@ func (h *CliAdminHandler) AddFloors(ctx context.Context) {
 
 	utils.PrintListInRows(availableFloorsStr)
 
-	floorNumbers, err := utils.ReadIntList("Enter the floor numbers (dont include already present floors) to add (space-separated):", &h.reader)
+	floorNumbers, err := utils.ReadIntList(menuconstants.AddFloorPrompt, &h.reader)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Invalid input for floor numbers: %v", err))
 		return
@@ -125,13 +126,13 @@ func (h *CliAdminHandler) AddFloors(ctx context.Context) {
 		customerrors.DisplayError(fmt.Sprintf("Error adding floors: %v", err))
 		return
 	}
-	color.Green("Floors added successfully.")
-	color.Green("Press Enter to continue...")
+	color.Green(menuconstants.FloorsAddedSuccess)
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }
 
 func (h *CliAdminHandler) DeleteFloors(ctx context.Context) {
-	color.Blue("Available buildings:")
+	color.Blue(menuconstants.AvailableBuildings)
 	buildingNames, err := h.buildingService.GetAllBuildings(ctx)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Error fetching buildings: %v", err))
@@ -140,7 +141,7 @@ func (h *CliAdminHandler) DeleteFloors(ctx context.Context) {
 
 	utils.PrintListInRows(buildingNames)
 
-	color.Yellow("Enter the number of the building to delete floors from:")
+	color.Yellow(menuconstants.SelectBuildingDeleteFloors)
 	var buildingNumber int
 	fmt.Scanln(&buildingNumber)
 	buildingName := buildingNames[buildingNumber-1]
@@ -159,7 +160,7 @@ func (h *CliAdminHandler) DeleteFloors(ctx context.Context) {
 
 	utils.PrintListInRows(availableFloorsStr)
 
-	floorsToDelete, err := utils.ReadIntList("Enter space spearated floor numbers to delete (dont enter index numbers):", &h.reader)
+	floorsToDelete, err := utils.ReadIntList(menuconstants.DeleteFloorPrompt, &h.reader)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Invalid input for floor numbers: %v", err))
 		return
@@ -169,14 +170,14 @@ func (h *CliAdminHandler) DeleteFloors(ctx context.Context) {
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Error deleting floors: %v", err))
 	} else {
-		color.Green("Floors deleted successfully.")
+		color.Green(menuconstants.FloorsDeletedSuccess)
 	}
-	color.Green("Press Enter to continue...")
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }
 
 func (h *CliAdminHandler) AddSlots(ctx context.Context) {
-	color.Blue("Available buildings:")
+	color.Blue(menuconstants.AvailableBuildings)
 	buildingNames, err := h.buildingService.GetAllBuildings(ctx)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Error fetching buildings: %v", err))
@@ -185,7 +186,7 @@ func (h *CliAdminHandler) AddSlots(ctx context.Context) {
 
 	utils.PrintListInRows(buildingNames)
 
-	color.Yellow("Select the number of the building to add slots:")
+	color.Yellow(menuconstants.SelectBuildingNumber)
 	var buildingNumber int
 	fmt.Scanln(&buildingNumber)
 
@@ -204,7 +205,7 @@ func (h *CliAdminHandler) AddSlots(ctx context.Context) {
 
 	utils.PrintListInRows(floorNumbersStr)
 
-	color.Blue("Enter the floor number to add slots:")
+	color.Blue(menuconstants.EnterFloorNumber)
 	var floorNumber int
 	fmt.Scanln(&floorNumber)
 
@@ -213,13 +214,13 @@ func (h *CliAdminHandler) AddSlots(ctx context.Context) {
 		return
 	}
 
-	slotNumbers, err := utils.ReadIntList("Enter the slot numbers to add (space-separated):", &h.reader)
+	slotNumbers, err := utils.ReadIntList(menuconstants.AddSlotPrompt, &h.reader)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Invalid input for slot numbers: %v", err))
 		return
 	}
 
-	color.Blue("Enter type of slots (0 - Two Wheeler, 1 - Four Wheeler):")
+	color.Blue(menuconstants.EnterSlotType)
 	var slotType vehicletypes.VehicleType
 	fmt.Scanln(&slotType)
 
@@ -228,14 +229,14 @@ func (h *CliAdminHandler) AddSlots(ctx context.Context) {
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Error adding slots: %v", err))
 	} else {
-		color.Green("Slots added successfully.")
+		color.Green(menuconstants.SlotsAddedSuccess)
 	}
-	color.Green("Press Enter to continue...")
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }
 
 func (h *CliAdminHandler) DeleteSlots(ctx context.Context) {
-	color.Blue("Available buildings:")
+	color.Blue(menuconstants.AvailableBuildings)
 	buildingNames, err := h.buildingService.GetAllBuildings(ctx)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Error fetching buildings: %v", err))
@@ -244,7 +245,7 @@ func (h *CliAdminHandler) DeleteSlots(ctx context.Context) {
 
 	utils.PrintListInRows(buildingNames)
 
-	color.Yellow("Select the number of the building to delete slots from:")
+	color.Yellow(menuconstants.SelectBuildingToDeleteFrom)
 	var buildingNumber int
 	fmt.Scanln(&buildingNumber)
 
@@ -256,7 +257,7 @@ func (h *CliAdminHandler) DeleteSlots(ctx context.Context) {
 		return
 	}
 
-	color.Blue("Available floors in %s:", buildingName)
+	color.Blue(menuconstants.AvailableFloors, buildingName)
 
 	floorNumbersStr := make([]string, len(floorNumbers))
 	for i, val := range floorNumbers {
@@ -265,7 +266,7 @@ func (h *CliAdminHandler) DeleteSlots(ctx context.Context) {
 
 	utils.PrintListInRows(floorNumbersStr)
 
-	color.Blue("Enter the floor number to delete slots from:")
+	color.Blue(menuconstants.EnterFloorNumberDelete)
 	var floorNumber int
 	fmt.Scanln(&floorNumber)
 
@@ -280,7 +281,7 @@ func (h *CliAdminHandler) DeleteSlots(ctx context.Context) {
 		return
 	}
 
-	color.Blue("Available slots in Floor %d of %s:", floorNumber, buildingName)
+	color.Blue(menuconstants.AvailableSlots, floorNumber, buildingName)
 
 	availableSlotsStr := make([]string, len(availableSlots))
 	for i, slot := range availableSlots {
@@ -293,7 +294,7 @@ func (h *CliAdminHandler) DeleteSlots(ctx context.Context) {
 
 	utils.PrintListInRows(availableSlotsStr)
 
-	slotsToDelete, err := utils.ReadIntList("Enter the slot numbers to delete (space-separated):", &h.reader)
+	slotsToDelete, err := utils.ReadIntList(menuconstants.DeleteSlotPrompt, &h.reader)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Invalid input for slot numbers: %v", err))
 		return
@@ -304,9 +305,9 @@ func (h *CliAdminHandler) DeleteSlots(ctx context.Context) {
 		customerrors.DisplayError(fmt.Sprintf("Error deleting slots: %v", err))
 		return
 	} else {
-		color.Green("Slots deleted successfully.")
+		color.Green(menuconstants.SlotsDeletedSuccess)
 	}
-	color.Green("Press Enter to continue...")
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }
 
@@ -317,14 +318,14 @@ func (h *CliAdminHandler) ListBuildings(ctx context.Context) {
 		return
 	}
 
-	color.Blue("Available buildings:")
+	color.Blue(menuconstants.AvailableBuildings)
 	utils.PrintListInRows(buildingNames)
-	color.Green("Press Enter to continue...")
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }
 
 func (h *CliAdminHandler) ListFloors(ctx context.Context) {
-	color.Blue("Available buildings:")
+	color.Blue(menuconstants.AvailableBuildings)
 	buildingNames, err := h.buildingService.GetAllBuildings(ctx)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Error fetching buildings: %v", err))
@@ -333,7 +334,7 @@ func (h *CliAdminHandler) ListFloors(ctx context.Context) {
 
 	utils.PrintListInRows(buildingNames)
 
-	color.Yellow("Select the number of the building to list floors:")
+	color.Yellow(menuconstants.SelectBuildingToList)
 	var buildingNumber int
 	fmt.Scanln(&buildingNumber)
 
@@ -345,7 +346,7 @@ func (h *CliAdminHandler) ListFloors(ctx context.Context) {
 		return
 	}
 
-	color.Blue("Available floors in %s:", buildingName)
+	color.Blue(menuconstants.AvailableFloors, buildingName)
 
 	floorNumbersStr := make([]string, len(floorNumbers))
 	for i, val := range floorNumbers {
@@ -353,12 +354,12 @@ func (h *CliAdminHandler) ListFloors(ctx context.Context) {
 	}
 
 	utils.PrintListInRows(floorNumbersStr)
-	color.Green("Press Enter to continue...")
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }
 
 func (h *CliAdminHandler) ListSlots(ctx context.Context) {
-	color.Blue("Available buildings:")
+	color.Blue(menuconstants.AvailableBuildings)
 	buildingNames, err := h.buildingService.GetAllBuildings(ctx)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Error fetching buildings: %v", err))
@@ -367,7 +368,7 @@ func (h *CliAdminHandler) ListSlots(ctx context.Context) {
 
 	utils.PrintListInRows(buildingNames)
 
-	color.Yellow("Select the number of the building to list slots:")
+	color.Yellow(menuconstants.SelectBuildingToListSlots)
 	var buildingNumber int
 	fmt.Scanln(&buildingNumber)
 	buildingName := buildingNames[buildingNumber-1]
@@ -377,13 +378,13 @@ func (h *CliAdminHandler) ListSlots(ctx context.Context) {
 		return
 	}
 
-	color.Blue("Available floors in %s:", buildingName)
+	color.Blue(menuconstants.AvailableFloors, buildingName)
 	floorNumbersStr := make([]string, len(floorNumbers))
 	for i, val := range floorNumbers {
 		floorNumbersStr[i] = fmt.Sprintf("Floor %d", val)
 	}
 	utils.PrintListInRows(floorNumbersStr)
-	color.Blue("Enter the floor number to list slots:")
+	color.Blue(menuconstants.EnterFloorNumberList)
 	var floorNumber int
 
 	fmt.Scanln(&floorNumber)
@@ -399,7 +400,7 @@ func (h *CliAdminHandler) ListSlots(ctx context.Context) {
 		return
 	}
 
-	color.Blue("Available slots in Floor %d of %s (red-> Occupied, green-> vacant):", floorNumber, buildingName)
+	color.Blue(menuconstants.AvailableSlotsWithStatus, floorNumber, buildingName)
 
 	slotsStr := make([]string, len(slots))
 
@@ -422,6 +423,6 @@ func (h *CliAdminHandler) ListSlots(ctx context.Context) {
 	}
 
 	utils.PrintListInRows(slotsStr)
-	color.Green("Press Enter to continue...")
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }

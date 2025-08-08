@@ -1,3 +1,8 @@
 package config
 
-const JWTSecret = "asdfasasdfasdf"
+import "time"
+
+const (
+	JWTSecret       = "asdfasasdfasdf"
+	BillingDuration = time.Minute * 1
+)

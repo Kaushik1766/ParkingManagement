@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Kaushik1766/ParkingManagement/internal/constants/menuconstants"
 	officeservice "github.com/Kaushik1766/ParkingManagement/internal/service/office_service"
 	slotassignment "github.com/Kaushik1766/ParkingManagement/internal/service/slot_assignment"
 	slotservice "github.com/Kaushik1766/ParkingManagement/internal/service/slot_service"
@@ -43,12 +44,12 @@ func (sah *CliSlotAssignmentHandler) ViewVehiclesWithUnassignedSlots(ctx context
 	for i, vehicle := range unassignedVehicles {
 		color.Magenta("%d. UserId: %s, NumberPlate: %s, Vehicle Type: %s\n", i, vehicle.UserId.String(), vehicle.NumberPlate, vehicle.VehicleType)
 	}
-	color.Green("Press enter to continue...")
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }
 
 func (sah *CliSlotAssignmentHandler) AssignSlot(ctx context.Context) {
-	color.Cyan("Select the number of vehicle to assign a slot to:")
+	color.Cyan(menuconstants.SelectVehicleForSlot)
 	unassignedVehicles, err := sah.assignmentService.GetVehiclesWithUnassignedSlots(ctx)
 	if err != nil {
 		customerrors.DisplayError("error fetching vehicles")
@@ -82,7 +83,7 @@ func (sah *CliSlotAssignmentHandler) AssignSlot(ctx context.Context) {
 		return
 	}
 
-	color.Cyan("Select a slot to assign to the vehicle:")
+	color.Cyan(menuconstants.SelectSlotForVehicle)
 
 	for i, slot := range freeSlots {
 		color.Blue("%d. Floor Number: %d, Slot Number: %d, Slot Type: %s\n", i+1, slot.FloorNumber, slot.SlotNumber, slot.SlotType)
@@ -100,7 +101,7 @@ func (sah *CliSlotAssignmentHandler) AssignSlot(ctx context.Context) {
 		customerrors.DisplayError("error assigning slot to vehicle")
 		return
 	}
-	color.Green("Slot assigned successfully to vehicle %s", vehicle.NumberPlate)
-	color.Green("Press enter to continue...")
+	color.Green(menuconstants.SlotAssignedSuccess, vehicle.NumberPlate)
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }

@@ -43,13 +43,14 @@ func (fpr *FileParkingRepository) GetParkingHistoryByUser(userId string, startTi
 	for _, parking := range fpr.parkings {
 		if parking.UserId.String() == userId && parking.StartTime.After(startTime) && parking.EndTime.Before(endTime) {
 			history = append(history, parkinghistory.ParkingHistoryDTO{
-				TicketId:    parking.ParkingId.String(),
-				NumberPlate: parking.NumberPlate,
-				BuildingId:  parking.BuildingId,
-				FLoorNumber: parking.FLoorNumber,
-				SlotNumber:  parking.SlotNumber,
-				StartTime:   parking.StartTime.Local().String(),
-				EndTime:     parking.EndTime.Local().String(),
+				TicketId:     parking.ParkingId.String(),
+				NumberPlate:  parking.NumberPlate,
+				BuildingId:   parking.BuildingId,
+				FLoorNumber:  parking.FLoorNumber,
+				SlotNumber:   parking.SlotNumber,
+				StartTime:    parking.StartTime.Local().String(),
+				EndTime:      parking.EndTime.Local().String(),
+				VechicleType: parking.VehicleType,
 			})
 		}
 	}
@@ -77,6 +78,7 @@ func (fpr *FileParkingRepository) AddParking(vehicle vehicle.Vehicle) (string, e
 		SlotNumber:  vehicle.AssignedSlot.SlotNumber,
 		StartTime:   time.Now(),
 		EndTime:     time.Time{},
+		VehicleType: vehicle.VehicleType,
 	}
 	log.Printf("Adding new parking: %+v", newParking)
 	fpr.parkings = append(fpr.parkings, newParking)
@@ -93,13 +95,14 @@ func (fpr *FileParkingRepository) GetParkingHistoryByNumberPlate(numberplate str
 	for _, parking := range fpr.parkings {
 		if parking.NumberPlate == numberplate && parking.StartTime.After(startTime) && parking.EndTime.Before(endTime) {
 			history = append(history, parkinghistory.ParkingHistoryDTO{
-				TicketId:    parking.ParkingId.String(),
-				NumberPlate: parking.NumberPlate,
-				BuildingId:  parking.BuildingId,
-				FLoorNumber: parking.FLoorNumber,
-				SlotNumber:  parking.SlotNumber,
-				StartTime:   parking.StartTime.Local().String(),
-				EndTime:     parking.EndTime.Local().String(),
+				TicketId:     parking.ParkingId.String(),
+				NumberPlate:  parking.NumberPlate,
+				BuildingId:   parking.BuildingId,
+				FLoorNumber:  parking.FLoorNumber,
+				SlotNumber:   parking.SlotNumber,
+				StartTime:    parking.StartTime.Local().String(),
+				EndTime:      parking.EndTime.Local().String(),
+				VechicleType: parking.VehicleType,
 			})
 		}
 	}
@@ -115,13 +118,14 @@ func (fpr *FileParkingRepository) GetActiveUserParkings(userId string) ([]parkin
 	for _, parking := range fpr.parkings {
 		if parking.UserId.String() == userId && parking.EndTime.IsZero() {
 			activeParkings = append(activeParkings, parkinghistory.ParkingHistoryDTO{
-				TicketId:    parking.ParkingId.String(),
-				NumberPlate: parking.NumberPlate,
-				BuildingId:  parking.BuildingId,
-				FLoorNumber: parking.FLoorNumber,
-				SlotNumber:  parking.SlotNumber,
-				StartTime:   parking.StartTime.Local().String(),
-				EndTime:     parking.EndTime.Local().String(),
+				TicketId:     parking.ParkingId.String(),
+				NumberPlate:  parking.NumberPlate,
+				BuildingId:   parking.BuildingId,
+				FLoorNumber:  parking.FLoorNumber,
+				SlotNumber:   parking.SlotNumber,
+				StartTime:    parking.StartTime.Local().String(),
+				EndTime:      parking.EndTime.Local().String(),
+				VechicleType: parking.VehicleType,
 			})
 		}
 	}

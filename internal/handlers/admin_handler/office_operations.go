@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Kaushik1766/ParkingManagement/internal/constants/menuconstants"
 	customerrors "github.com/Kaushik1766/ParkingManagement/pkg/customErrors"
 	"github.com/Kaushik1766/ParkingManagement/utils"
 	"github.com/fatih/color"
 )
 
 func (h *CliAdminHandler) AddOffice(ctx context.Context) {
-	color.Yellow("Available Buildings:")
+	color.Yellow(menuconstants.AvailableBuildingsOffice)
 	buildings, err := h.buildingService.GetAllBuildings(ctx)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("error while fetching buildings: %v", err))
@@ -19,13 +20,13 @@ func (h *CliAdminHandler) AddOffice(ctx context.Context) {
 
 	utils.PrintListInRows(buildings)
 
-	color.Yellow("Enter building number to add office:")
+	color.Yellow(menuconstants.SelectBuildingForOffice)
 	var buildingNumber int
 	fmt.Scanf("%d", &buildingNumber)
 
 	buildingName := buildings[buildingNumber-1]
 
-	color.Yellow("Available Floors in %s:", buildingName)
+	color.Yellow(menuconstants.AvailableFloorsOffice, buildingName)
 	floorNumbers, err := h.floorService.GetFloorsByBuildingId(ctx, buildingName)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("error while fetching floors: %v", err))
@@ -38,12 +39,12 @@ func (h *CliAdminHandler) AddOffice(ctx context.Context) {
 	}
 	utils.PrintListInRows(floorNumbersStr)
 
-	color.Yellow("Enter floor number to add office:")
+	color.Yellow(menuconstants.SelectFloorForOffice)
 	var floorNumber int
 	fmt.Scanf("%d", &floorNumber)
 
 	color.Yellow("Enter office name:")
-	officeName, err := utils.ReadAndSanitizeInput("Office Name: ", &h.reader)
+	officeName, err := utils.ReadAndSanitizeInput(menuconstants.EnterOfficeName, &h.reader)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("error while reading office name: %v", err))
 		return
@@ -54,13 +55,13 @@ func (h *CliAdminHandler) AddOffice(ctx context.Context) {
 		customerrors.DisplayError(fmt.Sprintf("error while adding office: %v", err))
 		return
 	}
-	color.Green("Office %s added successfully in building %s on floor %d", officeName, buildingName, floorNumber)
-	color.Green("Press Enter to continue...")
+	color.Green(menuconstants.OfficeAddedSuccess, officeName, buildingName, floorNumber)
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }
 
 func (h *CliAdminHandler) RemoveOffice(ctx context.Context) {
-	color.Yellow("Select building number:")
+	color.Yellow(menuconstants.SelectBuildingNumber)
 	buildings, err := h.buildingService.GetAllBuildings(ctx)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("error while fetching buildings: %v", err))
@@ -73,7 +74,7 @@ func (h *CliAdminHandler) RemoveOffice(ctx context.Context) {
 
 	buildingName := buildings[buildingNumber-1]
 
-	color.Yellow("Enter the floor number of office to remove:")
+	color.Yellow(menuconstants.SelectFloorToRemoveOffice)
 	offices, err := h.officeService.ListOfficesByBuilding(ctx, buildingName)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("error while fetching offices: %v", err))
@@ -93,13 +94,13 @@ func (h *CliAdminHandler) RemoveOffice(ctx context.Context) {
 		customerrors.DisplayError(fmt.Sprintf("error while removing office: %v", err))
 		return
 	}
-	color.Green("Office removed successfully")
-	color.Green("Press Enter to continue...")
+	color.Green(menuconstants.OfficeRemovedSuccess)
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }
 
 func (h *CliAdminHandler) ListOffices(ctx context.Context) {
-	color.Yellow("Select building number:")
+	color.Yellow(menuconstants.SelectBuildingNumber)
 	buildings, err := h.buildingService.GetAllBuildings(ctx)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("error while fetching buildings: %v", err))
@@ -112,7 +113,7 @@ func (h *CliAdminHandler) ListOffices(ctx context.Context) {
 
 	buildingName := buildings[buildingNumber-1]
 
-	color.Yellow("Offices in building %s:", buildingName)
+	color.Yellow(menuconstants.OfficesInBuilding, buildingName)
 	officesMap, err := h.officeService.ListOfficesByBuilding(ctx, buildingName)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("error while fetching offices: %v", err))
@@ -123,6 +124,6 @@ func (h *CliAdminHandler) ListOffices(ctx context.Context) {
 		color.Green("Floor %d: %v", floor, office)
 	}
 
-	color.Green("Press Enter to continue...")
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }

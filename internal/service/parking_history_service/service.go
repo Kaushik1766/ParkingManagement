@@ -18,6 +18,25 @@ type ParkingHistoryService struct {
 	vehicleRepo vehiclerepository.VehicleStorage
 }
 
+func (phs *ParkingHistoryService) GetParkingHistoryById(userId string, startTime, endTime string) ([]parkinghistory.ParkingHistoryDTO, error) {
+	startDate, err := time.Parse(time.DateOnly, startTime)
+	if err != nil {
+		return []parkinghistory.ParkingHistoryDTO{}, err
+	}
+
+	endDate, err := time.Parse(time.DateOnly, endTime)
+	if err != nil {
+		return []parkinghistory.ParkingHistoryDTO{}, err
+	}
+
+	parkingHistory, err := phs.parkingRepo.GetParkingHistoryByUser(userId, startDate, endDate)
+	if err != nil {
+		return []parkinghistory.ParkingHistoryDTO{}, err
+	}
+
+	return parkingHistory, nil
+}
+
 func (phs *ParkingHistoryService) GetParkingHistory(ctx context.Context, startTime string, endTime string) ([]parkinghistory.ParkingHistoryDTO, error) {
 	userCtx := ctx.Value(constants.User).(userjwt.UserJwt)
 

@@ -10,15 +10,9 @@ type BillDTO struct {
 	ParkingHistory []parkinghistory.ParkingHistoryDTO `json:"parking_history"`
 	TotalAmount    float64                            `json:"total_amount"`
 	BillDate       string                             `json:"bill_date"`
+	UserId         string                             `json:"user_id"`
 }
 
 func (bdto *BillDTO) String() string {
-	var parkingHistoryStr string
-	for _, ph := range bdto.ParkingHistory {
-		parkingHistoryStr += ph.String() + "\n"
-	}
-	return "BillDTO{" +
-		"ParkingHistory: [" + parkingHistoryStr + "], " +
-		"TotalAmount: " + fmt.Sprintf("%.2f", bdto.TotalAmount) + ", " +
-		"BillDate: " + bdto.BillDate
+	return fmt.Sprintf("\n\nParkingHistory: %v\n TotalAmount: %.2f\n BillDate: %s\n UserId: %s\n\n", bdto.ParkingHistory, bdto.TotalAmount, bdto.BillDate, bdto.UserId)
 }

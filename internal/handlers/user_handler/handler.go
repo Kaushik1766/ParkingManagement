@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Kaushik1766/ParkingManagement/internal/constants/menuconstants"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	userservice "github.com/Kaushik1766/ParkingManagement/internal/service/user_service"
 	customerrors "github.com/Kaushik1766/ParkingManagement/pkg/customErrors"
@@ -83,7 +84,7 @@ func (handler *CliUserHandler) UnregisterVehicle(userCtx context.Context) {
 		return
 	}
 	color.Green("Unregistered successfully")
-	color.Green("Press Enter to continue...")
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }
 
@@ -109,7 +110,7 @@ func (handler *CliUserHandler) GetUserProfile(userCtx context.Context) {
 	color.Yellow("Email: %s", userProfile.Email)
 	color.Yellow("Role: %s", userProfile.Role)
 	color.Yellow("Office: %s", userProfile.Office)
-	color.Green("Press Enter to continue...")
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }
 
@@ -126,6 +127,6 @@ func (handler *CliUserHandler) GetRegisteredVehicles(userCtx context.Context) {
 		color.Yellow("Assigned Slot: %s", val.AssignedSlot)
 		fmt.Println()
 	}
-	color.Green("Press Enter to continue...")
+	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
 }
