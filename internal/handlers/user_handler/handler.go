@@ -3,6 +3,7 @@ package userhandler
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	userservice "github.com/Kaushik1766/ParkingManagement/internal/service/user_service"
@@ -92,9 +93,19 @@ func (handler *CliUserHandler) GetUserProfile(userCtx context.Context) {
 		customerrors.DisplayError(fmt.Sprintf("Failed to fetch user profile: %v", err))
 		return
 	}
+
+	var userName string
+
+	userNameList := strings.Split(userProfile.Name, " ")
+
+	for _, name := range userNameList {
+		name = strings.ToUpper(name[:1]) + name[1:]
+		userName += string(name)
+	}
+
 	color.Cyan("User Profile:")
 	color.Yellow("User ID: %s", userProfile.UserId)
-	color.Yellow("Name: %s", userProfile.Name)
+	color.Yellow("Name: %s", userName)
 	color.Yellow("Email: %s", userProfile.Email)
 	color.Yellow("Role: %s", userProfile.Role)
 	color.Yellow("Office: %s", userProfile.Office)

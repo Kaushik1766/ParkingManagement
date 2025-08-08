@@ -58,6 +58,13 @@ func (us *UserService) GetUserById(ctx context.Context, userId string) (user.Use
 }
 
 func (us *UserService) RegisterVehicle(ctx context.Context, numberplate string, vehicleType vehicletypes.VehicleType) error {
+	if len(numberplate) == 0 {
+		return errors.New("numberplate cannot be empty")
+	}
+
+	if len(numberplate) != 10 {
+		return errors.New("numberplate must be 10 characters long")
+	}
 	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
 	currentUser, err := us.userRepo.GetUserById(ctxUser.ID)
 	if err != nil {
