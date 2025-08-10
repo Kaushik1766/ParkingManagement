@@ -137,7 +137,9 @@ func main() {
 	}()
 
 	go func() {
-		billingService.GenerateMonthlyInvoice()
+		for {
+			billingService.GenerateMonthlyInvoice()
+		}
 	}()
 	var choice int
 	for {

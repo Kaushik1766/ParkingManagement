@@ -29,7 +29,6 @@ func NewBillingService(userService userservice.UserManager, parkingHistoryServic
 
 func (bs *BillingService) GenerateMonthlyInvoice() {
 	time.Sleep(config.BillingDuration)
-	// time.Sleep(time.Second * 5)
 	log.Println("billingservice: Generating monthly invoice...")
 	users, err := bs.userService.GetAllUsers(context.Background())
 	if err != nil {
@@ -51,13 +50,14 @@ func (bs *BillingService) GenerateMonthlyInvoice() {
 
 		var totalAmount float64 = 0
 		for _, ph := range parkingHistory {
-			startTime, err := time.Parse(time.DateOnly, ph.StartTime)
+			layout := "2006-01-02 15:04:05.999999999 -0700 MST"
+			startTime, err := time.Parse(layout, ph.StartTime)
 			if err != nil {
 				log.Printf("billingservice: Error parsing start time for user %s: %v\n", user.UserId, err)
 				continue
 			}
 
-			endTime, err := time.Parse(time.DateOnly, ph.EndTime)
+			endTime, err := time.Parse(layout, ph.EndTime)
 			if err != nil {
 				log.Printf("billingservice: Error parsing end time for user %s: %v\n", user.UserId, err)
 				continue
@@ -84,5 +84,5 @@ func (bs *BillingService) GenerateMonthlyInvoice() {
 	}
 
 	os.WriteFile("bills.txt", []byte(billsString), 0666)
-	fmt.Println("bill generated")
+	fmt.Println("for demo: bill generated")
 }
