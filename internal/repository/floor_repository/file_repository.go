@@ -7,6 +7,7 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/Kaushik1766/ParkingManagement/internal/config"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/floor"
 	"github.com/google/uuid"
 )
@@ -71,9 +72,9 @@ func (ffr *FileFloorRepository) DeleteFloor(buildingId uuid.UUID, floorNumber in
 }
 
 func NewFileFloorRepository() *FileFloorRepository {
-	data, err := os.ReadFile("floors.json")
+	data, err := os.ReadFile(config.FloorsPath)
 	if err != nil {
-		os.WriteFile("floors.json", []byte("[]"), 0666)
+		os.WriteFile(config.FloorsPath, []byte("[]"), 0666)
 		data, err = json.Marshal([]floor.Floor{})
 		if err != nil {
 			fmt.Println("unable to marshal")
@@ -100,7 +101,7 @@ func (ffr *FileFloorRepository) SerializeData() {
 		fmt.Println("unable to marshal floors data")
 		return
 	}
-	err = os.WriteFile("floors.json", data, 0666)
+	err = os.WriteFile(config.FloorsPath, data, 0666)
 	if err != nil {
 		fmt.Println("unable to write floors data to file")
 	}

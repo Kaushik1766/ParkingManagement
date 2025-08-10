@@ -6,6 +6,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/Kaushik1766/ParkingManagement/internal/config"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/building"
 	"github.com/google/uuid"
 )
@@ -63,9 +64,9 @@ func (fbr *FileBuildingRepository) DeleteBuilding(name string) error {
 }
 
 func NewFileBuildingRepository() *FileBuildingRepository {
-	data, err := os.ReadFile("buildings.json")
+	data, err := os.ReadFile(config.BuildingsPath)
 	if err != nil {
-		os.WriteFile("buildings.json", []byte("[]"), 0666)
+		os.WriteFile(config.BuildingsPath, []byte("[]"), 0666)
 		data, err = json.Marshal([]building.Building{})
 		if err != nil {
 			fmt.Println("unable to marshal")
@@ -91,6 +92,6 @@ func (fbr *FileBuildingRepository) SerializeData() error {
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile("buildings.json", data, 0666)
+	err = os.WriteFile(config.BuildingsPath, data, 0666)
 	return err
 }

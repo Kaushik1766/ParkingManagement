@@ -7,6 +7,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/Kaushik1766/ParkingManagement/internal/config"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/office"
 )
 
@@ -27,9 +28,9 @@ func (fr *FileOfficeRepository) GetBuildingAndFloorByOffice(officeName string) (
 }
 
 func NewFileOfficeRepository() *FileOfficeRepository {
-	data, err := os.ReadFile("offices.json")
+	data, err := os.ReadFile(config.OfficesPath)
 	if err != nil {
-		os.WriteFile("offices.json", []byte("[]"), 0666)
+		os.WriteFile(config.OfficesPath, []byte("[]"), 0666)
 		data, err = json.Marshal([]office.Office{})
 		if err != nil {
 			fmt.Println("unable to marshal")
@@ -112,6 +113,6 @@ func (fr *FileOfficeRepository) SerializeData() error {
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile("offices.json", data, 0666)
+	err = os.WriteFile(config.OfficesPath, data, 0666)
 	return err
 }

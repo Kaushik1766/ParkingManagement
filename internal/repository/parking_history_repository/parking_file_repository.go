@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Kaushik1766/ParkingManagement/internal/config"
 	parkinghistory "github.com/Kaushik1766/ParkingManagement/internal/models/parking_history"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/slot"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/vehicle"
@@ -137,9 +138,9 @@ func (fpr *FileParkingRepository) GetActiveUserParkings(userId string) ([]parkin
 }
 
 func NewFileParkingHistoryRepository() *FileParkingRepository {
-	data, err := os.ReadFile("parkinghistory.json")
+	data, err := os.ReadFile(config.ParkingHistoryPath)
 	if err != nil {
-		os.WriteFile("parkinghistory.json", []byte("[]"), 0666)
+		os.WriteFile(config.ParkingHistoryPath, []byte("[]"), 0666)
 		data, err = json.Marshal([]slot.Slot{})
 		if err != nil {
 			fmt.Println("unable to marshal")
@@ -164,7 +165,7 @@ func (fpr *FileParkingRepository) SerializeData() {
 		fmt.Println("unable to marshal parking data")
 		return
 	}
-	err = os.WriteFile("parkinghistory.json", data, 0666)
+	err = os.WriteFile(config.ParkingHistoryPath, data, 0666)
 	if err != nil {
 		fmt.Println("unable to write parking data to file")
 	}

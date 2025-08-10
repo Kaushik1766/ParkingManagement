@@ -7,6 +7,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/Kaushik1766/ParkingManagement/internal/config"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	user "github.com/Kaushik1766/ParkingManagement/internal/models/user"
 	customerrors "github.com/Kaushik1766/ParkingManagement/pkg/customErrors"
@@ -28,9 +29,9 @@ func (db *FileUserRepository) GetAllUsers() ([]user.User, error) {
 }
 
 func NewFileUserRepository() *FileUserRepository {
-	data, err := os.ReadFile("users.json")
+	data, err := os.ReadFile(config.UsersPath)
 	if err != nil {
-		os.WriteFile("users.json", []byte("[]"), 0666)
+		os.WriteFile(config.UsersPath, []byte("[]"), 0666)
 		data, err = json.Marshal([]user.User{})
 		if err != nil {
 			fmt.Println("unable to marshal")
@@ -110,6 +111,6 @@ func (db *FileUserRepository) SerializeData() error {
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile("users.json", data, 0666)
+	err = os.WriteFile(config.UsersPath, data, 0666)
 	return err
 }

@@ -7,6 +7,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/Kaushik1766/ParkingManagement/internal/config"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/vehicle"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
@@ -115,9 +116,9 @@ func (fvr *FileVehicleRepository) GetVehiclesByUserId(userId uuid.UUID) ([]vehic
 }
 
 func NewFileVehicleRepository(userRepo userrepository.UserStorage) *FileVehicleRepository {
-	data, err := os.ReadFile("vehicles.json")
+	data, err := os.ReadFile(config.VehiclesPath)
 	if err != nil {
-		os.WriteFile("vehicles.json", []byte("[]"), 0666)
+		os.WriteFile(config.VehiclesPath, []byte("[]"), 0666)
 		data, err = json.Marshal([]vehicle.Vehicle{})
 		if err != nil {
 			fmt.Println("unable to marshal")
@@ -144,6 +145,6 @@ func (fvr *FileVehicleRepository) SerializeData() error {
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile("vehicles.json", data, 0666)
+	err = os.WriteFile(config.VehiclesPath, data, 0666)
 	return err
 }

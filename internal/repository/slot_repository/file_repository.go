@@ -7,6 +7,7 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/Kaushik1766/ParkingManagement/internal/config"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/slot"
 	"github.com/google/uuid"
@@ -118,9 +119,9 @@ func (fsr *FileSlotRepository) DeleteSlot(buildingId uuid.UUID, floorNumber int,
 }
 
 func NewFileSlotRepository() *FileSlotRepository {
-	data, err := os.ReadFile("slots.json")
+	data, err := os.ReadFile(config.SlotsPath)
 	if err != nil {
-		os.WriteFile("slots.json", []byte("[]"), 0666)
+		os.WriteFile(config.SlotsPath, []byte("[]"), 0666)
 		data, err = json.Marshal([]slot.Slot{})
 		if err != nil {
 			fmt.Println("unable to marshal")
@@ -145,7 +146,7 @@ func (fsr *FileSlotRepository) SerializeData() {
 		fmt.Println("unable to marshal slot data")
 		return
 	}
-	err = os.WriteFile("slots.json", data, 0666)
+	err = os.WriteFile(config.SlotsPath, data, 0666)
 	if err != nil {
 		fmt.Println("unable to write slot data to file")
 	}
