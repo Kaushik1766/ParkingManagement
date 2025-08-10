@@ -63,6 +63,11 @@ func (sah *CliSlotAssignmentHandler) AssignSlot(ctx context.Context) {
 	var vehicleNumber int
 	fmt.Scanf("%d", &vehicleNumber)
 
+	if vehicleNumber < 1 || vehicleNumber > len(unassignedVehicles) {
+		customerrors.DisplayError("invalid vehicle number selected")
+		return
+	}
+
 	vehicle := unassignedVehicles[vehicleNumber-1]
 
 	user, err := sah.userService.GetUserById(ctx, vehicle.UserId.String())

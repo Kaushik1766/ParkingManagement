@@ -14,14 +14,29 @@ const (
 	LoginRetryMessage = "Please try again or signup if you don't have an account."
 
 	// customer menu
+	CustomerProfileMenu       = "1. Profile Menu"
+	CustomerRegistrationMenu  = "2. Registration Menu"
+	CustomerParkingMenu       = "3. Parking Menu"
+	CustomerLogout            = "4. Logout"
+	CustomerExit              = "5. Exit"
 	CustomerUpdateProfile     = "1. Update profile"
 	CustomerRegisterVehicle   = "2. Register vehicle"
 	CustomerViewProfile       = "3. View Profile"
 	CustomerViewVehicles      = "4. View Registered Vehicles"
 	CustomerUnregisterVehicle = "5. Unregister Vehicle"
-	CustomerParkingMenu       = "6. Parking Menu"
-	CustomerLogout            = "7. Logout"
-	CustomerExit              = "8. Exit"
+
+	// profile menu
+	ProfileMenuTitle = "Profile Menu"
+	ProfileUpdate    = "1. Update Profile"
+	ProfileView      = "2. View Profile"
+	ProfileExit      = "3. Exit"
+
+	// registration menu
+	RegistrationMenuTitle         = "Registration Menu"
+	RegistrationAddVehicle        = "1. Register Vehicle"
+	RegistrationViewVehicles      = "2. View Registered Vehicles"
+	RegistrationUnregisterVehicle = "3. Unregister Vehicle"
+	RegistrationExit              = "4. Exit"
 
 	// admin menu
 	AdminPageTitle          = "Admin page: "

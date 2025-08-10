@@ -24,6 +24,10 @@ func (h *CliAdminHandler) AddOffice(ctx context.Context) {
 	var buildingNumber int
 	fmt.Scanf("%d", &buildingNumber)
 
+	if buildingNumber < 1 || buildingNumber > len(buildings) {
+		customerrors.DisplayError("Invalid building number selected.")
+		return
+	}
 	buildingName := buildings[buildingNumber-1]
 
 	color.Yellow(menuconstants.AvailableFloorsOffice, buildingName)
@@ -71,7 +75,10 @@ func (h *CliAdminHandler) RemoveOffice(ctx context.Context) {
 
 	var buildingNumber int
 	fmt.Scanf("%d", &buildingNumber)
-
+	if buildingNumber < 1 || buildingNumber > len(buildings) {
+		customerrors.DisplayError("Invalid building number selected.")
+		return
+	}
 	buildingName := buildings[buildingNumber-1]
 
 	color.Yellow(menuconstants.SelectFloorToRemoveOffice)
@@ -111,6 +118,10 @@ func (h *CliAdminHandler) ListOffices(ctx context.Context) {
 	var buildingNumber int
 	fmt.Scanf("%d", &buildingNumber)
 
+	if buildingNumber < 1 || buildingNumber > len(buildings) {
+		customerrors.DisplayError("Invalid building number selected.")
+		return
+	}
 	buildingName := buildings[buildingNumber-1]
 
 	color.Yellow(menuconstants.OfficesInBuilding, buildingName)

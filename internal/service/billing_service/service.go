@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/Kaushik1766/ParkingManagement/internal/config"
 	billingrates "github.com/Kaushik1766/ParkingManagement/internal/constants/billing_rates"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/billing"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
@@ -27,8 +28,8 @@ func NewBillingService(userService userservice.UserManager, parkingHistoryServic
 }
 
 func (bs *BillingService) GenerateMonthlyInvoice() {
-	// time.Sleep(config.BillingDuration)
-	time.Sleep(time.Second * 5)
+	time.Sleep(config.BillingDuration)
+	// time.Sleep(time.Second * 5)
 	log.Println("billingservice: Generating monthly invoice...")
 	users, err := bs.userService.GetAllUsers(context.Background())
 	if err != nil {

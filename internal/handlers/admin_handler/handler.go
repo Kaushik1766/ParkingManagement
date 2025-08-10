@@ -144,6 +144,12 @@ func (h *CliAdminHandler) DeleteFloors(ctx context.Context) {
 	color.Yellow(menuconstants.SelectBuildingDeleteFloors)
 	var buildingNumber int
 	fmt.Scanln(&buildingNumber)
+
+	if buildingNumber < 1 || buildingNumber > len(buildingNames) {
+		customerrors.DisplayError("Invalid building number selected.")
+		return
+	}
+
 	buildingName := buildingNames[buildingNumber-1]
 
 	floorNumbers, err := h.floorService.GetFloorsByBuildingId(ctx, buildingName)
@@ -164,6 +170,13 @@ func (h *CliAdminHandler) DeleteFloors(ctx context.Context) {
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Invalid input for floor numbers: %v", err))
 		return
+	}
+
+	for _, floor := range floorsToDelete {
+		if !slices.Contains(floorNumbers, floor) {
+			customerrors.DisplayError(fmt.Sprintf("Floor %d does not exist in building %s", floor, buildingName))
+			return
+		}
 	}
 
 	err = h.floorService.DeleteFloors(ctx, buildingName, floorsToDelete)
@@ -190,6 +203,10 @@ func (h *CliAdminHandler) AddSlots(ctx context.Context) {
 	var buildingNumber int
 	fmt.Scanln(&buildingNumber)
 
+	if buildingNumber < 1 || buildingNumber > len(buildingNames) {
+		customerrors.DisplayError("Invalid building number selected.")
+		return
+	}
 	buildingName := buildingNames[buildingNumber-1]
 
 	floorNumbers, err := h.floorService.GetFloorsByBuildingId(ctx, buildingName)
@@ -249,6 +266,10 @@ func (h *CliAdminHandler) DeleteSlots(ctx context.Context) {
 	var buildingNumber int
 	fmt.Scanln(&buildingNumber)
 
+	if buildingNumber < 1 || buildingNumber > len(buildingNames) {
+		customerrors.DisplayError("Invalid building number selected.")
+		return
+	}
 	buildingName := buildingNames[buildingNumber-1]
 
 	floorNumbers, err := h.floorService.GetFloorsByBuildingId(ctx, buildingName)

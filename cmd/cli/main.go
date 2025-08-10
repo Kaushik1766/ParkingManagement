@@ -38,6 +38,7 @@ import (
 	slotservice "github.com/Kaushik1766/ParkingManagement/internal/service/slot_service"
 	userservice "github.com/Kaushik1766/ParkingManagement/internal/service/user_service"
 	vehicleservice "github.com/Kaushik1766/ParkingManagement/internal/service/vehicle_service"
+	"github.com/common-nighthawk/go-figure"
 	"github.com/fatih/color"
 )
 
@@ -142,7 +143,9 @@ func main() {
 	for {
 		if ctx == nil {
 			clearScreen()
-			color.Cyan(menuconstants.WelcomeMessage)
+			// color.Cyan(menuconstants.WelcomeMessage)
+			(figure.NewColorFigure("1337Park", "", "blue", true)).Print()
+			fmt.Println("")
 			color.Yellow(menuconstants.LoginOption)
 			color.Yellow(menuconstants.SignupOption)
 			color.Yellow(menuconstants.AdminSignupOption)
@@ -154,10 +157,8 @@ func main() {
 				ctx = context.Background()
 				userCtx, err := authController.Login(ctx)
 				if err != nil {
-					color.Red("Error during login: %v", err)
-					color.Cyan(menuconstants.LoginRetryMessage)
 					ctx = nil
-					fmt.Scanln()
+					log.Println("Login failed:", err)
 				} else {
 					ctx = userCtx
 				}
@@ -176,12 +177,11 @@ func main() {
 			}
 			if user.Role == roles.Customer {
 				clearScreen()
+				(figure.NewColorFigure("Customer Menu", "", "blue", true)).Print()
+				fmt.Println("")
 				color.Cyan(menuconstants.EnterYourChoice)
-				color.Yellow(menuconstants.CustomerUpdateProfile)
-				color.Yellow(menuconstants.CustomerRegisterVehicle)
-				color.Yellow(menuconstants.CustomerViewProfile)
-				color.Yellow(menuconstants.CustomerViewVehicles)
-				color.Yellow(menuconstants.CustomerUnregisterVehicle)
+				color.Yellow(menuconstants.CustomerProfileMenu)
+				color.Yellow(menuconstants.CustomerRegistrationMenu)
 				color.Yellow(menuconstants.CustomerParkingMenu)
 				color.Yellow(menuconstants.CustomerLogout)
 				color.Yellow(menuconstants.CustomerExit)
@@ -189,25 +189,21 @@ func main() {
 				clearScreen()
 				switch choice {
 				case 1:
-					userHandler.UpdateProfile(ctx)
+					profileManagement()
 				case 2:
-					userHandler.RegisterVehicle(ctx)
+					registrationMenu()
 				case 3:
-					userHandler.GetUserProfile(ctx)
-				case 4:
-					userHandler.GetRegisteredVehicles(ctx)
-				case 5:
-					userHandler.UnregisterVehicle(ctx)
-				case 6:
 					parkingMenu()
-				case 7:
+				case 4:
 					ctx = authController.Logout()
 				default:
 					return
 				}
 			} else {
 				clearScreen()
-				color.Cyan(menuconstants.AdminPageTitle)
+				// color.Cyan(menuconstants.AdminPageTitle)
+				(figure.NewColorFigure("Admin Menu", "", "blue", true)).Print()
+				fmt.Println("")
 				color.Cyan(menuconstants.AdminBuildingManagement)
 				color.Cyan(menuconstants.AdminFloorManagement)
 				color.Cyan(menuconstants.AdminSlotManagement)
@@ -244,6 +240,8 @@ func main() {
 func parkingMenu() {
 	for {
 		clearScreen()
+		(figure.NewColorFigure("Parking Menu", "", "blue", true)).Print()
+		fmt.Println("")
 		color.Cyan(menuconstants.ParkingMenuTitle)
 		color.Yellow(menuconstants.ParkVehicle)
 		color.Yellow(menuconstants.UnparkVehicle)
@@ -268,6 +266,8 @@ func parkingMenu() {
 func unassignedSlotManagement() {
 	for {
 		clearScreen()
+		(figure.NewColorFigure("Assignment menu", "", "blue", true)).Print()
+		fmt.Println("")
 		color.Yellow(menuconstants.EnterYourChoice)
 		color.Yellow(menuconstants.ViewUnassignedSlots)
 		color.Yellow(menuconstants.AssignSlot)
@@ -289,6 +289,8 @@ func unassignedSlotManagement() {
 func buildingManagement() {
 	for {
 		clearScreen()
+		(figure.NewColorFigure("Building Management", "", "blue", true)).Print()
+		fmt.Println("")
 		color.Yellow(menuconstants.EnterYourChoice)
 		color.Yellow(menuconstants.AddBuilding)
 		color.Yellow(menuconstants.DeleteBuilding)
@@ -313,6 +315,8 @@ func buildingManagement() {
 func floorManagement() {
 	for {
 		clearScreen()
+		(figure.NewColorFigure("Floor Management", "", "blue", true)).Print()
+		fmt.Println("")
 		color.Yellow(menuconstants.EnterYourChoice)
 		color.Yellow(menuconstants.AddFloor)
 		color.Yellow(menuconstants.DeleteFloor)
@@ -337,6 +341,8 @@ func floorManagement() {
 func slotManagement() {
 	for {
 		clearScreen()
+		(figure.NewColorFigure("Slot Management", "", "blue", true)).Print()
+		fmt.Println("")
 		color.Yellow(menuconstants.EnterYourChoice)
 		color.Yellow(menuconstants.AddSlots)
 		color.Yellow(menuconstants.DeleteSlots)
@@ -361,6 +367,8 @@ func slotManagement() {
 func officeManagement() {
 	for {
 		clearScreen()
+		(figure.NewColorFigure("Office Management", "", "blue", true)).Print()
+		fmt.Println("")
 		color.Yellow(menuconstants.EnterYourChoice)
 		color.Yellow(menuconstants.AddOffice)
 		color.Yellow(menuconstants.RemoveOffice)
@@ -376,6 +384,55 @@ func officeManagement() {
 			adminHandler.RemoveOffice(ctx)
 		case 3:
 			adminHandler.ListOffices(ctx)
+		default:
+			return
+		}
+	}
+}
+
+func profileManagement() {
+	for {
+		clearScreen()
+		(figure.NewColorFigure("Profile Management", "", "blue", true)).Print()
+		fmt.Println("")
+		color.Yellow(menuconstants.EnterYourChoice)
+		color.Yellow(menuconstants.ProfileUpdate)
+		color.Yellow(menuconstants.ProfileView)
+		color.Yellow(menuconstants.ProfileExit)
+		var choice int
+		fmt.Scanf("%d", &choice)
+		clearScreen()
+		switch choice {
+		case 1:
+			userHandler.UpdateProfile(ctx)
+		case 2:
+			userHandler.GetUserProfile(ctx)
+		default:
+			return
+		}
+	}
+}
+
+func registrationMenu() {
+	for {
+		clearScreen()
+		(figure.NewColorFigure("Registration Menu", "", "blue", true)).Print()
+		fmt.Println("")
+		color.Yellow(menuconstants.EnterYourChoice)
+		color.Yellow(menuconstants.RegistrationAddVehicle)
+		color.Yellow(menuconstants.RegistrationViewVehicles)
+		color.Yellow(menuconstants.RegistrationUnregisterVehicle)
+		color.Yellow(menuconstants.RegistrationExit)
+		var choice int
+		fmt.Scanf("%d", &choice)
+		clearScreen()
+		switch choice {
+		case 1:
+			userHandler.RegisterVehicle(ctx)
+		case 2:
+			userHandler.GetRegisteredVehicles(ctx)
+		case 3:
+			userHandler.UnregisterVehicle(ctx)
 		default:
 			return
 		}

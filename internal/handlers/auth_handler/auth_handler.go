@@ -13,6 +13,7 @@ import (
 	officeservice "github.com/Kaushik1766/ParkingManagement/internal/service/office_service"
 	customerrors "github.com/Kaushik1766/ParkingManagement/pkg/customErrors"
 	"github.com/Kaushik1766/ParkingManagement/utils"
+	"github.com/common-nighthawk/go-figure"
 	"github.com/fatih/color"
 	"golang.org/x/term"
 )
@@ -30,11 +31,12 @@ func NewCliAuthHandler(authMgr authservice.AuthenticationManager, officeMgr offi
 }
 
 func (auth *CliAuthHandler) Login(baseCtx context.Context) (context.Context, error) {
+	(figure.NewColorFigure("Login", "", "green", true)).Print()
 	color.Cyan("Enter your credentials to login:")
-	fmt.Print(color.YellowString("Email:"))
+	fmt.Print(color.GreenString("Email: "))
 	var email, password string
 	fmt.Scanln(&email)
-	fmt.Print(color.GreenString("Password:"))
+	fmt.Print(color.GreenString("Password: "))
 	passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read password: %w", err)
@@ -53,16 +55,18 @@ func (auth *CliAuthHandler) Login(baseCtx context.Context) (context.Context, err
 }
 
 func (auth *CliAuthHandler) CustomerSignup() {
+	(figure.NewColorFigure("Signup", "", "green", true)).Print()
 	var name, email, password string
 	color.Cyan("Enter your details to signup:")
-	color.Cyan("Name:")
+	fmt.Print(color.GreenString("Name: "))
 	fmt.Scanln(&name)
-	color.Yellow("Email:")
+	fmt.Print(color.GreenString("Email: "))
 	fmt.Scanln(&email)
-	color.Green("Password:")
+	fmt.Print(color.GreenString("Password: "))
 	passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
 	if err != nil {
 		customerrors.DisplayError("Failed to read password: " + err.Error())
+		return
 	}
 	password = string(passwordBytes)
 
@@ -96,13 +100,14 @@ func (auth *CliAuthHandler) CustomerSignup() {
 }
 
 func (auth *CliAuthHandler) AdminSignup() error {
+	(figure.NewColorFigure("sudo Signup", "", "green", true)).Print()
 	var name, email, password string
 	color.Cyan("Enter your details to signup as an admin:")
-	color.Cyan("Name:")
+	fmt.Print(color.GreenString("Name: "))
 	fmt.Scanln(&name)
-	color.Yellow("Email:")
+	fmt.Print(color.GreenString("Email: "))
 	fmt.Scanln(&email)
-	color.Green("Password:")
+	fmt.Print(color.GreenString("Password: "))
 	fmt.Scanln(&password)
 	authErr := auth.authMgr.Signup(name, email, password, constants.AdminOffice, roles.Admin)
 	return authErr

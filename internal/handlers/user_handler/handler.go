@@ -1,8 +1,11 @@
 package userhandler
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"net/mail"
+	"os"
 	"strings"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants/menuconstants"
@@ -24,18 +27,28 @@ func NewCliUserHandler(userService userservice.UserManager) *CliUserHandler {
 }
 
 func (handler *CliUserHandler) UpdateProfile(userCtx context.Context) {
+	reader := bufio.NewReader(os.Stdin)
 	var name, email, password, office string
 	color.Cyan("Enter your new details to update profile:")
 	color.Cyan("Name (leave blank to skip):")
-	fmt.Scanln(&name)
+	name, _ = reader.ReadString('\n')
+	name = strings.TrimRight(name, "\r\n")
+
 	color.Yellow("Email (leave blank to skip):")
 	fmt.Scanln(&email)
+
+	_, err := mail.ParseAddress(email)
+	if err != nil && email != "" {
+		customerrors.DisplayError("please enter a valid email address (eg. kaushik@gmail.com)")
+		return
+	}
+
 	color.Green("Password (leave blank to skip):")
 	fmt.Scanln(&password)
 	color.Magenta("Office (leave blank to skip):")
 	fmt.Scanln(&office)
 
-	err := handler.userService.UpdateProfile(userCtx, name, email, password, office)
+	err = handler.userService.UpdateProfile(userCtx, name, email, password, office)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Failed to update profile: %v", err))
 		return
@@ -77,6 +90,12 @@ func (handler *CliUserHandler) UnregisterVehicle(userCtx context.Context) {
 
 	var vehicleNumber int
 	fmt.Scanf("%d", &vehicleNumber)
+
+	if vehicleNumber < 1 || vehicleNumber > len(registeredVehicles) {
+		customerrors.DisplayError("Invalid vehicle number selected.")
+		return
+	}
+
 	numberPlate := registeredVehicles[vehicleNumber-1].NumberPlate
 	err := handler.userService.UnregisterVehicle(userCtx, numberPlate)
 	if err != nil {
@@ -101,7 +120,7 @@ func (handler *CliUserHandler) GetUserProfile(userCtx context.Context) {
 
 	for _, name := range userNameList {
 		name = strings.ToUpper(name[:1]) + name[1:]
-		userName += string(name)
+		userName += string(name) + " "
 	}
 
 	color.Cyan("User Profile:")
