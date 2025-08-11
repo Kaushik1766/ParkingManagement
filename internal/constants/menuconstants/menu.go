@@ -52,7 +52,7 @@ const (
 	ParkingMenuTitle = "Parking Menu:"
 	ParkVehicle      = "1. Park Vehicle"
 	UnparkVehicle    = "2. Unpark Vehicle"
-	ViewParkings     = "3. View Parkings"
+	ViewParkings     = "3. View Parking History"
 	ParkingExit      = "4. Exit"
 
 	// unassigned slot menu

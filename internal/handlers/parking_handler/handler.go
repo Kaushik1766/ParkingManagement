@@ -81,8 +81,8 @@ func (handler *CliParkingHandler) Unpark(ctx context.Context) {
 }
 
 func (handler *CliParkingHandler) ViewParkingHistory(ctx context.Context) {
-	startDate := time.Now().AddDate(0, -1, 0).Format(time.DateOnly)
-	endDate := time.Now().Format(time.DateOnly)
+	startDate := time.Now().AddDate(0, -1, 0)
+	endDate := time.Now()
 	history, err := handler.parkingHistoryService.GetParkingHistory(ctx, startDate, endDate)
 	if err != nil {
 		customerrors.DisplayError(fmt.Sprintf("Failed to fetch parking history: %v", err))

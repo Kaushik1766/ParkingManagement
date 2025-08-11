@@ -2,6 +2,7 @@ package parkinghistory
 
 import (
 	"fmt"
+	"time"
 
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 )
@@ -12,12 +13,12 @@ type ParkingHistoryDTO struct {
 	BuildingId   string
 	FLoorNumber  int
 	SlotNumber   int
-	StartTime    string
-	EndTime      string
+	StartTime    time.Time
+	EndTime      time.Time
 	VechicleType vehicletypes.VehicleType
 }
 
 func (phdto *ParkingHistoryDTO) String() string {
-	return fmt.Sprintf("TicketId: %s, NumberPlate: %s, BuildingId: %s, FloorNumber: %d, SlotNumber: %d, StartTime: %s, EndTime: %s",
+	return fmt.Sprintf("TicketId: %s\nNumberPlate: %s\nBuildingId: %s\nFloorNumber: %d\nSlotNumber: %d\nStartTime: %s\nEndTime: %s",
 		phdto.TicketId, phdto.NumberPlate, phdto.BuildingId, phdto.FLoorNumber, phdto.SlotNumber, phdto.StartTime, phdto.EndTime)
 }

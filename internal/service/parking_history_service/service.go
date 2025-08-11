@@ -18,18 +18,18 @@ type ParkingHistoryService struct {
 	vehicleRepo vehiclerepository.VehicleStorage
 }
 
-func (phs *ParkingHistoryService) GetParkingHistoryById(userId string, startTime, endTime string) ([]parkinghistory.ParkingHistoryDTO, error) {
-	startDate, err := time.Parse(time.DateOnly, startTime)
-	if err != nil {
-		return []parkinghistory.ParkingHistoryDTO{}, err
-	}
+func (phs *ParkingHistoryService) GetParkingHistoryById(userId string, startTime, endTime time.Time) ([]parkinghistory.ParkingHistoryDTO, error) {
+	// startDate, err := time.Parse(time.DateOnly, startTime)
+	// if err != nil {
+	// 	return []parkinghistory.ParkingHistoryDTO{}, err
+	// }
+	//
+	// endDate, err := time.Parse(time.DateOnly, endTime)
+	// if err != nil {
+	// 	return []parkinghistory.ParkingHistoryDTO{}, err
+	// }
 
-	endDate, err := time.Parse(time.DateOnly, endTime)
-	if err != nil {
-		return []parkinghistory.ParkingHistoryDTO{}, err
-	}
-
-	parkingHistory, err := phs.parkingRepo.GetParkingHistoryByUser(userId, startDate, endDate)
+	parkingHistory, err := phs.parkingRepo.GetParkingHistoryByUser(userId, startTime, endTime)
 	if err != nil {
 		return []parkinghistory.ParkingHistoryDTO{}, err
 	}
@@ -37,20 +37,20 @@ func (phs *ParkingHistoryService) GetParkingHistoryById(userId string, startTime
 	return parkingHistory, nil
 }
 
-func (phs *ParkingHistoryService) GetParkingHistory(ctx context.Context, startTime string, endTime string) ([]parkinghistory.ParkingHistoryDTO, error) {
+func (phs *ParkingHistoryService) GetParkingHistory(ctx context.Context, startTime, endTime time.Time) ([]parkinghistory.ParkingHistoryDTO, error) {
 	userCtx := ctx.Value(constants.User).(userjwt.UserJwt)
 
-	startTimeParsed, err := time.Parse(time.DateOnly, startTime)
-	if err != nil {
-		return nil, err
-	}
+	// startTimeParsed, err := time.Parse(time.DateOnly, startTime)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	// endTimeParsed, err := time.Parse(time.DateOnly, endTime)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	endTimeParsed, err := time.Parse(time.DateOnly, endTime)
-	if err != nil {
-		return nil, err
-	}
-
-	parkingHistory, err := phs.parkingRepo.GetParkingHistoryByUser(userCtx.ID, startTimeParsed, endTimeParsed)
+	parkingHistory, err := phs.parkingRepo.GetParkingHistoryByUser(userCtx.ID, startTime, endTime)
 	if err != nil {
 		return nil, err
 	}

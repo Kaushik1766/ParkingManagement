@@ -37,8 +37,8 @@ func (bs *BillingService) GenerateMonthlyInvoice() {
 	}
 
 	billsString := ""
-	startTime := time.Now().AddDate(0, -1, 0).Format(time.DateOnly)
-	endTime := time.Now().Format(time.DateOnly)
+	startTime := time.Now().AddDate(0, -1, 0)
+	endTime := time.Now()
 
 	for _, user := range users {
 		parkingHistory, err := bs.parkingHistoryService.GetParkingHistoryById(user.UserId.String(), startTime, endTime)
@@ -46,28 +46,28 @@ func (bs *BillingService) GenerateMonthlyInvoice() {
 			log.Printf("billingservice: Error fetching parking history for user %s: %v\n", user.UserId, err)
 			return
 		}
-		// fmt.Println(parkingHistory)
 
 		var totalAmount float64 = 0
 		for _, ph := range parkingHistory {
-			layout := "2006-01-02 15:04:05.999999999 -0700 MST"
-			startTime, err := time.Parse(layout, ph.StartTime)
-			if err != nil {
-				log.Printf("billingservice: Error parsing start time for user %s: %v\n", user.UserId, err)
-				continue
-			}
-
-			endTime, err := time.Parse(layout, ph.EndTime)
-			if err != nil {
-				log.Printf("billingservice: Error parsing end time for user %s: %v\n", user.UserId, err)
-				continue
-			}
-			if endTime.IsZero() {
+			// layout := "2006-01-02 15:04:05.999999999 -0700 MST"
+			// startTime, err := time.Parse(layout, ph.StartTime)
+			// if err != nil {
+			// 	log.Printf("billingservice: Error parsing start time for user %s: %v\n", user.UserId, err)
+			// 	continue
+			// }
+			//
+			// endTime, err := time.Parse(layout, ph.EndTime)
+			// if err != nil {
+			// 	log.Printf("billingservice: Error parsing end time for user %s: %v\n", user.UserId, err)
+			// 	continue
+			// }
+			if ph.EndTime.IsZero() {
 				log.Printf("billingservice: Parking end time is zero for user %s, skipping...\n", user.UserId)
 				continue
 			}
 
-			totalTime := endTime.Sub(startTime).Hours()
+			// log.Printf("billingservice: (%v) (%v)", endTime.UTC(), endTime.UTC().IsZero())
+			totalTime := ph.EndTime.Sub(ph.StartTime).Hours()
 			if ph.VechicleType == vehicletypes.TwoWheeler {
 				totalAmount += totalTime * billingrates.TwoWheeler
 			} else {

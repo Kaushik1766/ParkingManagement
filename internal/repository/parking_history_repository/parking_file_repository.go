@@ -49,8 +49,8 @@ func (fpr *FileParkingRepository) GetParkingHistoryByUser(userId string, startTi
 				BuildingId:   parking.BuildingId,
 				FLoorNumber:  parking.FLoorNumber,
 				SlotNumber:   parking.SlotNumber,
-				StartTime:    parking.StartTime.Local().String(),
-				EndTime:      parking.EndTime.Local().String(),
+				StartTime:    parking.StartTime.Local(),
+				EndTime:      parking.EndTime.Local(),
 				VechicleType: parking.VehicleType,
 			})
 		}
@@ -105,8 +105,8 @@ func (fpr *FileParkingRepository) GetParkingHistoryByNumberPlate(numberplate str
 				BuildingId:   parking.BuildingId,
 				FLoorNumber:  parking.FLoorNumber,
 				SlotNumber:   parking.SlotNumber,
-				StartTime:    parking.StartTime.Local().String(),
-				EndTime:      parking.EndTime.Local().String(),
+				StartTime:    parking.StartTime.Local(),
+				EndTime:      parking.EndTime.Local(),
 				VechicleType: parking.VehicleType,
 			})
 		}
@@ -128,8 +128,8 @@ func (fpr *FileParkingRepository) GetActiveUserParkings(userId string) ([]parkin
 				BuildingId:   parking.BuildingId,
 				FLoorNumber:  parking.FLoorNumber,
 				SlotNumber:   parking.SlotNumber,
-				StartTime:    parking.StartTime.Local().String(),
-				EndTime:      parking.EndTime.Local().String(),
+				StartTime:    parking.StartTime.Local(),
+				EndTime:      parking.EndTime.Local(),
 				VechicleType: parking.VehicleType,
 			})
 		}

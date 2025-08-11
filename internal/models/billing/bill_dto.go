@@ -14,5 +14,9 @@ type BillDTO struct {
 }
 
 func (bdto *BillDTO) String() string {
-	return fmt.Sprintf("\n\nParkingHistory: %v\n TotalAmount: %.2f\n BillDate: %s\n UserId: %s\n\n", bdto.ParkingHistory, bdto.TotalAmount, bdto.BillDate, bdto.UserId)
+	parkingHistoryStr := ""
+	for _, val := range bdto.ParkingHistory {
+		parkingHistoryStr += val.String() + "\n\n"
+	}
+	return fmt.Sprintf("\n\nParkingHistory:\n%v\n TotalAmount: %.2f\n BillDate: %s\n UserId: %s\n\n", parkingHistoryStr, bdto.TotalAmount, bdto.BillDate, bdto.UserId)
 }
