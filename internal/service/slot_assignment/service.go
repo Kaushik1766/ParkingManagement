@@ -197,5 +197,7 @@ func (sas *SlotAssignmentService) AssignSlot(ctx context.Context, vehicleId stri
 			sas.vehicleRepo.Save(userVehicles[i])
 		}
 	}
+
+	slot.IsOccupied = true
 	return sas.slotRepo.Save(slot)
 }

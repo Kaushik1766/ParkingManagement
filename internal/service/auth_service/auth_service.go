@@ -33,7 +33,7 @@ func NewAuthService(
 func (auth *AuthService) Signup(name, email, password, office string, role roles.Role) error {
 	_, err := mail.ParseAddress(email)
 	if err != nil {
-		return errors.New("invalid email")
+		return errors.New("invalid email, email should be like (user@company.com)")
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {

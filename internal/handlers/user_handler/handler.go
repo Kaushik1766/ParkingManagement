@@ -39,7 +39,7 @@ func (handler *CliUserHandler) UpdateProfile(userCtx context.Context) {
 
 	_, err := mail.ParseAddress(email)
 	if err != nil && email != "" {
-		customerrors.DisplayError("please enter a valid email address (eg. kaushik@gmail.com)")
+		customerrors.DisplayError("please enter a valid email address (eg. user@company.com)")
 		return
 	}
 
