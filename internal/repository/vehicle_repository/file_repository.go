@@ -94,7 +94,7 @@ func (fvr *FileVehicleRepository) GetVehicleById(vehicleId uuid.UUID) (vehicle.V
 	fvr.Lock()
 	defer fvr.Unlock()
 	for _, val := range fvr.vehicles {
-		if val.VehicleId == vehicleId {
+		if val.VehicleId == vehicleId && val.IsActive {
 			return val, nil
 		}
 	}
