@@ -30,6 +30,8 @@ func ReadIntList(msg string, reader *bufio.Reader) ([]int, error) {
 		num, err := strconv.Atoi(strings.TrimSpace(str))
 		if err == nil {
 			res = append(res, num)
+		} else {
+			return nil, err
 		}
 	}
 
