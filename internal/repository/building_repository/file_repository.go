@@ -7,16 +7,16 @@ import (
 	"sync"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
-	"github.com/Kaushik1766/ParkingManagement/internal/models/building"
+	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/google/uuid"
 )
 
 type FileBuildingRepository struct {
 	*sync.Mutex
-	buildings []building.Building
+	buildings []models.Building
 }
 
-func (fbr *FileBuildingRepository) GetAllBuildings() ([]building.Building, error) {
+func (fbr *FileBuildingRepository) GetAllBuildings() ([]models.Building, error) {
 	fbr.Lock()
 	defer fbr.Unlock()
 	// if len(fbr.buildings) == 0 {
@@ -25,7 +25,7 @@ func (fbr *FileBuildingRepository) GetAllBuildings() ([]building.Building, error
 	return fbr.buildings, nil
 }
 
-func (fbr *FileBuildingRepository) GetBuildingByID(buildingID uuid.UUID) (building.Building, error) {
+func (fbr *FileBuildingRepository) GetBuildingByID(buildingID uuid.UUID) (models.Building, error) {
 	fbr.Lock()
 	defer fbr.Unlock()
 	for _, b := range fbr.buildings {
@@ -33,10 +33,10 @@ func (fbr *FileBuildingRepository) GetBuildingByID(buildingID uuid.UUID) (buildi
 			return b, nil
 		}
 	}
-	return building.Building{}, fmt.Errorf("building with id %s not found", buildingID)
+	return models.Building{}, fmt.Errorf("building with id %s not found", buildingID)
 }
 
-func (fbr *FileBuildingRepository) GetBuildingByName(name string) (building.Building, error) {
+func (fbr *FileBuildingRepository) GetBuildingByName(name string) (models.Building, error) {
 	fbr.Lock()
 	defer fbr.Unlock()
 	for _, b := range fbr.buildings {
@@ -44,7 +44,7 @@ func (fbr *FileBuildingRepository) GetBuildingByName(name string) (building.Buil
 			return b, nil
 		}
 	}
-	return building.Building{}, fmt.Errorf("building with name %s not found", name)
+	return models.Building{}, fmt.Errorf("building with name %s not found", name)
 }
 
 func (fbr *FileBuildingRepository) AddBuilding(name string) error {
@@ -55,7 +55,7 @@ func (fbr *FileBuildingRepository) AddBuilding(name string) error {
 			return fmt.Errorf("building with name %s already exists", name)
 		}
 	}
-	fbr.buildings = append(fbr.buildings, building.Building{
+	fbr.buildings = append(fbr.buildings, models.Building{
 		BuildingName: name,
 		BuildingID:   uuid.New(),
 	})
@@ -78,13 +78,13 @@ func NewFileBuildingRepository() *FileBuildingRepository {
 	data, err := os.ReadFile(config.BuildingsPath)
 	if err != nil {
 		os.WriteFile(config.BuildingsPath, []byte("[]"), 0666)
-		data, err = json.Marshal([]building.Building{})
+		data, err = json.Marshal([]models.Building{})
 		if err != nil {
 			fmt.Println("unable to marshal")
 		}
 	}
 
-	var buildingData []building.Building
+	var buildingData []models.Building
 	err = json.Unmarshal(data, &buildingData)
 	if err != nil {
 		fmt.Println(err)

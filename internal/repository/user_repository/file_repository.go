@@ -8,22 +8,22 @@ import (
 	"sync"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
+	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
-	user "github.com/Kaushik1766/ParkingManagement/internal/models/user"
 	customerrors "github.com/Kaushik1766/ParkingManagement/pkg/customErrors"
 	"github.com/google/uuid"
 )
 
 type FileUserRepository struct {
 	*sync.Mutex
-	users []user.User
+	users []models.User
 }
 
-func (db *FileUserRepository) GetAllUsers() ([]user.User, error) {
+func (db *FileUserRepository) GetAllUsers() ([]models.User, error) {
 	db.Lock()
 	defer db.Unlock()
 	if len(db.users) == 0 {
-		return []user.User{}, customerrors.UserNotFound{}
+		return []models.User{}, customerrors.UserNotFound{}
 	}
 	return db.users, nil
 }
@@ -32,13 +32,13 @@ func NewFileUserRepository() *FileUserRepository {
 	data, err := os.ReadFile(config.UsersPath)
 	if err != nil {
 		os.WriteFile(config.UsersPath, []byte("[]"), 0666)
-		data, err = json.Marshal([]user.User{})
+		data, err = json.Marshal([]models.User{})
 		if err != nil {
 			fmt.Println("unable to marshal")
 		}
 	}
 
-	var userData []user.User
+	var userData []models.User
 	err = json.Unmarshal(data, &userData)
 	if err != nil {
 		fmt.Println(err)
@@ -50,7 +50,7 @@ func NewFileUserRepository() *FileUserRepository {
 	}
 }
 
-func (db *FileUserRepository) GetUserById(id string) (user.User, error) {
+func (db *FileUserRepository) GetUserById(id string) (models.User, error) {
 	db.Lock()
 	defer db.Unlock()
 	for _, val := range db.users {
@@ -58,10 +58,10 @@ func (db *FileUserRepository) GetUserById(id string) (user.User, error) {
 			return val, nil
 		}
 	}
-	return user.User{}, customerrors.UserNotFound{}
+	return models.User{}, customerrors.UserNotFound{}
 }
 
-func (db *FileUserRepository) GetUserByEmail(email string) (user.User, error) {
+func (db *FileUserRepository) GetUserByEmail(email string) (models.User, error) {
 	db.Lock()
 	defer db.Unlock()
 	for _, val := range db.users {
@@ -69,10 +69,10 @@ func (db *FileUserRepository) GetUserByEmail(email string) (user.User, error) {
 			return val, nil
 		}
 	}
-	return user.User{}, customerrors.UserNotFound{}
+	return models.User{}, customerrors.UserNotFound{}
 }
 
-func (db *FileUserRepository) Save(user user.User) error {
+func (db *FileUserRepository) Save(user models.User) error {
 	db.Lock()
 	defer db.Unlock()
 	for i, val := range db.users {
@@ -92,7 +92,7 @@ func (db *FileUserRepository) CreateUser(name, email, password, office string, r
 		}
 	}
 
-	db.users = append(db.users, user.User{
+	db.users = append(db.users, models.User{
 		UserID:   uuid.New(),
 		Name:     name,
 		Email:    email,

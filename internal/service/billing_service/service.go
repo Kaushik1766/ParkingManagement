@@ -9,7 +9,7 @@ import (
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
 	billingrates "github.com/Kaushik1766/ParkingManagement/internal/constants/billing_rates"
-	"github.com/Kaushik1766/ParkingManagement/internal/models/billing"
+	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	parkinghistoryservice "github.com/Kaushik1766/ParkingManagement/internal/service/parking_history_service"
 	userservice "github.com/Kaushik1766/ParkingManagement/internal/service/user_service"
@@ -49,24 +49,11 @@ func (bs *BillingService) GenerateMonthlyInvoice() {
 
 		var totalAmount float64 = 0
 		for _, ph := range parkingHistory {
-			// layout := "2006-01-02 15:04:05.999999999 -0700 MST"
-			// startTime, err := time.Parse(layout, ph.StartTime)
-			// if err != nil {
-			// 	log.Printf("billingservice: Error parsing start time for user %s: %v\n", user.UserId, err)
-			// 	continue
-			// }
-			//
-			// endTime, err := time.Parse(layout, ph.EndTime)
-			// if err != nil {
-			// 	log.Printf("billingservice: Error parsing end time for user %s: %v\n", user.UserId, err)
-			// 	continue
-			// }
 			if ph.EndTime.IsZero() {
 				log.Printf("billingservice: Parking end time is zero for user %s, skipping...\n", user.UserID)
 				continue
 			}
 
-			// log.Printf("billingservice: (%v) (%v)", endTime.UTC(), endTime.UTC().IsZero())
 			totalTime := ph.EndTime.Sub(ph.StartTime).Hours()
 			if ph.VechicleType == vehicletypes.TwoWheeler {
 				totalAmount += totalTime * billingrates.TwoWheeler
@@ -74,7 +61,7 @@ func (bs *BillingService) GenerateMonthlyInvoice() {
 				totalAmount += totalTime * billingrates.FourWheeler
 			}
 		}
-		curBill := billing.BillDTO{
+		curBill := models.BillDTO{
 			ParkingHistory: parkingHistory,
 			TotalAmount:    totalAmount,
 			BillDate:       time.Now().Format(time.DateOnly),

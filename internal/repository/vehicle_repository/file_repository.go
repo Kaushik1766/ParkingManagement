@@ -8,19 +8,19 @@ import (
 	"sync"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
+	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
-	"github.com/Kaushik1766/ParkingManagement/internal/models/vehicle"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	"github.com/google/uuid"
 )
 
 type FileVehicleRepository struct {
 	*sync.Mutex
-	vehicles []vehicle.Vehicle
+	vehicles []models.Vehicle
 	userRepo userrepository.UserStorage
 }
 
-func (fvr *FileVehicleRepository) Save(vehicle vehicle.Vehicle) error {
+func (fvr *FileVehicleRepository) Save(vehicle models.Vehicle) error {
 	fvr.Lock()
 	defer fvr.Unlock()
 	for i, val := range fvr.vehicles {
@@ -33,7 +33,7 @@ func (fvr *FileVehicleRepository) Save(vehicle vehicle.Vehicle) error {
 	return nil
 }
 
-func (fvr *FileVehicleRepository) GetVehicleByNumberPlate(numberplate string) (vehicle.Vehicle, error) {
+func (fvr *FileVehicleRepository) GetVehicleByNumberPlate(numberplate string) (models.Vehicle, error) {
 	fvr.Lock()
 	defer fvr.Unlock()
 	// fmt.Println(fvr.vehicles)
@@ -43,13 +43,13 @@ func (fvr *FileVehicleRepository) GetVehicleByNumberPlate(numberplate string) (v
 			return val, nil
 		}
 	}
-	return vehicle.Vehicle{}, errors.New("vehicle not found")
+	return models.Vehicle{}, errors.New("vehicle not found")
 }
 
-func (fvr *FileVehicleRepository) GetVehiclesWithUnassignedSlots() ([]vehicle.Vehicle, error) {
+func (fvr *FileVehicleRepository) GetVehiclesWithUnassignedSlots() ([]models.Vehicle, error) {
 	fvr.Lock()
 	defer fvr.Unlock()
-	var result []vehicle.Vehicle
+	var result []models.Vehicle
 	for _, val := range fvr.vehicles {
 		if val.IsActive && val.AssignedSlot.BuildingID == uuid.Nil {
 			result = append(result, val)
@@ -58,16 +58,16 @@ func (fvr *FileVehicleRepository) GetVehiclesWithUnassignedSlots() ([]vehicle.Ve
 	return result, nil
 }
 
-func (fvr *FileVehicleRepository) AddVehicle(numberplate string, userid uuid.UUID, vehicleType vehicletypes.VehicleType) (vehicle.Vehicle, error) {
+func (fvr *FileVehicleRepository) AddVehicle(numberplate string, userid uuid.UUID, vehicleType vehicletypes.VehicleType) (models.Vehicle, error) {
 	fvr.Lock()
 	defer fvr.Unlock()
 	for _, val := range fvr.vehicles {
 		if val.NumberPlate == numberplate {
-			return vehicle.Vehicle{}, errors.New("numberplate already registered")
+			return models.Vehicle{}, errors.New("numberplate already registered")
 		}
 	}
 	// TODO: add assigned slot and update interface
-	fvr.vehicles = append(fvr.vehicles, vehicle.Vehicle{
+	fvr.vehicles = append(fvr.vehicles, models.Vehicle{
 		VehicleID:   uuid.New(),
 		NumberPlate: numberplate,
 		VehicleType: vehicleType,
@@ -90,7 +90,7 @@ func (fvr *FileVehicleRepository) RemoveVehicle(numberplate string) error {
 	return errors.New("numberplate not found")
 }
 
-func (fvr *FileVehicleRepository) GetVehicleById(vehicleId uuid.UUID) (vehicle.Vehicle, error) {
+func (fvr *FileVehicleRepository) GetVehicleById(vehicleId uuid.UUID) (models.Vehicle, error) {
 	fvr.Lock()
 	defer fvr.Unlock()
 	for _, val := range fvr.vehicles {
@@ -98,13 +98,13 @@ func (fvr *FileVehicleRepository) GetVehicleById(vehicleId uuid.UUID) (vehicle.V
 			return val, nil
 		}
 	}
-	return vehicle.Vehicle{}, errors.New("vehicle not found")
+	return models.Vehicle{}, errors.New("vehicle not found")
 }
 
-func (fvr *FileVehicleRepository) GetVehiclesByUserId(userId uuid.UUID) ([]vehicle.Vehicle, error) {
+func (fvr *FileVehicleRepository) GetVehiclesByUserId(userId uuid.UUID) ([]models.Vehicle, error) {
 	fvr.Lock()
 	defer fvr.Unlock()
-	var result []vehicle.Vehicle
+	var result []models.Vehicle
 	// fmt.Println(fvr.vehicles)
 	// fmt.Println(userId.String())
 	for _, val := range fvr.vehicles {
@@ -119,13 +119,13 @@ func NewFileVehicleRepository(userRepo userrepository.UserStorage) *FileVehicleR
 	data, err := os.ReadFile(config.VehiclesPath)
 	if err != nil {
 		os.WriteFile(config.VehiclesPath, []byte("[]"), 0666)
-		data, err = json.Marshal([]vehicle.Vehicle{})
+		data, err = json.Marshal([]models.Vehicle{})
 		if err != nil {
 			fmt.Println("unable to marshal")
 		}
 	}
 
-	var vehicleData []vehicle.Vehicle
+	var vehicleData []models.Vehicle
 
 	err = json.Unmarshal(data, &vehicleData)
 	if err != nil {

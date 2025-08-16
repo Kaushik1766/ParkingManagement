@@ -1,4 +1,4 @@
-package user
+package models
 
 type UserDTO struct {
 	UserId string `json:"user_id"`

@@ -7,10 +7,8 @@ import (
 	"log"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
+	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
-	user "github.com/Kaushik1766/ParkingManagement/internal/models/user"
-	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
-	"github.com/Kaushik1766/ParkingManagement/internal/models/vehicle"
 	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
@@ -26,13 +24,13 @@ type UserService struct {
 	assignmentService slotassignment.SlotAssignmentMgr
 }
 
-func (us *UserService) GetUserProfile(ctx context.Context) (user.UserDTO, error) {
-	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
+func (us *UserService) GetUserProfile(ctx context.Context) (models.UserDTO, error) {
+	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	currentUser, err := us.userRepo.GetUserById(ctxUser.ID)
 	if err != nil {
-		return user.UserDTO{}, err
+		return models.UserDTO{}, err
 	}
-	userDto := user.UserDTO{
+	userDto := models.UserDTO{
 		UserId: currentUser.UserID.String(),
 		Name:   currentUser.Name,
 		Email:  currentUser.Email,
@@ -42,13 +40,13 @@ func (us *UserService) GetUserProfile(ctx context.Context) (user.UserDTO, error)
 	return userDto, nil
 }
 
-func (us *UserService) GetUserById(ctx context.Context, userId string) (user.UserDTO, error) {
+func (us *UserService) GetUserById(ctx context.Context, userId string) (models.UserDTO, error) {
 	userStruct, err := us.userRepo.GetUserById(userId)
 	if err != nil {
-		return user.UserDTO{}, err
+		return models.UserDTO{}, err
 	}
 
-	return user.UserDTO{
+	return models.UserDTO{
 		UserId: userStruct.UserID.String(),
 		Name:   userStruct.Name,
 		Email:  userStruct.Email,
@@ -65,7 +63,7 @@ func (us *UserService) RegisterVehicle(ctx context.Context, numberplate string, 
 	if len(numberplate) != 10 {
 		return errors.New("numberplate must be 10 characters long")
 	}
-	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
+	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	currentUser, err := us.userRepo.GetUserById(ctxUser.ID)
 	if err != nil {
 		return err
@@ -83,12 +81,12 @@ func (us *UserService) RegisterVehicle(ctx context.Context, numberplate string, 
 	return err
 }
 
-func (us *UserService) GetAllUsers(ctx context.Context) ([]user.User, error) {
+func (us *UserService) GetAllUsers(ctx context.Context) ([]models.User, error) {
 	allUsers, err := us.userRepo.GetAllUsers()
 	if err != nil {
 		return nil, err
 	}
-	var activeUsers []user.User
+	var activeUsers []models.User
 	for _, u := range allUsers {
 		if u.IsActive {
 			activeUsers = append(activeUsers, u)
@@ -98,7 +96,7 @@ func (us *UserService) GetAllUsers(ctx context.Context) ([]user.User, error) {
 }
 
 func (us *UserService) UnregisterVehicle(ctx context.Context, numberplate string) error {
-	currentUser := ctx.Value(constants.User).(userjwt.UserJwt)
+	currentUser := ctx.Value(constants.User).(models.UserJwt)
 	userVehicles, err := us.vehicleRepo.GetVehiclesByUserId(uuid.MustParse(currentUser.ID))
 	if err != nil {
 		return err
@@ -115,21 +113,21 @@ func (us *UserService) UnregisterVehicle(ctx context.Context, numberplate string
 	return errors.New("vehicle not found for the user")
 }
 
-func (us *UserService) GetRegisteredVehicles(ctx context.Context) []vehicle.VehicleDTO {
-	currentUser := ctx.Value(constants.User).(userjwt.UserJwt)
+func (us *UserService) GetRegisteredVehicles(ctx context.Context) []models.VehicleDTO {
+	currentUser := ctx.Value(constants.User).(models.UserJwt)
 	// fmt.Println(currentUser.ID)
 	uid, err := uuid.Parse(currentUser.ID)
 	if err != nil {
 		log.Println(err)
-		return []vehicle.VehicleDTO{}
+		return []models.VehicleDTO{}
 	}
 	userVehicles, err := us.vehicleRepo.GetVehiclesByUserId(uid)
 	if err != nil {
-		return []vehicle.VehicleDTO{}
+		return []models.VehicleDTO{}
 	}
-	var userVehicleDTO []vehicle.VehicleDTO
+	var userVehicleDTO []models.VehicleDTO
 	for _, v := range userVehicles {
-		userVehicleDTO = append(userVehicleDTO, vehicle.VehicleDTO{
+		userVehicleDTO = append(userVehicleDTO, models.VehicleDTO{
 			NumberPlate:  v.NumberPlate,
 			VehicleType:  v.VehicleType.String(),
 			AssignedSlot: v.AssignedSlot,
@@ -157,7 +155,7 @@ func (us *UserService) UpdateProfile(ctx context.Context, name, email, password,
 	if ctxVal == nil {
 		return errors.New("invalid context")
 	}
-	currentUser := ctxVal.(userjwt.UserJwt)
+	currentUser := ctxVal.(models.UserJwt)
 
 	updatedUser, err := us.userRepo.GetUserById(currentUser.ID)
 	if err != nil {
@@ -189,7 +187,7 @@ func (us *UserService) UpdateProfile(ctx context.Context, name, email, password,
 }
 
 func (us *UserService) DeleteProfile(ctx context.Context) error {
-	currentUser := ctx.Value(constants.User).(user.User)
+	currentUser := ctx.Value(constants.User).(models.User)
 	currentUser.IsActive = false
 	err := us.userRepo.Save(currentUser)
 	return err

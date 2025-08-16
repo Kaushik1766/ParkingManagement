@@ -1,4 +1,4 @@
-package parkinghistory
+package models
 
 import (
 	"fmt"

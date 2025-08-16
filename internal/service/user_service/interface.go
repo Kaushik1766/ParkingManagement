@@ -3,9 +3,8 @@ package userservice
 import (
 	"context"
 
+	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
-	user "github.com/Kaushik1766/ParkingManagement/internal/models/user"
-	"github.com/Kaushik1766/ParkingManagement/internal/models/vehicle"
 )
 
 type UserManager interface {
@@ -13,8 +12,8 @@ type UserManager interface {
 	DeleteProfile(ctx context.Context) error
 	RegisterVehicle(ctx context.Context, numberplate string, vehicleType vehicletypes.VehicleType) error
 	UnregisterVehicle(ctx context.Context, numberplate string) error
-	GetRegisteredVehicles(ctx context.Context) []vehicle.VehicleDTO
-	GetUserProfile(ctx context.Context) (user.UserDTO, error)
-	GetUserById(ctx context.Context, userId string) (user.UserDTO, error)
-	GetAllUsers(ctx context.Context) ([]user.User, error)
+	GetRegisteredVehicles(ctx context.Context) []models.VehicleDTO
+	GetUserProfile(ctx context.Context) (models.UserDTO, error)
+	GetUserById(ctx context.Context, userId string) (models.UserDTO, error)
+	GetAllUsers(ctx context.Context) ([]models.User, error)
 }

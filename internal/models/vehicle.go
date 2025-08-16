@@ -1,8 +1,7 @@
-package vehicle
+package models
 
 import (
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
-	"github.com/Kaushik1766/ParkingManagement/internal/models/slot"
 	"github.com/google/uuid"
 )
 
@@ -14,7 +13,7 @@ type Vehicle struct {
 	BuildingID   uuid.UUID                `gorm:"type:uuid;not null"`
 	FloorNumber  int                      `gorm:"not null"`
 	SlotNumber   int                      `gorm:"not null"`
-	AssignedSlot slot.Slot                `gorm:"foreignKey:BuildingID,FloorNumber,SlotNumber;references:BuildingID,FloorNumber,SlotNumber"`
+	AssignedSlot Slot                     `gorm:"foreignKey:BuildingID,FloorNumber,SlotNumber;references:BuildingID,FloorNumber,SlotNumber"`
 	IsActive     bool                     `gorm:"default:true"`
 }
 

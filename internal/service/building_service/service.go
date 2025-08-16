@@ -5,8 +5,8 @@ import (
 	"errors"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
+	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
-	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
 	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
 )
 
@@ -15,7 +15,7 @@ type BuildingService struct {
 }
 
 func (bs *BuildingService) GetAllBuildings(ctx context.Context) ([]string, error) {
-	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
+	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return nil, errors.New("unauthorized: only admin can view buildings")
 	}
@@ -37,7 +37,7 @@ func NewBuildingService(repo buildingrepository.BuildingStorage) *BuildingServic
 }
 
 func (bs *BuildingService) AddBuilding(ctx context.Context, name string) error {
-	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
+	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return errors.New("unauthorized: only admin can add buildings")
 	}
@@ -46,7 +46,7 @@ func (bs *BuildingService) AddBuilding(ctx context.Context, name string) error {
 }
 
 func (bs *BuildingService) DeleteBuilding(ctx context.Context, name string) error {
-	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
+	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return errors.New("unauthorized: only admin can delete buildings")
 	}

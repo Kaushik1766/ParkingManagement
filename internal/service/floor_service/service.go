@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
+	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
-	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
 	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
 	floorrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/floor_repository"
 )
@@ -18,7 +18,7 @@ type FloorService struct {
 }
 
 func (fs *FloorService) DeleteFloors(ctx context.Context, buildingName string, floorNumbers []int) error {
-	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
+	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return errors.New("unauthorized: only admin can delete floors")
 	}
@@ -36,7 +36,7 @@ func (fs *FloorService) DeleteFloors(ctx context.Context, buildingName string, f
 }
 
 func (fs *FloorService) GetFloorsByBuildingId(ctx context.Context, buildingName string) ([]int, error) {
-	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
+	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return nil, errors.New("unauthorized: only admin can view floors")
 	}
@@ -52,7 +52,7 @@ func (fs *FloorService) GetFloorsByBuildingId(ctx context.Context, buildingName 
 }
 
 func (fs *FloorService) AddFloors(ctx context.Context, buildingName string, floorNumbers []int) error {
-	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
+	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return errors.New("unauthorized: only admin can add floors")
 	}
@@ -70,7 +70,7 @@ func (fs *FloorService) AddFloors(ctx context.Context, buildingName string, floo
 }
 
 func (fs *FloorService) AddFloor(ctx context.Context, buildingName string, floorNumber int) error {
-	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
+	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return errors.New("unauthorized: only admin can add floors")
 	}
@@ -82,7 +82,7 @@ func (fs *FloorService) AddFloor(ctx context.Context, buildingName string, floor
 }
 
 func (fs *FloorService) DeleteFloor(ctx context.Context, buildingName string, floorNumber int) error {
-	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
+	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return errors.New("unauthorized: only admin can delete floors")
 	}

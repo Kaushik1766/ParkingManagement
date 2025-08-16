@@ -1,4 +1,4 @@
-package userjwt
+package models
 
 import (
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"

@@ -5,10 +5,9 @@ import (
 	"errors"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
+	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
-	"github.com/Kaushik1766/ParkingManagement/internal/models/slot"
-	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
 	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
 	floorrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/floor_repository"
 	slotrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/slot_repository"
@@ -21,8 +20,8 @@ type SlotService struct {
 	floorRepo    floorrepository.FloorStorage
 }
 
-func (ss *SlotService) GetSlotsByFloor(ctx context.Context, buildingName string, floorNumber int) ([]slot.Slot, error) {
-	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
+func (ss *SlotService) GetSlotsByFloor(ctx context.Context, buildingName string, floorNumber int) ([]models.Slot, error) {
+	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return nil, errors.New("unauthorized: only admin or user can view slots")
 	}
@@ -54,7 +53,7 @@ func NewSlotService(slotRepo slotrepository.SlotStorage, buildingRepo buildingre
 }
 
 func (ss *SlotService) AddSlots(ctx context.Context, buildingName string, floorNumber int, slotNumbers []int, slotType vehicletypes.VehicleType) error {
-	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
+	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return errors.New("unauthorized: only admin can add slots")
 	}
@@ -79,7 +78,7 @@ func (ss *SlotService) AddSlots(ctx context.Context, buildingName string, floorN
 }
 
 func (ss *SlotService) DeleteSlots(ctx context.Context, buildingName string, floorNumber int, slotNumbers []int) error {
-	ctxUser := ctx.Value(constants.User).(userjwt.UserJwt)
+	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return errors.New("unauthorized: only admin can delete slots")
 	}
@@ -103,13 +102,13 @@ func (ss *SlotService) DeleteSlots(ctx context.Context, buildingName string, flo
 	return nil
 }
 
-func (ss *SlotService) GetFreeSlotsByBuilding(ctx context.Context, buildingID uuid.UUID, vehicleType vehicletypes.VehicleType) ([]slot.Slot, error) {
+func (ss *SlotService) GetFreeSlotsByBuilding(ctx context.Context, buildingID uuid.UUID, vehicleType vehicletypes.VehicleType) ([]models.Slot, error) {
 	freeSlots, err := ss.slotRepo.GetFreeSlotsByBuilding(buildingID)
 	if err != nil {
 		return nil, err
 	}
 
-	var filteredSlots []slot.Slot
+	var filteredSlots []models.Slot
 	for _, s := range freeSlots {
 		if s.SlotType == vehicleType {
 			filteredSlots = append(filteredSlots, s)

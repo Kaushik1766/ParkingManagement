@@ -10,15 +10,13 @@ import (
 	"time"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
-	parkinghistory "github.com/Kaushik1766/ParkingManagement/internal/models/parking_history"
-	"github.com/Kaushik1766/ParkingManagement/internal/models/slot"
-	"github.com/Kaushik1766/ParkingManagement/internal/models/vehicle"
+	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/google/uuid"
 )
 
 type FileParkingRepository struct {
 	*sync.Mutex
-	parkings []parkinghistory.ParkingHistory
+	parkings []models.ParkingHistory
 }
 
 func (fpr *FileParkingRepository) Unpark(id string) error {
@@ -35,15 +33,15 @@ func (fpr *FileParkingRepository) Unpark(id string) error {
 	return errors.New("parking not found or already ended")
 }
 
-func (fpr *FileParkingRepository) GetParkingHistoryByUser(userId string, startTime, endTime time.Time) ([]parkinghistory.ParkingHistoryDTO, error) {
+func (fpr *FileParkingRepository) GetParkingHistoryByUser(userId string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
 	fpr.Lock()
 	defer fpr.Unlock()
 
-	var history []parkinghistory.ParkingHistoryDTO
+	var history []models.ParkingHistoryDTO
 
 	for _, parking := range fpr.parkings {
 		if parking.UserID.String() == userId && (parking.StartTime.After(startTime) || parking.StartTime.Equal(startTime)) && (parking.EndTime.Before(endTime) || parking.EndTime.Equal(endTime)) {
-			history = append(history, parkinghistory.ParkingHistoryDTO{
+			history = append(history, models.ParkingHistoryDTO{
 				TicketId:     parking.ParkingID.String(),
 				NumberPlate:  parking.NumberPlate,
 				BuildingId:   parking.BuildingID.String(),
@@ -58,7 +56,7 @@ func (fpr *FileParkingRepository) GetParkingHistoryByUser(userId string, startTi
 	return history, nil
 }
 
-func (fpr *FileParkingRepository) AddParking(vehicle vehicle.Vehicle) (string, error) {
+func (fpr *FileParkingRepository) AddParking(vehicle models.Vehicle) (string, error) {
 	fpr.Lock()
 	defer fpr.Unlock()
 
@@ -74,7 +72,7 @@ func (fpr *FileParkingRepository) AddParking(vehicle vehicle.Vehicle) (string, e
 		}
 	}
 
-	newParking := parkinghistory.ParkingHistory{
+	newParking := models.ParkingHistory{
 		ParkingID:   uuid.New(),
 		NumberPlate: vehicle.NumberPlate,
 		UserID:      vehicle.UserID,
@@ -91,15 +89,15 @@ func (fpr *FileParkingRepository) AddParking(vehicle vehicle.Vehicle) (string, e
 	return newParking.ParkingID.String(), nil
 }
 
-func (fpr *FileParkingRepository) GetParkingHistoryByNumberPlate(numberplate string, startTime, endTime time.Time) ([]parkinghistory.ParkingHistoryDTO, error) {
+func (fpr *FileParkingRepository) GetParkingHistoryByNumberPlate(numberplate string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
 	fpr.Lock()
 	defer fpr.Unlock()
 
-	var history []parkinghistory.ParkingHistoryDTO
+	var history []models.ParkingHistoryDTO
 
 	for _, parking := range fpr.parkings {
 		if parking.NumberPlate == numberplate && parking.StartTime.After(startTime) && parking.EndTime.Before(endTime) {
-			history = append(history, parkinghistory.ParkingHistoryDTO{
+			history = append(history, models.ParkingHistoryDTO{
 				TicketId:     parking.ParkingID.String(),
 				NumberPlate:  parking.NumberPlate,
 				BuildingId:   parking.BuildingID.String(),
@@ -114,15 +112,15 @@ func (fpr *FileParkingRepository) GetParkingHistoryByNumberPlate(numberplate str
 	return history, nil
 }
 
-func (fpr *FileParkingRepository) GetActiveUserParkings(userId string) ([]parkinghistory.ParkingHistoryDTO, error) {
+func (fpr *FileParkingRepository) GetActiveUserParkings(userId string) ([]models.ParkingHistoryDTO, error) {
 	fpr.Lock()
 	defer fpr.Unlock()
 
-	var activeParkings []parkinghistory.ParkingHistoryDTO
+	var activeParkings []models.ParkingHistoryDTO
 
 	for _, parking := range fpr.parkings {
 		if parking.UserID.String() == userId && parking.EndTime.IsZero() {
-			activeParkings = append(activeParkings, parkinghistory.ParkingHistoryDTO{
+			activeParkings = append(activeParkings, models.ParkingHistoryDTO{
 				TicketId:     parking.ParkingID.String(),
 				NumberPlate:  parking.NumberPlate,
 				BuildingId:   parking.BuildingID.String(),
@@ -141,13 +139,13 @@ func NewFileParkingHistoryRepository() *FileParkingRepository {
 	data, err := os.ReadFile(config.ParkingHistoryPath)
 	if err != nil {
 		os.WriteFile(config.ParkingHistoryPath, []byte("[]"), 0666)
-		data, err = json.Marshal([]slot.Slot{})
+		data, err = json.Marshal([]models.Slot{})
 		if err != nil {
 			fmt.Println("unable to marshal")
 		}
 	}
 
-	var parkingData []parkinghistory.ParkingHistory
+	var parkingData []models.ParkingHistory
 	err = json.Unmarshal(data, &parkingData)
 	if err != nil {
 		fmt.Println(err)

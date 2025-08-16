@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
+	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
-	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
 	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	"github.com/golang-jwt/jwt/v5"
@@ -64,10 +64,9 @@ func (auth *AuthService) Login(email, password string) (string, error) {
 	}
 
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256,
-		userjwt.UserJwt{
+		models.UserJwt{
 			Email: user.Email,
 			Role:  user.Role,
-			// Office: user.Office,
 			RegisteredClaims: jwt.RegisteredClaims{
 				ID:        user.UserID.String(),
 				ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),

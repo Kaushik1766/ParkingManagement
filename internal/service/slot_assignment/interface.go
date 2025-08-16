@@ -3,8 +3,8 @@ package slotassignment
 import (
 	"context"
 
-	"github.com/Kaushik1766/ParkingManagement/internal/models/slot"
-	"github.com/Kaushik1766/ParkingManagement/internal/models/vehicle"
+	slot "github.com/Kaushik1766/ParkingManagement/internal/models"
+	vehicle "github.com/Kaushik1766/ParkingManagement/internal/models"
 )
 
 type SlotAssignmentMgr interface {

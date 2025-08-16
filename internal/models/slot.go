@@ -1,4 +1,4 @@
-package slot
+package models
 
 import (
 	"fmt"

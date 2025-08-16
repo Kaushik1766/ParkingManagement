@@ -8,13 +8,13 @@ import (
 	"sync"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
-	"github.com/Kaushik1766/ParkingManagement/internal/models/office"
+	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/google/uuid"
 )
 
 type FileOfficeRepository struct {
 	*sync.Mutex
-	offices []office.Office
+	offices []models.Office
 }
 
 func (fr *FileOfficeRepository) GetBuildingAndFloorByOffice(officeName string) (uuid.UUID, int, error) {
@@ -32,13 +32,13 @@ func NewFileOfficeRepository() *FileOfficeRepository {
 	data, err := os.ReadFile(config.OfficesPath)
 	if err != nil {
 		os.WriteFile(config.OfficesPath, []byte("[]"), 0666)
-		data, err = json.Marshal([]office.Office{})
+		data, err = json.Marshal([]models.Office{})
 		if err != nil {
 			fmt.Println("unable to marshal")
 		}
 	}
 
-	var officeData []office.Office
+	var officeData []models.Office
 	err = json.Unmarshal(data, &officeData)
 	if err != nil {
 		fmt.Println(err)
@@ -58,7 +58,7 @@ func (fr *FileOfficeRepository) AddOffice(officeName string, buildingID uuid.UUI
 			return errors.New("office already exists")
 		}
 	}
-	fr.offices = append(fr.offices, office.Office{
+	fr.offices = append(fr.offices, models.Office{
 		OfficeID:    uuid.New(),
 		OfficeName:  officeName,
 		BuildingID:  buildingID,
@@ -79,10 +79,10 @@ func (fr *FileOfficeRepository) DeleteOffice(officeName string) error {
 	return errors.New("office not found")
 }
 
-func (fr *FileOfficeRepository) GetOfficesByBuilding(buildingID uuid.UUID) ([]office.Office, error) {
+func (fr *FileOfficeRepository) GetOfficesByBuilding(buildingID uuid.UUID) ([]models.Office, error) {
 	fr.Lock()
 	defer fr.Unlock()
-	var offices []office.Office
+	var offices []models.Office
 	for _, val := range fr.offices {
 		if val.BuildingID == buildingID {
 			offices = append(offices, val)
@@ -91,13 +91,13 @@ func (fr *FileOfficeRepository) GetOfficesByBuilding(buildingID uuid.UUID) ([]of
 	return offices, nil
 }
 
-func (fr *FileOfficeRepository) GetAllOffices() ([]office.Office, error) {
+func (fr *FileOfficeRepository) GetAllOffices() ([]models.Office, error) {
 	fr.Lock()
 	defer fr.Unlock()
 	return fr.offices, nil
 }
 
-func (fr *FileOfficeRepository) GetOfficeByName(officeName string) (office.Office, error) {
+func (fr *FileOfficeRepository) GetOfficeByName(officeName string) (models.Office, error) {
 	fr.Lock()
 	defer fr.Unlock()
 	for _, val := range fr.offices {
@@ -105,7 +105,7 @@ func (fr *FileOfficeRepository) GetOfficeByName(officeName string) (office.Offic
 			return val, nil
 		}
 	}
-	return office.Office{}, errors.New("office not found")
+	return models.Office{}, errors.New("office not found")
 }
 
 func (fr *FileOfficeRepository) SerializeData() error {

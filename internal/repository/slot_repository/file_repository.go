@@ -8,8 +8,8 @@ import (
 	"sync"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
+	slot "github.com/Kaushik1766/ParkingManagement/internal/models"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
-	"github.com/Kaushik1766/ParkingManagement/internal/models/slot"
 	"github.com/google/uuid"
 )
 

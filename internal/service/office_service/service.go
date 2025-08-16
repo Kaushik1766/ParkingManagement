@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/Kaushik1766/ParkingManagement/internal/models/office"
+	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
 	floorrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/floor_repository"
 	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
@@ -79,14 +79,14 @@ func (officeServ *OfficeService) GetAllOfficeNames(ctx context.Context) ([]strin
 	return officeNames, nil
 }
 
-func (officeServ *OfficeService) GetOfficeByName(ctx context.Context, officeName string) (office.Office, error) {
+func (officeServ *OfficeService) GetOfficeByName(ctx context.Context, officeName string) (models.Office, error) {
 	if officeName == "" {
-		return office.Office{}, errors.New("office name cannot be empty")
+		return models.Office{}, errors.New("office name cannot be empty")
 	}
 
 	officeStruct, err := officeServ.officeRepo.GetOfficeByName(officeName)
 	if err != nil {
-		return office.Office{}, errors.New("office does not exist")
+		return models.Office{}, errors.New("office does not exist")
 	}
 	return officeStruct, nil
 }

@@ -1,14 +1,14 @@
 package userrepository
 
 import (
+	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
-	user "github.com/Kaushik1766/ParkingManagement/internal/models/user"
 )
 
 type UserStorage interface {
-	GetUserByEmail(email string) (user.User, error)
-	GetUserById(id string) (user.User, error)
-	GetAllUsers() ([]user.User, error)
-	Save(user user.User) error
+	GetUserByEmail(email string) (models.User, error)
+	GetUserById(id string) (models.User, error)
+	GetAllUsers() ([]models.User, error)
+	Save(user models.User) error
 	CreateUser(name, email, password, office string, role roles.Role) error
 }

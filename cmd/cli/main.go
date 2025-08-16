@@ -19,8 +19,8 @@ import (
 	slotassignmenthandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/slot_assignment_handler"
 	userhandler "github.com/Kaushik1766/ParkingManagement/internal/handlers/user_handler"
 	authenticationmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/authentication_middleware"
+	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
-	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
 	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
 	floorrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/floor_repository"
 	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
@@ -173,7 +173,7 @@ func main() {
 				return
 			}
 		} else {
-			user, ok := ctx.Value(constants.User).(userjwt.UserJwt)
+			user, ok := ctx.Value(constants.User).(models.UserJwt)
 			if !ok {
 				continue
 			}

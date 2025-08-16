@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
-	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
+	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	parkinghistoryrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/parking_history_repository"
 	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
 	customerrors "github.com/Kaushik1766/ParkingManagement/pkg/customErrors"
@@ -16,7 +16,7 @@ type VehicleService struct {
 }
 
 func (vs *VehicleService) Park(ctx context.Context, numberplate string) (string, error) {
-	userCtx := ctx.Value(constants.User).(userjwt.UserJwt)
+	userCtx := ctx.Value(constants.User).(models.UserJwt)
 
 	vehicle, err := vs.vehicleRepo.GetVehicleByNumberPlate(numberplate)
 	if err != nil {
@@ -36,7 +36,7 @@ func (vs *VehicleService) Park(ctx context.Context, numberplate string) (string,
 }
 
 func (vs *VehicleService) Unpark(ctx context.Context, ticketId string) error {
-	// userCtx := ctx.Value(constants.User).(userjwt.UserJwt)
+	// userCtx := ctx.Value(constants.User).(models.UserJwt)
 
 	// vehicle, err := vs.vehicleRepo.GetVehicleByNumberPlate(ticketId)
 	// if err != nil {

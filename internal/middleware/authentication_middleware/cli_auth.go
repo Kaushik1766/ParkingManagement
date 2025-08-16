@@ -7,12 +7,12 @@ import (
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
-	userjwt "github.com/Kaushik1766/ParkingManagement/internal/models/user_jwt"
+	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 func CliAuthenticate(ctx context.Context, token string) (context.Context, error) {
-	var tokenClaims userjwt.UserJwt
+	var tokenClaims models.UserJwt
 
 	parsedToken, err := jwt.ParseWithClaims(token, &tokenClaims, func(t *jwt.Token) (any, error) {
 		return []byte(config.JWTSecret), nil

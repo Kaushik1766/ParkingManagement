@@ -8,13 +8,13 @@ import (
 	"sync"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
-	"github.com/Kaushik1766/ParkingManagement/internal/models/floor"
+	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/google/uuid"
 )
 
 type FileFloorRepository struct {
 	*sync.Mutex
-	floors []floor.Floor
+	floors []models.Floor
 }
 
 func (ffr *FileFloorRepository) GetFloorsByBuildingId(buildingId uuid.UUID) ([]int, error) {
@@ -52,7 +52,7 @@ func (ffr *FileFloorRepository) AddFloor(buildingId uuid.UUID, floorNumber int) 
 			return fmt.Errorf("floor %d already exists", floorNumber)
 		}
 	}
-	ffr.floors = append(ffr.floors, floor.Floor{
+	ffr.floors = append(ffr.floors, models.Floor{
 		BuildingID:  buildingId,
 		FloorNumber: floorNumber,
 	})
@@ -75,13 +75,13 @@ func NewFileFloorRepository() *FileFloorRepository {
 	data, err := os.ReadFile(config.FloorsPath)
 	if err != nil {
 		os.WriteFile(config.FloorsPath, []byte("[]"), 0666)
-		data, err = json.Marshal([]floor.Floor{})
+		data, err = json.Marshal([]models.Floor{})
 		if err != nil {
 			fmt.Println("unable to marshal")
 		}
 	}
 
-	var floorData []floor.Floor
+	var floorData []models.Floor
 	err = json.Unmarshal(data, &floorData)
 	if err != nil {
 		fmt.Println(err)
