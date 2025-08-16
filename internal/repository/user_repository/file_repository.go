@@ -99,7 +99,6 @@ func (db *FileUserRepository) CreateUser(name, email, password, office string, r
 		Password: password,
 		Role:     role,
 		IsActive: true,
-		Office:   office,
 	})
 	return nil
 }

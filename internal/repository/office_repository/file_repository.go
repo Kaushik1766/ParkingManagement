@@ -9,6 +9,7 @@ import (
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/office"
+	"github.com/google/uuid"
 )
 
 type FileOfficeRepository struct {
@@ -16,15 +17,15 @@ type FileOfficeRepository struct {
 	offices []office.Office
 }
 
-func (fr *FileOfficeRepository) GetBuildingAndFloorByOffice(officeName string) (string, int, error) {
+func (fr *FileOfficeRepository) GetBuildingAndFloorByOffice(officeName string) (uuid.UUID, int, error) {
 	fr.Lock()
 	defer fr.Unlock()
 	for _, val := range fr.offices {
 		if val.OfficeName == officeName {
-			return val.BuildingName, val.FloorNumber, nil
+			return val.BuildingID, val.FloorNumber, nil
 		}
 	}
-	return "", 0, errors.New("office not found")
+	return uuid.Nil, 0, errors.New("office not found")
 }
 
 func NewFileOfficeRepository() *FileOfficeRepository {
@@ -49,7 +50,7 @@ func NewFileOfficeRepository() *FileOfficeRepository {
 	}
 }
 
-func (fr *FileOfficeRepository) AddOffice(officeName string, buildingName string, floorNumber int) error {
+func (fr *FileOfficeRepository) AddOffice(officeName string, buildingID uuid.UUID, floorNumber int) error {
 	fr.Lock()
 	defer fr.Unlock()
 	for _, val := range fr.offices {
@@ -58,9 +59,10 @@ func (fr *FileOfficeRepository) AddOffice(officeName string, buildingName string
 		}
 	}
 	fr.offices = append(fr.offices, office.Office{
-		OfficeName:   officeName,
-		BuildingName: buildingName,
-		FloorNumber:  floorNumber,
+		OfficeID:    uuid.New(),
+		OfficeName:  officeName,
+		BuildingID:  buildingID,
+		FloorNumber: floorNumber,
 	})
 	return nil
 }
@@ -77,12 +79,12 @@ func (fr *FileOfficeRepository) DeleteOffice(officeName string) error {
 	return errors.New("office not found")
 }
 
-func (fr *FileOfficeRepository) GetOfficesByBuilding(buildingName string) ([]office.Office, error) {
+func (fr *FileOfficeRepository) GetOfficesByBuilding(buildingID uuid.UUID) ([]office.Office, error) {
 	fr.Lock()
 	defer fr.Unlock()
 	var offices []office.Office
 	for _, val := range fr.offices {
-		if val.BuildingName == buildingName {
+		if val.BuildingID == buildingID {
 			offices = append(offices, val)
 		}
 	}

@@ -37,7 +37,7 @@ func (us *UserService) GetUserProfile(ctx context.Context) (user.UserDTO, error)
 		Name:   currentUser.Name,
 		Email:  currentUser.Email,
 		Role:   currentUser.Role.String(),
-		Office: currentUser.Office,
+		// Office: currentUser.Office,
 	}
 	return userDto, nil
 }
@@ -53,7 +53,7 @@ func (us *UserService) GetUserById(ctx context.Context, userId string) (user.Use
 		Name:   userStruct.Name,
 		Email:  userStruct.Email,
 		Role:   userStruct.Role.String(),
-		Office: userStruct.Office,
+		// Office: userStruct.Office,
 	}, nil
 }
 
@@ -175,7 +175,7 @@ func (us *UserService) UpdateProfile(ctx context.Context, name, email, password,
 		if err != nil {
 			return errors.New("office does not exist")
 		}
-		updatedUser.Office = office
+		// updatedUser.Office = office
 	}
 	if password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updatedUser.Password), 12)

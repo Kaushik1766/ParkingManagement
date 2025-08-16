@@ -25,6 +25,17 @@ func (fbr *FileBuildingRepository) GetAllBuildings() ([]building.Building, error
 	return fbr.buildings, nil
 }
 
+func (fbr *FileBuildingRepository) GetBuildingByID(buildingID uuid.UUID) (building.Building, error) {
+	fbr.Lock()
+	defer fbr.Unlock()
+	for _, b := range fbr.buildings {
+		if b.BuildingID == buildingID {
+			return b, nil
+		}
+	}
+	return building.Building{}, fmt.Errorf("building with id %s not found", buildingID)
+}
+
 func (fbr *FileBuildingRepository) GetBuildingByName(name string) (building.Building, error) {
 	fbr.Lock()
 	defer fbr.Unlock()

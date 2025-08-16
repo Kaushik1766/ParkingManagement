@@ -1,6 +1,8 @@
 package office
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+)
 
 type Office struct {
 	OfficeID    uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`

@@ -19,15 +19,17 @@ type FileSlotRepository struct {
 }
 
 func (fsr *FileSlotRepository) SetSlotOccupied(buildingId uuid.UUID, floorNumber, slotNumber int, isOccupied bool) error {
-	fsr.Lock()
-	defer fsr.Unlock()
-	for i, s := range fsr.slots {
-		if s.BuildingID == buildingId && s.FloorNumber == floorNumber && s.SlotNumber == slotNumber {
-			fsr.slots[i].IsOccupied = isOccupied
-			return nil
-		}
-	}
-	return fmt.Errorf("slot not found at building %s, floor %d, slot %d", buildingId, floorNumber, slotNumber)
+	// TODO: implementation
+	panic("SetSlotOccupied not implemented yet")
+	// fsr.Lock()
+	// defer fsr.Unlock()
+	// for i, s := range fsr.slots {
+	// 	if s.BuildingID == buildingId && s.FloorNumber == floorNumber && s.SlotNumber == slotNumber {
+	// 		fsr.slots[i].IsOccupied = isOccupied
+	// 		return nil
+	// 	}
+	// }
+	// return fmt.Errorf("slot not found at building %s, floor %d, slot %d", buildingId, floorNumber, slotNumber)
 }
 
 func (fsr *FileSlotRepository) GetSlotsByFloor(buildingId uuid.UUID, floorNumber int) ([]slot.Slot, error) {
@@ -53,7 +55,7 @@ func (fsr *FileSlotRepository) GetFreeSlotsByBuilding(buildingId uuid.UUID) ([]s
 	defer fsr.Unlock()
 	var slots []slot.Slot
 	for _, s := range fsr.slots {
-		if s.BuildingID == buildingId && !s.IsOccupied {
+		if s.BuildingID == buildingId && s.OccupantID != nil {
 			slots = append(slots, s)
 		}
 	}
@@ -65,7 +67,7 @@ func (fsr *FileSlotRepository) GetFreeSlotsByFloor(buildingId uuid.UUID, floorNu
 	defer fsr.Unlock()
 	var slots []slot.Slot
 	for _, s := range fsr.slots {
-		if s.BuildingID == buildingId && s.FloorNumber == floorNumber && !s.IsOccupied {
+		if s.BuildingID == buildingId && s.FloorNumber == floorNumber && s.OccupantID != nil {
 			slots = append(slots, s)
 		}
 	}
@@ -101,7 +103,7 @@ func (fsr *FileSlotRepository) AddSlot(buildingId uuid.UUID, floorNumber int, sl
 		FloorNumber: floorNumber,
 		SlotNumber:  slotNumber,
 		SlotType:    slotType,
-		IsOccupied:  false,
+		OccupantID:  nil,
 	})
 	return nil
 }

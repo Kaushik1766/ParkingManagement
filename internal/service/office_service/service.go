@@ -42,7 +42,7 @@ func (officeServ *OfficeService) AddOffice(ctx context.Context, officeName strin
 		return errors.New("floor does not exist in the specified building")
 	}
 
-	return officeServ.officeRepo.AddOffice(officeName, buildingName, floorNumber)
+	return officeServ.officeRepo.AddOffice(officeName, building.BuildingID, floorNumber)
 }
 
 func (officeServ *OfficeService) RemoveOffice(ctx context.Context, officeName string) error {
@@ -50,7 +50,11 @@ func (officeServ *OfficeService) RemoveOffice(ctx context.Context, officeName st
 }
 
 func (officeServ *OfficeService) ListOfficesByBuilding(ctx context.Context, buildingName string) (map[int]string, error) {
-	offices, err := officeServ.officeRepo.GetOfficesByBuilding(buildingName)
+	building, err := officeServ.buildingRepo.GetBuildingByName(buildingName)
+	if err != nil {
+		return nil, err
+	}
+	offices, err := officeServ.officeRepo.GetOfficesByBuilding(building.BuildingID)
 	if err != nil {
 		return nil, errors.New("no offices in building")
 	}

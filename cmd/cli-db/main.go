@@ -2,11 +2,16 @@ package main
 
 import (
 	"os"
+	"os/user"
 
-	"github.com/Kaushik1766/ParkingManagement/internal/models/user"
+	"github.com/Kaushik1766/ParkingManagement/db"
+	"github.com/Kaushik1766/ParkingManagement/internal/models/building"
+	"github.com/Kaushik1766/ParkingManagement/internal/models/floor"
+	"github.com/Kaushik1766/ParkingManagement/internal/models/office"
+	parkinghistory "github.com/Kaushik1766/ParkingManagement/internal/models/parking_history"
+	"github.com/Kaushik1766/ParkingManagement/internal/models/slot"
+	"github.com/Kaushik1766/ParkingManagement/internal/models/vehicle"
 	"github.com/joho/godotenv"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 func main() {
@@ -15,12 +20,24 @@ func main() {
 		panic("Error loading .env file")
 	}
 
-	dbUrl := os.Getenv("DATABASE_URL")
+	dbURL := os.Getenv("DATABASE_URL")
 
-	db, err := gorm.Open(postgres.Open(dbUrl), &gorm.Config{})
+	gormDB, err := db.InitDB(dbURL)
 	if err != nil {
-		panic("failed to connect database")
+		panic("Error connecting to the database: " + err.Error())
 	}
 
-	db.AutoMigrate(&user.User{})
+	err = db.MigrateModels(
+		gormDB,
+		user.User{},
+		office.Office{},
+		vehicle.Vehicle{},
+		building.Building{},
+		floor.Floor{},
+		slot.Slot{},
+		parkinghistory.ParkingHistory{},
+	)
+	if err != nil {
+		panic("Error migrating models: " + err.Error())
+	}
 }

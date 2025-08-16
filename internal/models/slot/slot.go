@@ -2,7 +2,6 @@ package slot
 
 import (
 	"fmt"
-	"os/user"
 
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	"github.com/google/uuid"
@@ -14,9 +13,7 @@ type Slot struct {
 	FloorNumber int                      `gorm:"primaryKey;type:int;not null"`
 	SlotNumber  int                      `gorm:"primaryKey;type:int;not null"`
 	SlotType    vehicletypes.VehicleType `gorm:"not null"`
-	IsOccupied  bool                     `gorm:"default:false;not null"`
 	OccupantID  *uuid.UUID               `gorm:"type:uuid;default:null"`
-	OccupiedBy  *user.User               `gorm:"foreignKey:OccupantID;references:UserID"`
 }
 
 // func (s Slot) GetID() string {

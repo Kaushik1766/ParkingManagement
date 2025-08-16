@@ -82,7 +82,7 @@ func (sah *CliSlotAssignmentHandler) AssignSlot(ctx context.Context) {
 		return
 	}
 
-	freeSlots, err := sah.slotService.GetFreeSlotsByBuilding(ctx, office.BuildingName, vehicle.VehicleType)
+	freeSlots, err := sah.slotService.GetFreeSlotsByBuilding(ctx, office.BuildingID, vehicle.VehicleType)
 	if err != nil {
 		customerrors.DisplayError("error fetching free slots")
 		return

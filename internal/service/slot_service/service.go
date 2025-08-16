@@ -12,6 +12,7 @@ import (
 	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
 	floorrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/floor_repository"
 	slotrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/slot_repository"
+	"github.com/google/uuid"
 )
 
 type SlotService struct {
@@ -102,13 +103,8 @@ func (ss *SlotService) DeleteSlots(ctx context.Context, buildingName string, flo
 	return nil
 }
 
-func (ss *SlotService) GetFreeSlotsByBuilding(ctx context.Context, buildingName string, vehicleType vehicletypes.VehicleType) ([]slot.Slot, error) {
-	building, err := ss.buildingRepo.GetBuildingByName(buildingName)
-	if err != nil {
-		return nil, err
-	}
-
-	freeSlots, err := ss.slotRepo.GetFreeSlotsByBuilding(building.BuildingID)
+func (ss *SlotService) GetFreeSlotsByBuilding(ctx context.Context, buildingID uuid.UUID, vehicleType vehicletypes.VehicleType) ([]slot.Slot, error) {
+	freeSlots, err := ss.slotRepo.GetFreeSlotsByBuilding(buildingID)
 	if err != nil {
 		return nil, err
 	}
