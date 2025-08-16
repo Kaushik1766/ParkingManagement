@@ -33,7 +33,7 @@ func (us *UserService) GetUserProfile(ctx context.Context) (user.UserDTO, error)
 		return user.UserDTO{}, err
 	}
 	userDto := user.UserDTO{
-		UserId: currentUser.UserId.String(),
+		UserId: currentUser.UserID.String(),
 		Name:   currentUser.Name,
 		Email:  currentUser.Email,
 		Role:   currentUser.Role.String(),
@@ -49,7 +49,7 @@ func (us *UserService) GetUserById(ctx context.Context, userId string) (user.Use
 	}
 
 	return user.UserDTO{
-		UserId: userStruct.UserId.String(),
+		UserId: userStruct.UserID.String(),
 		Name:   userStruct.Name,
 		Email:  userStruct.Email,
 		Role:   userStruct.Role.String(),
@@ -70,12 +70,12 @@ func (us *UserService) RegisterVehicle(ctx context.Context, numberplate string, 
 	if err != nil {
 		return err
 	}
-	newVehicle, err := us.vehicleRepo.AddVehicle(numberplate, currentUser.UserId, vehicleType)
+	newVehicle, err := us.vehicleRepo.AddVehicle(numberplate, currentUser.UserID, vehicleType)
 	if err != nil {
 		return err
 	}
 
-	err = us.assignmentService.AutoAssignSlot(ctx, newVehicle.VehicleId.String())
+	err = us.assignmentService.AutoAssignSlot(ctx, newVehicle.VehicleID.String())
 	if err != nil {
 		return fmt.Errorf("failed to assign slot: %w", err)
 	}

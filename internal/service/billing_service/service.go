@@ -41,9 +41,9 @@ func (bs *BillingService) GenerateMonthlyInvoice() {
 	endTime := time.Now()
 
 	for _, user := range users {
-		parkingHistory, err := bs.parkingHistoryService.GetParkingHistoryById(user.UserId.String(), startTime, endTime)
+		parkingHistory, err := bs.parkingHistoryService.GetParkingHistoryById(user.UserID.String(), startTime, endTime)
 		if err != nil {
-			log.Printf("billingservice: Error fetching parking history for user %s: %v\n", user.UserId, err)
+			log.Printf("billingservice: Error fetching parking history for user %s: %v\n", user.UserID, err)
 			return
 		}
 
@@ -62,7 +62,7 @@ func (bs *BillingService) GenerateMonthlyInvoice() {
 			// 	continue
 			// }
 			if ph.EndTime.IsZero() {
-				log.Printf("billingservice: Parking end time is zero for user %s, skipping...\n", user.UserId)
+				log.Printf("billingservice: Parking end time is zero for user %s, skipping...\n", user.UserID)
 				continue
 			}
 
@@ -78,7 +78,7 @@ func (bs *BillingService) GenerateMonthlyInvoice() {
 			ParkingHistory: parkingHistory,
 			TotalAmount:    totalAmount,
 			BillDate:       time.Now().Format(time.DateOnly),
-			UserId:         user.UserId.String(),
+			UserId:         user.UserID.String(),
 		}
 		billsString += curBill.String()
 	}

@@ -27,7 +27,7 @@ func (fs *FloorService) DeleteFloors(ctx context.Context, buildingName string, f
 		return err
 	}
 	for _, floorNumber := range floorNumbers {
-		err = fs.floorRepo.DeleteFloor(building.BuildingId, floorNumber)
+		err = fs.floorRepo.DeleteFloor(building.BuildingID, floorNumber)
 		if err != nil {
 			return err
 		}
@@ -44,7 +44,7 @@ func (fs *FloorService) GetFloorsByBuildingId(ctx context.Context, buildingName 
 	if err != nil {
 		return nil, err
 	}
-	floors, err := fs.floorRepo.GetFloorsByBuildingId(building.BuildingId)
+	floors, err := fs.floorRepo.GetFloorsByBuildingId(building.BuildingID)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (fs *FloorService) AddFloors(ctx context.Context, buildingName string, floo
 		return err
 	}
 	for _, floorNumber := range floorNumbers {
-		err = fs.floorRepo.AddFloor(building.BuildingId, floorNumber)
+		err = fs.floorRepo.AddFloor(building.BuildingID, floorNumber)
 		if err != nil {
 			return fmt.Errorf("error adding floor %d to building %s: %w", floorNumber, building.BuildingName, err)
 		}
@@ -78,7 +78,7 @@ func (fs *FloorService) AddFloor(ctx context.Context, buildingName string, floor
 	if err != nil {
 		return err
 	}
-	return fs.floorRepo.AddFloor(building.BuildingId, floorNumber)
+	return fs.floorRepo.AddFloor(building.BuildingID, floorNumber)
 }
 
 func (fs *FloorService) DeleteFloor(ctx context.Context, buildingName string, floorNumber int) error {
@@ -90,7 +90,7 @@ func (fs *FloorService) DeleteFloor(ctx context.Context, buildingName string, fl
 	if err != nil {
 		return err
 	}
-	return fs.floorRepo.DeleteFloor(building.BuildingId, floorNumber)
+	return fs.floorRepo.DeleteFloor(building.BuildingID, floorNumber)
 }
 
 func NewFloorService(floorRepo floorrepository.FloorStorage, buildingRepo buildingrepository.BuildingStorage) *FloorService {

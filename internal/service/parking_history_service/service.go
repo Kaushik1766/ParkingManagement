@@ -66,7 +66,7 @@ func (phs *ParkingHistoryService) GetParkingHistoryByNumberPlate(ctx context.Con
 		return nil, err
 	}
 
-	if userCtx.Role != roles.Admin && userCtx.ID != vehicle.UserId.String() {
+	if userCtx.Role != roles.Admin && userCtx.ID != vehicle.UserID.String() {
 		return nil, customerrors.Unathorized{}
 	}
 

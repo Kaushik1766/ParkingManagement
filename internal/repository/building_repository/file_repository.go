@@ -46,7 +46,7 @@ func (fbr *FileBuildingRepository) AddBuilding(name string) error {
 	}
 	fbr.buildings = append(fbr.buildings, building.Building{
 		BuildingName: name,
-		BuildingId:   uuid.New(),
+		BuildingID:   uuid.New(),
 	})
 	return nil
 }

@@ -37,7 +37,7 @@ func (officeServ *OfficeService) AddOffice(ctx context.Context, officeName strin
 		return errors.New("building does not exist")
 	}
 
-	_, err = officeServ.flooRepo.GetFloor(building.BuildingId, floorNumber)
+	_, err = officeServ.flooRepo.GetFloor(building.BuildingID, floorNumber)
 	if err != nil {
 		return errors.New("floor does not exist in the specified building")
 	}

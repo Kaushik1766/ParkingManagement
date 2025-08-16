@@ -23,7 +23,7 @@ func (vs *VehicleService) Park(ctx context.Context, numberplate string) (string,
 		return "", err
 	}
 
-	if vehicle.UserId.String() != userCtx.ID {
+	if vehicle.UserID.String() != userCtx.ID {
 		return "", customerrors.Unathorized{}
 	}
 

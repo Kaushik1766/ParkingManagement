@@ -24,7 +24,7 @@ func (fvr *FileVehicleRepository) Save(vehicle vehicle.Vehicle) error {
 	fvr.Lock()
 	defer fvr.Unlock()
 	for i, val := range fvr.vehicles {
-		if val.VehicleId == vehicle.VehicleId {
+		if val.VehicleID == vehicle.VehicleID {
 			fvr.vehicles[i] = vehicle
 			return nil
 		}
@@ -51,7 +51,7 @@ func (fvr *FileVehicleRepository) GetVehiclesWithUnassignedSlots() ([]vehicle.Ve
 	defer fvr.Unlock()
 	var result []vehicle.Vehicle
 	for _, val := range fvr.vehicles {
-		if val.IsActive && val.AssignedSlot.BuildingId == uuid.Nil {
+		if val.IsActive && val.AssignedSlot.BuildingID == uuid.Nil {
 			result = append(result, val)
 		}
 	}
@@ -68,10 +68,10 @@ func (fvr *FileVehicleRepository) AddVehicle(numberplate string, userid uuid.UUI
 	}
 	// TODO: add assigned slot and update interface
 	fvr.vehicles = append(fvr.vehicles, vehicle.Vehicle{
-		VehicleId:   uuid.New(),
+		VehicleID:   uuid.New(),
 		NumberPlate: numberplate,
 		VehicleType: vehicleType,
-		UserId:      userid,
+		UserID:      userid,
 		IsActive:    true,
 	})
 	return fvr.vehicles[len(fvr.vehicles)-1], nil
@@ -94,7 +94,7 @@ func (fvr *FileVehicleRepository) GetVehicleById(vehicleId uuid.UUID) (vehicle.V
 	fvr.Lock()
 	defer fvr.Unlock()
 	for _, val := range fvr.vehicles {
-		if val.VehicleId == vehicleId {
+		if val.VehicleID == vehicleId {
 			return val, nil
 		}
 	}
@@ -108,7 +108,7 @@ func (fvr *FileVehicleRepository) GetVehiclesByUserId(userId uuid.UUID) ([]vehic
 	// fmt.Println(fvr.vehicles)
 	// fmt.Println(userId.String())
 	for _, val := range fvr.vehicles {
-		if val.UserId == userId && val.IsActive {
+		if val.UserID == userId && val.IsActive {
 			result = append(result, val)
 		}
 	}

@@ -42,7 +42,7 @@ func (sah *CliSlotAssignmentHandler) ViewVehiclesWithUnassignedSlots(ctx context
 	}
 
 	for i, vehicle := range unassignedVehicles {
-		color.Magenta("%d. UserId: %s, NumberPlate: %s, Vehicle Type: %s\n", i, vehicle.UserId.String(), vehicle.NumberPlate, vehicle.VehicleType)
+		color.Magenta("%d. UserId: %s, NumberPlate: %s, Vehicle Type: %s\n", i, vehicle.UserID.String(), vehicle.NumberPlate, vehicle.VehicleType)
 	}
 	color.Green(menuconstants.PressEnterToContinue)
 	fmt.Scanln()
@@ -57,7 +57,7 @@ func (sah *CliSlotAssignmentHandler) AssignSlot(ctx context.Context) {
 	}
 
 	for i, vehicle := range unassignedVehicles {
-		color.Magenta("%d. UserId: %s, NumberPlate: %s, Vehicle Type: %s\n", i+1, vehicle.UserId, vehicle.NumberPlate, vehicle.VehicleType)
+		color.Magenta("%d. UserId: %s, NumberPlate: %s, Vehicle Type: %s\n", i+1, vehicle.UserID, vehicle.NumberPlate, vehicle.VehicleType)
 	}
 
 	var vehicleNumber int
@@ -70,7 +70,7 @@ func (sah *CliSlotAssignmentHandler) AssignSlot(ctx context.Context) {
 
 	vehicle := unassignedVehicles[vehicleNumber-1]
 
-	user, err := sah.userService.GetUserById(ctx, vehicle.UserId.String())
+	user, err := sah.userService.GetUserById(ctx, vehicle.UserID.String())
 	if err != nil {
 		customerrors.DisplayError("error fetching user details")
 		return
@@ -102,7 +102,7 @@ func (sah *CliSlotAssignmentHandler) AssignSlot(ctx context.Context) {
 		return
 	}
 	slot := freeSlots[slotNumber-1]
-	if err := sah.assignmentService.AssignSlot(ctx, vehicle.VehicleId.String(), slot); err != nil {
+	if err := sah.assignmentService.AssignSlot(ctx, vehicle.VehicleID.String(), slot); err != nil {
 		customerrors.DisplayError("error assigning slot to vehicle")
 		return
 	}

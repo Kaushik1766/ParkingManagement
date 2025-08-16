@@ -22,7 +22,7 @@ func (ffr *FileFloorRepository) GetFloorsByBuildingId(buildingId uuid.UUID) ([]i
 	defer ffr.Unlock()
 	var floorNumbers []int
 	for _, f := range ffr.floors {
-		if f.BuildingId == buildingId {
+		if f.BuildingID == buildingId {
 			floorNumbers = append(floorNumbers, f.FloorNumber)
 		}
 	}
@@ -37,7 +37,7 @@ func (ffr *FileFloorRepository) GetFloor(buildingId uuid.UUID, floorNumber int) 
 	ffr.Lock()
 	defer ffr.Unlock()
 	for _, f := range ffr.floors {
-		if f.BuildingId == buildingId && f.FloorNumber == floorNumber {
+		if f.BuildingID == buildingId && f.FloorNumber == floorNumber {
 			return f.FloorNumber, nil
 		}
 	}
@@ -48,12 +48,12 @@ func (ffr *FileFloorRepository) AddFloor(buildingId uuid.UUID, floorNumber int) 
 	ffr.Lock()
 	defer ffr.Unlock()
 	for _, f := range ffr.floors {
-		if f.BuildingId == buildingId && f.FloorNumber == floorNumber {
+		if f.BuildingID == buildingId && f.FloorNumber == floorNumber {
 			return fmt.Errorf("floor %d already exists", floorNumber)
 		}
 	}
 	ffr.floors = append(ffr.floors, floor.Floor{
-		BuildingId:  buildingId,
+		BuildingID:  buildingId,
 		FloorNumber: floorNumber,
 	})
 	return nil
@@ -63,7 +63,7 @@ func (ffr *FileFloorRepository) DeleteFloor(buildingId uuid.UUID, floorNumber in
 	ffr.Lock()
 	defer ffr.Unlock()
 	for i, f := range ffr.floors {
-		if f.BuildingId == buildingId && f.FloorNumber == floorNumber {
+		if f.BuildingID == buildingId && f.FloorNumber == floorNumber {
 			ffr.floors = append(ffr.floors[:i], ffr.floors[i+1:]...)
 			return nil
 		}

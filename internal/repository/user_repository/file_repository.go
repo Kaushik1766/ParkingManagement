@@ -54,7 +54,7 @@ func (db *FileUserRepository) GetUserById(id string) (user.User, error) {
 	db.Lock()
 	defer db.Unlock()
 	for _, val := range db.users {
-		if val.UserId.String() == id {
+		if val.UserID.String() == id {
 			return val, nil
 		}
 	}
@@ -76,7 +76,7 @@ func (db *FileUserRepository) Save(user user.User) error {
 	db.Lock()
 	defer db.Unlock()
 	for i, val := range db.users {
-		if user.UserId == val.UserId {
+		if user.UserID == val.UserID {
 			db.users[i] = user
 			return nil
 		}
@@ -93,7 +93,7 @@ func (db *FileUserRepository) CreateUser(name, email, password, office string, r
 	}
 
 	db.users = append(db.users, user.User{
-		UserId:   uuid.New(),
+		UserID:   uuid.New(),
 		Name:     name,
 		Email:    email,
 		Password: password,

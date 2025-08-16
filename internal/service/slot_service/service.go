@@ -31,12 +31,12 @@ func (ss *SlotService) GetSlotsByFloor(ctx context.Context, buildingName string,
 		return nil, err
 	}
 
-	_, err = ss.floorRepo.GetFloor(building.BuildingId, floorNumber)
+	_, err = ss.floorRepo.GetFloor(building.BuildingID, floorNumber)
 	if err != nil {
 		return nil, err
 	}
 
-	slots, err := ss.slotRepo.GetSlotsByFloor(building.BuildingId, floorNumber)
+	slots, err := ss.slotRepo.GetSlotsByFloor(building.BuildingID, floorNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -63,13 +63,13 @@ func (ss *SlotService) AddSlots(ctx context.Context, buildingName string, floorN
 		return err
 	}
 
-	_, err = ss.floorRepo.GetFloor(building.BuildingId, floorNumber)
+	_, err = ss.floorRepo.GetFloor(building.BuildingID, floorNumber)
 	if err != nil {
 		return err
 	}
 
 	for _, slotNumber := range slotNumbers {
-		err = ss.slotRepo.AddSlot(building.BuildingId, floorNumber, slotNumber, slotType)
+		err = ss.slotRepo.AddSlot(building.BuildingID, floorNumber, slotNumber, slotType)
 		if err != nil {
 			return err
 		}
@@ -88,13 +88,13 @@ func (ss *SlotService) DeleteSlots(ctx context.Context, buildingName string, flo
 		return err
 	}
 
-	_, err = ss.floorRepo.GetFloor(building.BuildingId, floorNumber)
+	_, err = ss.floorRepo.GetFloor(building.BuildingID, floorNumber)
 	if err != nil {
 		return err
 	}
 
 	for _, slotNumber := range slotNumbers {
-		err = ss.slotRepo.DeleteSlot(building.BuildingId, floorNumber, slotNumber)
+		err = ss.slotRepo.DeleteSlot(building.BuildingID, floorNumber, slotNumber)
 		if err != nil {
 			return err
 		}
@@ -108,7 +108,7 @@ func (ss *SlotService) GetFreeSlotsByBuilding(ctx context.Context, buildingName 
 		return nil, err
 	}
 
-	freeSlots, err := ss.slotRepo.GetFreeSlotsByBuilding(building.BuildingId)
+	freeSlots, err := ss.slotRepo.GetFreeSlotsByBuilding(building.BuildingID)
 	if err != nil {
 		return nil, err
 	}

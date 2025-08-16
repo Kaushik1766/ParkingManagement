@@ -22,7 +22,7 @@ func (fsr *FileSlotRepository) SetSlotOccupied(buildingId uuid.UUID, floorNumber
 	fsr.Lock()
 	defer fsr.Unlock()
 	for i, s := range fsr.slots {
-		if s.BuildingId == buildingId && s.FloorNumber == floorNumber && s.SlotNumber == slotNumber {
+		if s.BuildingID == buildingId && s.FloorNumber == floorNumber && s.SlotNumber == slotNumber {
 			fsr.slots[i].IsOccupied = isOccupied
 			return nil
 		}
@@ -35,7 +35,7 @@ func (fsr *FileSlotRepository) GetSlotsByFloor(buildingId uuid.UUID, floorNumber
 	defer fsr.Unlock()
 	var slots []slot.Slot
 	for _, s := range fsr.slots {
-		if s.BuildingId == buildingId && s.FloorNumber == floorNumber {
+		if s.BuildingID == buildingId && s.FloorNumber == floorNumber {
 			slots = append(slots, s)
 		}
 	}
@@ -53,7 +53,7 @@ func (fsr *FileSlotRepository) GetFreeSlotsByBuilding(buildingId uuid.UUID) ([]s
 	defer fsr.Unlock()
 	var slots []slot.Slot
 	for _, s := range fsr.slots {
-		if s.BuildingId == buildingId && !s.IsOccupied {
+		if s.BuildingID == buildingId && !s.IsOccupied {
 			slots = append(slots, s)
 		}
 	}
@@ -65,7 +65,7 @@ func (fsr *FileSlotRepository) GetFreeSlotsByFloor(buildingId uuid.UUID, floorNu
 	defer fsr.Unlock()
 	var slots []slot.Slot
 	for _, s := range fsr.slots {
-		if s.BuildingId == buildingId && s.FloorNumber == floorNumber && !s.IsOccupied {
+		if s.BuildingID == buildingId && s.FloorNumber == floorNumber && !s.IsOccupied {
 			slots = append(slots, s)
 		}
 	}
@@ -79,7 +79,7 @@ func (fsr *FileSlotRepository) Save(slot slot.Slot) error {
 	fsr.Lock()
 	defer fsr.Unlock()
 	for i, s := range fsr.slots {
-		if s.BuildingId == slot.BuildingId && s.FloorNumber == slot.FloorNumber && s.SlotNumber == slot.SlotNumber {
+		if s.BuildingID == slot.BuildingID && s.FloorNumber == slot.FloorNumber && s.SlotNumber == slot.SlotNumber {
 			fsr.slots[i] = slot
 			return nil
 		}
@@ -92,12 +92,12 @@ func (fsr *FileSlotRepository) AddSlot(buildingId uuid.UUID, floorNumber int, sl
 	fsr.Lock()
 	defer fsr.Unlock()
 	for _, s := range fsr.slots {
-		if s.BuildingId == buildingId && s.FloorNumber == floorNumber && s.SlotNumber == slotNumber {
+		if s.BuildingID == buildingId && s.FloorNumber == floorNumber && s.SlotNumber == slotNumber {
 			return fmt.Errorf("slot already exists at building %s, floor %d, slot %d", buildingId, floorNumber, slotNumber)
 		}
 	}
 	fsr.slots = append(fsr.slots, slot.Slot{
-		BuildingId:  buildingId,
+		BuildingID:  buildingId,
 		FloorNumber: floorNumber,
 		SlotNumber:  slotNumber,
 		SlotType:    slotType,
@@ -110,7 +110,7 @@ func (fsr *FileSlotRepository) DeleteSlot(buildingId uuid.UUID, floorNumber int,
 	fsr.Lock()
 	defer fsr.Unlock()
 	for i, s := range fsr.slots {
-		if s.BuildingId == buildingId && s.FloorNumber == floorNumber && s.SlotNumber == slotNumber {
+		if s.BuildingID == buildingId && s.FloorNumber == floorNumber && s.SlotNumber == slotNumber {
 			fsr.slots = append(fsr.slots[:i], fsr.slots[i+1:]...)
 			return nil
 		}

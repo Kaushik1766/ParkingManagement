@@ -1,12 +1,16 @@
 package building
 
-import "github.com/google/uuid"
+import (
+	"github.com/Kaushik1766/ParkingManagement/internal/models/floor"
+	"github.com/google/uuid"
+)
 
 type Building struct {
-	BuildingId   uuid.UUID
-	BuildingName string
+	BuildingID   uuid.UUID     `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	BuildingName string        `gorm:"type:varchar(255);not null"`
+	Floors       []floor.Floor `gorm:"foreignKey:BuildingID;references:BuildingID"`
 }
 
-func (b Building) GetID() string {
-	return b.BuildingId.String()
-}
+// func (b Building) GetID() string {
+// 	return b.BuildingID.String()
+// }

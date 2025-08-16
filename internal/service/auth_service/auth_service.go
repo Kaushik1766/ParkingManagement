@@ -69,7 +69,7 @@ func (auth *AuthService) Login(email, password string) (string, error) {
 			Role:   user.Role,
 			Office: user.Office,
 			RegisteredClaims: jwt.RegisteredClaims{
-				ID:        user.UserId.String(),
+				ID:        user.UserID.String(),
 				ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 				IssuedAt:  jwt.NewNumericDate(time.Now()),
 			},

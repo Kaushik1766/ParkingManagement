@@ -26,7 +26,7 @@ func (fpr *FileParkingRepository) Unpark(id string) error {
 	defer fpr.Unlock()
 
 	for i, parking := range fpr.parkings {
-		if parking.ParkingId.String() == id && parking.EndTime.IsZero() {
+		if parking.ParkingID.String() == id && parking.EndTime.IsZero() {
 			fpr.parkings[i].EndTime = time.Now()
 			return nil
 		}
@@ -42,12 +42,12 @@ func (fpr *FileParkingRepository) GetParkingHistoryByUser(userId string, startTi
 	var history []parkinghistory.ParkingHistoryDTO
 
 	for _, parking := range fpr.parkings {
-		if parking.UserId.String() == userId && (parking.StartTime.After(startTime) || parking.StartTime.Equal(startTime)) && (parking.EndTime.Before(endTime) || parking.EndTime.Equal(endTime)) {
+		if parking.UserID.String() == userId && (parking.StartTime.After(startTime) || parking.StartTime.Equal(startTime)) && (parking.EndTime.Before(endTime) || parking.EndTime.Equal(endTime)) {
 			history = append(history, parkinghistory.ParkingHistoryDTO{
-				TicketId:     parking.ParkingId.String(),
+				TicketId:     parking.ParkingID.String(),
 				NumberPlate:  parking.NumberPlate,
-				BuildingId:   parking.BuildingId,
-				FLoorNumber:  parking.FLoorNumber,
+				BuildingId:   parking.BuildingID,
+				FLoorNumber:  parking.FloorNumber,
 				SlotNumber:   parking.SlotNumber,
 				StartTime:    parking.StartTime.Local(),
 				EndTime:      parking.EndTime.Local(),
@@ -62,24 +62,24 @@ func (fpr *FileParkingRepository) AddParking(vehicle vehicle.Vehicle) (string, e
 	fpr.Lock()
 	defer fpr.Unlock()
 
-	if vehicle.AssignedSlot.BuildingId == uuid.Nil {
+	if vehicle.AssignedSlot.BuildingID == uuid.Nil {
 		return "", errors.New("no slot assigned contact the admin")
 	}
 
 	for _, parking := range fpr.parkings {
-		if parking.BuildingId == vehicle.AssignedSlot.BuildingId.String() &&
-			parking.FLoorNumber == vehicle.AssignedSlot.FloorNumber && parking.SlotNumber == vehicle.AssignedSlot.SlotNumber &&
+		if parking.BuildingID == vehicle.AssignedSlot.BuildingID.String() &&
+			parking.FloorNumber == vehicle.AssignedSlot.FloorNumber && parking.SlotNumber == vehicle.AssignedSlot.SlotNumber &&
 			parking.EndTime.IsZero() {
 			return "", errors.New("vehicle already parked in this slot")
 		}
 	}
 
 	newParking := parkinghistory.ParkingHistory{
-		ParkingId:   uuid.New(),
+		ParkingID:   uuid.New(),
 		NumberPlate: vehicle.NumberPlate,
-		UserId:      vehicle.UserId,
-		BuildingId:  vehicle.AssignedSlot.BuildingId.String(),
-		FLoorNumber: vehicle.AssignedSlot.FloorNumber,
+		UserID:      vehicle.UserID,
+		BuildingID:  vehicle.AssignedSlot.BuildingID.String(),
+		FloorNumber: vehicle.AssignedSlot.FloorNumber,
 		SlotNumber:  vehicle.AssignedSlot.SlotNumber,
 		StartTime:   time.Now(),
 		EndTime:     time.Time{},
@@ -88,7 +88,7 @@ func (fpr *FileParkingRepository) AddParking(vehicle vehicle.Vehicle) (string, e
 	log.Printf("Adding new parking: %+v", newParking)
 	fpr.parkings = append(fpr.parkings, newParking)
 
-	return newParking.ParkingId.String(), nil
+	return newParking.ParkingID.String(), nil
 }
 
 func (fpr *FileParkingRepository) GetParkingHistoryByNumberPlate(numberplate string, startTime, endTime time.Time) ([]parkinghistory.ParkingHistoryDTO, error) {
@@ -100,10 +100,10 @@ func (fpr *FileParkingRepository) GetParkingHistoryByNumberPlate(numberplate str
 	for _, parking := range fpr.parkings {
 		if parking.NumberPlate == numberplate && parking.StartTime.After(startTime) && parking.EndTime.Before(endTime) {
 			history = append(history, parkinghistory.ParkingHistoryDTO{
-				TicketId:     parking.ParkingId.String(),
+				TicketId:     parking.ParkingID.String(),
 				NumberPlate:  parking.NumberPlate,
-				BuildingId:   parking.BuildingId,
-				FLoorNumber:  parking.FLoorNumber,
+				BuildingId:   parking.BuildingID,
+				FLoorNumber:  parking.FloorNumber,
 				SlotNumber:   parking.SlotNumber,
 				StartTime:    parking.StartTime.Local(),
 				EndTime:      parking.EndTime.Local(),
@@ -121,12 +121,12 @@ func (fpr *FileParkingRepository) GetActiveUserParkings(userId string) ([]parkin
 	var activeParkings []parkinghistory.ParkingHistoryDTO
 
 	for _, parking := range fpr.parkings {
-		if parking.UserId.String() == userId && parking.EndTime.IsZero() {
+		if parking.UserID.String() == userId && parking.EndTime.IsZero() {
 			activeParkings = append(activeParkings, parkinghistory.ParkingHistoryDTO{
-				TicketId:     parking.ParkingId.String(),
+				TicketId:     parking.ParkingID.String(),
 				NumberPlate:  parking.NumberPlate,
-				BuildingId:   parking.BuildingId,
-				FLoorNumber:  parking.FLoorNumber,
+				BuildingId:   parking.BuildingID,
+				FLoorNumber:  parking.FloorNumber,
 				SlotNumber:   parking.SlotNumber,
 				StartTime:    parking.StartTime.Local(),
 				EndTime:      parking.EndTime.Local(),
