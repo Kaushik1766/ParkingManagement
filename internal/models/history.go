@@ -1,7 +1,6 @@
 package models
 
 import (
-	"os/user"
 	"time"
 
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
@@ -15,7 +14,7 @@ type ParkingHistory struct {
 	BuildingID  uuid.UUID                `gorm:"not null;type:uuid"`
 	Building    Building                 `gorm:"foreignKey:BuildingID;references:BuildingID"`
 	UserID      uuid.UUID                `gorm:"not null;type:uuid"`
-	User        user.User                `gorm:"foreignKey:UserID;references:UserID"`
+	User        User                     `gorm:"foreignKey:UserID;references:UserID"`
 	FloorNumber int                      `gorm:"not null"`
 	Floor       Floor                    `gorm:"foreignKey:BuildingID,FloorNumber;references:BuildingID,FloorNumber"`
 	SlotNumber  int                      `gorm:"not null"`

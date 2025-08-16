@@ -1,8 +1,8 @@
 package main
 
 import (
+	"fmt"
 	"os"
-	"os/user"
 
 	"github.com/Kaushik1766/ParkingManagement/db"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
@@ -22,14 +22,16 @@ func main() {
 		panic("Error connecting to the database: " + err.Error())
 	}
 
+	fmt.Println(gormDB)
+
 	err = db.MigrateModels(
 		gormDB,
-		user.User{},
-		models.Office{},
-		models.Vehicle{},
 		models.Building{},
 		models.Floor{},
+		models.Office{},
 		models.Slot{},
+		models.Vehicle{},
+		models.User{},
 		models.ParkingHistory{},
 	)
 	if err != nil {
