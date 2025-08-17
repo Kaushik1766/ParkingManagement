@@ -62,7 +62,7 @@ func (fbr *FileBuildingRepository) AddBuilding(name string) error {
 	return nil
 }
 
-func (fbr *FileBuildingRepository) DeleteBuilding(name string) error {
+func (fbr *FileBuildingRepository) DeleteBuildingByName(name string) error {
 	fbr.Lock()
 	defer fbr.Unlock()
 	for i, b := range fbr.buildings {

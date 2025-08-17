@@ -10,18 +10,18 @@ type SQLBuildingRepository struct {
 	db *gorm.DB
 }
 
-func (sqlbr *SQLBuildingRepository) DeleteBuilding(name string) error {
+func (sqlbr *SQLBuildingRepository) DeleteBuildingByName(buildingName string) error {
 	building := models.Building{}
-	err := sqlbr.db.Where("building_name = ?", name).First(&building).Error
+	err := sqlbr.db.Where("building_name = ?", buildingName).First(&building).Error
 	if err != nil {
 		return err
 	}
 	return sqlbr.db.Delete(&building).Error
 }
 
-func (sqlbr *SQLBuildingRepository) GetBuildingByName(name string) (models.Building, error) {
+func (sqlbr *SQLBuildingRepository) GetBuildingByName(buildingName string) (models.Building, error) {
 	building := models.Building{}
-	err := sqlbr.db.Where("building_name = ?", name).First(&building).Error
+	err := sqlbr.db.Where("building_name = ?", buildingName).First(&building).Error
 	return building, err
 }
 

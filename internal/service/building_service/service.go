@@ -50,6 +50,6 @@ func (bs *BuildingService) DeleteBuilding(ctx context.Context, name string) erro
 	if ctxUser.Role != roles.Admin {
 		return errors.New("unauthorized: only admin can delete buildings")
 	}
-	err := bs.buildingRepo.DeleteBuilding(name)
+	err := bs.buildingRepo.DeleteBuildingByName(name)
 	return err
 }

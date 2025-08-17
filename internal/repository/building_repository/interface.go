@@ -6,9 +6,9 @@ import (
 )
 
 type BuildingStorage interface {
-	AddBuilding(name string) error
-	DeleteBuilding(name string) error
-	GetBuildingByName(name string) (models.Building, error)
+	AddBuilding(buildingName string) error
+	DeleteBuildingByName(buildingName string) error
+	GetBuildingByName(buildingName string) (models.Building, error)
 	GetAllBuildings() ([]models.Building, error)
 	GetBuildingByID(buildingID uuid.UUID) (models.Building, error)
 }
