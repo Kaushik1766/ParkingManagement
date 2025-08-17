@@ -1,6 +1,7 @@
 package userrepository
 
 import (
+	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	"github.com/google/uuid"
@@ -22,7 +23,7 @@ func (sqlur *SQLUserRepository) GetUserByEmail(email string) (models.User, error
 
 func (sqlur *SQLUserRepository) GetUserById(id string) (models.User, error) {
 	var user models.User
-	err := sqlur.db.Where("user_id = ?", uuid.MustParse(id)).First(&user).Error
+	err := sqlur.db.Where("user_id = ?", uuid.MustParse(id)).Preload("Office").First(&user).Error
 	if err != nil {
 		return models.User{}, err
 	}
@@ -42,6 +43,27 @@ func (sqlur *SQLUserRepository) Save(user models.User) error {
 	err := sqlur.db.Save(&user).Error
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (sqlur *SQLUserRepository) CreateAdminOffice() error {
+	var office models.Office
+	err := sqlur.db.Where("office_name = ?", constants.AdminOffice).First(&office).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			office = models.Office{
+				OfficeName:  constants.AdminOffice,
+				BuildingID:  uuid.Nil,
+				FloorNumber: 0,
+			}
+			err = sqlur.db.Create(&office).Error
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
 	}
 	return nil
 }

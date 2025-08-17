@@ -35,6 +35,7 @@ func (us *UserService) GetUserProfile(ctx context.Context) (models.UserDTO, erro
 		Name:   currentUser.Name,
 		Email:  currentUser.Email,
 		Role:   currentUser.Role.String(),
+		Office: currentUser.Office.OfficeName,
 		// Office: currentUser.Office,
 	}
 	return userDto, nil

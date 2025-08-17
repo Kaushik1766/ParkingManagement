@@ -3,13 +3,22 @@ package db
 import (
 	"fmt"
 	"log"
+	"os"
 
+	"github.com/Kaushik1766/ParkingManagement/internal/config"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func InitDB(connectionURL string) (*gorm.DB, error) {
-	return gorm.Open(postgres.Open(connectionURL), &gorm.Config{})
+func InitDB() (*gorm.DB, error) {
+	err := godotenv.Load(config.EnvPath)
+	if err != nil {
+		panic("Error loading .env file")
+	}
+
+	dbURL := os.Getenv("DATABASE_URL")
+	return gorm.Open(postgres.Open(dbURL), &gorm.Config{})
 }
 
 func MigrateModels(db *gorm.DB, models ...any) error {

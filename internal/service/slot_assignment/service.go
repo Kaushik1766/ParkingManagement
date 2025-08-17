@@ -62,7 +62,7 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 	}
 
 	for _, val := range userVehicles {
-		if val.VehicleType == vehicle.VehicleType && val.AssignedSlot.BuildingID != uuid.Nil {
+		if val.VehicleType == vehicle.VehicleType && val.AssignedBuildingID != uuid.Nil {
 			vehicle.AssignedSlot = val.AssignedSlot
 			err = sas.vehicleRepo.Save(vehicle)
 			if err != nil {

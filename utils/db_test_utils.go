@@ -1,21 +1,12 @@
 package utils
 
 import (
-	"os"
-
 	"github.com/Kaushik1766/ParkingManagement/db"
-	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 )
 
 func GetDB() (*gorm.DB, error) {
-	err := godotenv.Load("/home/kaushik/ParkingManagement/.env")
-	if err != nil {
-		return nil, err
-	}
-
-	dbURL := os.Getenv("DATABASE_URL")
-	gormDB, err := db.InitDB(dbURL)
+	gormDB, err := db.InitDB()
 	if err != nil {
 		return nil, err
 	}
