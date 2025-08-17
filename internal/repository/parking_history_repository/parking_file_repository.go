@@ -40,16 +40,16 @@ func (fpr *FileParkingRepository) GetParkingHistoryByUser(userId string, startTi
 	var history []models.ParkingHistoryDTO
 
 	for _, parking := range fpr.parkings {
-		if parking.UserID.String() == userId && (parking.StartTime.After(startTime) || parking.StartTime.Equal(startTime)) && (parking.EndTime.Before(endTime) || parking.EndTime.Equal(endTime)) {
+		if parking.Vehicle.UserID.String() == userId && (parking.StartTime.After(startTime) || parking.StartTime.Equal(startTime)) && (parking.EndTime.Before(endTime) || parking.EndTime.Equal(endTime)) {
 			history = append(history, models.ParkingHistoryDTO{
 				TicketId:     parking.ParkingID.String(),
-				NumberPlate:  parking.NumberPlate,
-				BuildingId:   parking.BuildingID.String(),
-				FLoorNumber:  parking.FloorNumber,
-				SlotNumber:   parking.SlotNumber,
+				NumberPlate:  parking.Vehicle.NumberPlate,
+				BuildingId:   parking.Vehicle.AssignedBuildingID.String(),
+				FLoorNumber:  parking.Vehicle.AssignedFloorNumber,
+				SlotNumber:   parking.Vehicle.AssignedSlotNumber,
 				StartTime:    parking.StartTime.Local(),
 				EndTime:      parking.EndTime.Local(),
-				VechicleType: parking.VehicleType,
+				VechicleType: parking.Vehicle.VehicleType,
 			})
 		}
 	}
@@ -65,23 +65,18 @@ func (fpr *FileParkingRepository) AddParking(vehicle models.Vehicle) (string, er
 	}
 
 	for _, parking := range fpr.parkings {
-		if parking.BuildingID == vehicle.AssignedSlot.BuildingID &&
-			parking.FloorNumber == vehicle.AssignedSlot.FloorNumber && parking.SlotNumber == vehicle.AssignedSlot.SlotNumber &&
+		if parking.Vehicle.AssignedBuildingID == vehicle.AssignedSlot.BuildingID &&
+			parking.Vehicle.AssignedFloorNumber == vehicle.AssignedSlot.FloorNumber && parking.Vehicle.AssignedSlotNumber == vehicle.AssignedSlot.SlotNumber &&
 			parking.EndTime.IsZero() {
 			return "", errors.New("vehicle already parked in this slot")
 		}
 	}
 
 	newParking := models.ParkingHistory{
-		ParkingID:   uuid.New(),
-		NumberPlate: vehicle.NumberPlate,
-		UserID:      vehicle.UserID,
-		BuildingID:  vehicle.AssignedSlot.BuildingID,
-		FloorNumber: vehicle.AssignedSlot.FloorNumber,
-		SlotNumber:  vehicle.AssignedSlot.SlotNumber,
-		StartTime:   time.Now(),
-		EndTime:     nil,
-		VehicleType: vehicle.VehicleType,
+		ParkingID: uuid.New(),
+		Vehicle:   vehicle,
+		StartTime: time.Now(),
+		EndTime:   nil,
 	}
 	log.Printf("Adding new parking: %+v", newParking)
 	fpr.parkings = append(fpr.parkings, newParking)
@@ -96,16 +91,13 @@ func (fpr *FileParkingRepository) GetParkingHistoryByNumberPlate(numberplate str
 	var history []models.ParkingHistoryDTO
 
 	for _, parking := range fpr.parkings {
-		if parking.NumberPlate == numberplate && parking.StartTime.After(startTime) && parking.EndTime.Before(endTime) {
+		if parking.Vehicle.NumberPlate == numberplate && parking.StartTime.After(startTime) && parking.EndTime.Before(endTime) {
 			history = append(history, models.ParkingHistoryDTO{
 				TicketId:     parking.ParkingID.String(),
-				NumberPlate:  parking.NumberPlate,
-				BuildingId:   parking.BuildingID.String(),
-				FLoorNumber:  parking.FloorNumber,
-				SlotNumber:   parking.SlotNumber,
+				NumberPlate:  parking.Vehicle.NumberPlate,
 				StartTime:    parking.StartTime.Local(),
 				EndTime:      parking.EndTime.Local(),
-				VechicleType: parking.VehicleType,
+				VechicleType: parking.Vehicle.VehicleType,
 			})
 		}
 	}
@@ -119,16 +111,16 @@ func (fpr *FileParkingRepository) GetActiveUserParkings(userId string) ([]models
 	var activeParkings []models.ParkingHistoryDTO
 
 	for _, parking := range fpr.parkings {
-		if parking.UserID.String() == userId && parking.EndTime.IsZero() {
+		if parking.Vehicle.UserID.String() == userId && parking.EndTime.IsZero() {
 			activeParkings = append(activeParkings, models.ParkingHistoryDTO{
 				TicketId:     parking.ParkingID.String(),
-				NumberPlate:  parking.NumberPlate,
-				BuildingId:   parking.BuildingID.String(),
-				FLoorNumber:  parking.FloorNumber,
-				SlotNumber:   parking.SlotNumber,
+				NumberPlate:  parking.Vehicle.NumberPlate,
+				BuildingId:   parking.Vehicle.AssignedBuildingID.String(),
+				FLoorNumber:  parking.Vehicle.AssignedFloorNumber,
+				SlotNumber:   parking.Vehicle.AssignedSlotNumber,
 				StartTime:    parking.StartTime.Local(),
 				EndTime:      parking.EndTime.Local(),
-				VechicleType: parking.VehicleType,
+				VechicleType: parking.Vehicle.VehicleType,
 			})
 		}
 	}

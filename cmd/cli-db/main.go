@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/Kaushik1766/ParkingManagement/db"
@@ -22,14 +21,12 @@ func main() {
 		panic("Error connecting to the database: " + err.Error())
 	}
 
-	fmt.Println(gormDB)
-
 	err = db.MigrateModels(
 		gormDB,
 		models.Building{},
 		models.Floor{},
-		models.Office{},
 		models.Slot{},
+		models.Office{},
 		models.Vehicle{},
 		models.User{},
 		models.ParkingHistory{},

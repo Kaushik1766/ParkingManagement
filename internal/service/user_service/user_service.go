@@ -130,7 +130,7 @@ func (us *UserService) GetRegisteredVehicles(ctx context.Context) []models.Vehic
 		userVehicleDTO = append(userVehicleDTO, models.VehicleDTO{
 			NumberPlate:  v.NumberPlate,
 			VehicleType:  v.VehicleType.String(),
-			AssignedSlot: v.AssignedSlot,
+			AssignedSlot: *v.AssignedSlot,
 		})
 	}
 	return userVehicleDTO

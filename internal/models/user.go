@@ -15,6 +15,7 @@ type User struct {
 	OfficeID uuid.UUID  `gorm:"type:uuid;not null"`
 	Office   Office     `gorm:"foreignKey:OfficeID;references:OfficeID"`
 	Vehicles []Vehicle  `gorm:"foreignKey:UserID;references:UserID"`
+	// Vehicles []Vehicle
 }
 
 func (u User) GetID() string {
