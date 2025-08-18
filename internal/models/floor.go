@@ -5,7 +5,8 @@ import (
 )
 
 type Floor struct {
-	BuildingID  uuid.UUID  `gorm:"primaryKey;type:uuid;not null"`
+	BuildingID  uuid.UUID `gorm:"primaryKey;type:uuid"`
+	Building    Building
 	FloorNumber int        `gorm:"primaryKey;type:int;not null"`
 	Slots       []Slot     `gorm:"foreignKey:BuildingID,FloorNumber;references:BuildingID,FloorNumber"`
 	OfficeID    *uuid.UUID `gorm:"type:uuid;default:null"`

@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"os/signal"
-	"runtime"
 	"syscall"
 
 	"github.com/Kaushik1766/ParkingManagement/db"
@@ -79,6 +77,20 @@ var (
 func init() {
 	gormDB, _ = db.InitDB()
 
+	err := db.MigrateModels(
+		gormDB,
+		models.Building{},
+		models.Floor{},
+		models.Slot{},
+		models.Office{},
+		models.User{},
+		models.Vehicle{},
+		models.ParkingHistory{},
+	)
+	if err != nil {
+		panic("error migrating models" + err.Error())
+	}
+
 	userDb = userrepository.NewSQLUserRepository(gormDB)
 	vehicleDb = vehiclerepository.NewSQLVehicleRepository(gormDB)
 	buildingDb = buildingrepository.NewSQLBuildingRepository(gormDB)
@@ -87,7 +99,7 @@ func init() {
 	officeDb = officerepository.NewSQLOfficeRepository(gormDB)
 	parkingDb = parkinghistoryrepository.NewSQLParkingRepository(gormDB)
 
-	err := userDb.(*userrepository.SQLUserRepository).CreateAdminOffice()
+	err = userDb.(*userrepository.SQLUserRepository).CreateAdminOffice()
 	if err != nil {
 		color.Red("Error creating admin office: %v", err)
 		os.Exit(1)
@@ -456,13 +468,13 @@ func registrationMenu() {
 }
 
 func clearScreen() {
-	var cmd *exec.Cmd
-	switch runtime.GOOS {
-	case "windows":
-		cmd = exec.Command("cmd", "/c", "cls")
-	default:
-		cmd = exec.Command("clear")
-	}
-	cmd.Stdout = os.Stdout
-	cmd.Run()
+	// var cmd *exec.Cmd
+	// switch runtime.GOOS {
+	// case "windows":
+	// 	cmd = exec.Command("cmd", "/c", "cls")
+	// default:
+	// 	cmd = exec.Command("clear")
+	// }
+	// cmd.Stdout = os.Stdout
+	// cmd.Run()
 }

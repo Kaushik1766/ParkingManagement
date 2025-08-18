@@ -3,6 +3,7 @@ package authenticationmiddleware
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
@@ -27,6 +28,7 @@ func CliAuthenticate(ctx context.Context, token string) (context.Context, error)
 	if tokenClaims.ExpiresAt.Compare(time.Now()) == -1 {
 		return nil, errors.New("token expired")
 	}
+	fmt.Println(tokenClaims)
 	userCtx := context.WithValue(ctx, constants.User, tokenClaims)
 	return userCtx, nil
 }

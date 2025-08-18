@@ -14,7 +14,7 @@ type SQLUserRepository struct {
 
 func (sqlur *SQLUserRepository) GetUserByEmail(email string) (models.User, error) {
 	var user models.User
-	err := sqlur.db.Where("email = ?", email).First(&user).Error
+	err := sqlur.db.Where("email = ?", email).Preload("Office").First(&user).Error
 	if err != nil {
 		return models.User{}, err
 	}

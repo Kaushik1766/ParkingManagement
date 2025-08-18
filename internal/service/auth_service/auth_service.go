@@ -65,8 +65,9 @@ func (auth *AuthService) Login(email, password string) (string, error) {
 
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		models.UserJwt{
-			Email: user.Email,
-			Role:  user.Role,
+			Email:  user.Email,
+			Role:   user.Role,
+			Office: user.Office.OfficeName,
 			RegisteredClaims: jwt.RegisteredClaims{
 				ID:        user.UserID.String(),
 				ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),

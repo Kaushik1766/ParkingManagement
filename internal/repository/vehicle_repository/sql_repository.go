@@ -45,7 +45,7 @@ func (sqlvr *SQLVehicleRepository) GetVehicleById(vehicleId uuid.UUID) (models.V
 
 func (sqlvr *SQLVehicleRepository) GetVehiclesByUserId(userId uuid.UUID) ([]models.Vehicle, error) {
 	var vehicles []models.Vehicle
-	err := sqlvr.db.Where("user_id = ?", userId).Find(&vehicles).Error
+	err := sqlvr.db.Where("user_id = ?", userId).Preload("AssignedSlot").Preload("User").Find(&vehicles).Error
 	if err != nil {
 		return nil, err
 	}
