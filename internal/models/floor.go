@@ -7,9 +7,10 @@ import (
 type Floor struct {
 	BuildingID  uuid.UUID `gorm:"primaryKey;type:uuid"`
 	Building    Building
-	FloorNumber int        `gorm:"primaryKey;type:int;not null"`
-	Slots       []Slot     `gorm:"foreignKey:BuildingID,FloorNumber;references:BuildingID,FloorNumber"`
-	OfficeID    *uuid.UUID `gorm:"type:uuid;default:null"`
+	FloorNumber int     `gorm:"primaryKey"`
+	Slots       []Slot  `gorm:"foreignKey:BuildingID,FloorNumber;references:BuildingID,FloorNumber"`
+	Office      *Office `gorm:"foreignKey:BuildingID,FloorNumber"`
+	// OfficeID    *uuid.UUID `gorm:"type:uuid;default:null"`
 }
 
 // func (f Floor) GetID() string {

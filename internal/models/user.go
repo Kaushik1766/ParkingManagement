@@ -12,9 +12,9 @@ type User struct {
 	Password string     `gorm:"not null"`
 	Role     roles.Role `gorm:"not null"`
 	IsActive bool       `gorm:"default:true"`
-	OfficeID uuid.UUID  `gorm:"type:uuid;not null"`
-	Office   Office     `gorm:"foreignKey:OfficeID;references:OfficeID"`
-	Vehicles []Vehicle  `gorm:"foreignKey:UserID;references:UserID"`
+	OfficeID uuid.UUID
+	Office   Office
+	Vehicles []Vehicle
 }
 
 func (u User) GetID() string {

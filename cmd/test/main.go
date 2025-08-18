@@ -1,11 +1,24 @@
 package main
 
 import (
-	"fmt"
-
-	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
+	"github.com/Kaushik1766/ParkingManagement/db"
+	"github.com/Kaushik1766/ParkingManagement/internal/models"
 )
 
 func main() {
-	fmt.Println(vehicletypes.TwoWheeler)
+	gormDB, _ := db.InitDB()
+
+	err := db.MigrateModels(
+		gormDB,
+		models.Building{},
+		models.Floor{},
+		models.Slot{},
+		models.Office{},
+		models.User{},
+		models.Vehicle{},
+		models.ParkingHistory{},
+	)
+	if err != nil {
+		panic("error migrating models" + err.Error())
+	}
 }

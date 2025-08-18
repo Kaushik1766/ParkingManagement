@@ -13,8 +13,8 @@ type ParkingHistory struct {
 	// Building   Building  `gorm:"foreignKey:BuildingID;references:BuildingID"`
 	// UserID      uuid.UUID                `gorm:"not null;type:uuid"`
 	// User        User                     `gorm:"foreignKey:UserID;references:UserID"`
-	VehicleID uuid.UUID `gorm:"not null;type:uuid"`
-	Vehicle   Vehicle   `gorm:"foreignKey:VehicleID;references:VehicleID"`
+	VehicleID uuid.UUID `gorm:"not null;type:uuid;"`
+	Vehicle   Vehicle   `gorm:"references:VehicleID"`
 	// FloorNumber int        `gorm:"not null"`
 	// Floor       Floor      `gorm:"foreignKey:BuildingID,FloorNumber;references:BuildingID,FloorNumber"`
 	// SlotNumber  int        `gorm:"not null"`

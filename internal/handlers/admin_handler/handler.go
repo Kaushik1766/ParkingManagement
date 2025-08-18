@@ -428,13 +428,13 @@ func (h *CliAdminHandler) ListSlots(ctx context.Context) {
 	for i, val := range slots {
 		var str string
 		if val.SlotType == vehicletypes.TwoWheeler {
-			if val.OccupantID != nil {
+			if len(val.Vehicles) > 0 {
 				str = color.RedString("Slot %d 🏍️\t", val.SlotNumber)
 			} else {
 				str = color.GreenString("Slot %d 🏍️\t", val.SlotNumber)
 			}
 		} else {
-			if val.OccupantID != nil {
+			if len(val.Vehicles) > 0 {
 				str = color.RedString("Slot %d 🚗\t", val.SlotNumber)
 			} else {
 				str = color.GreenString("Slot %d 🚗\t", val.SlotNumber)

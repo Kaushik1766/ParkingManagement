@@ -9,11 +9,11 @@ import (
 
 // Slot is slot, isoccupied is for is assigned
 type Slot struct {
-	BuildingID  uuid.UUID                `gorm:"primaryKey;type:uuid;not null"`
-	FloorNumber int                      `gorm:"primaryKey;type:int;not null"`
-	SlotNumber  int                      `gorm:"primaryKey;type:int;not null"`
+	BuildingID  uuid.UUID                `gorm:"primaryKey;type:uuid"`
+	FloorNumber int                      `gorm:"primaryKey;type:int"`
+	SlotNumber  int                      `gorm:"primaryKey;type:int"`
 	SlotType    vehicletypes.VehicleType `gorm:"not null"`
-	OccupantID  *uuid.UUID               `gorm:"type:uuid;default:null"`
+	Vehicles    []Vehicle                `gorm:"foreignKey:AssignedBuildingID,AssignedFloorNumber,AssignedSlotNumber"`
 }
 
 // func (s Slot) GetID() string {

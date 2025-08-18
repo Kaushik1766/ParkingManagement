@@ -7,6 +7,6 @@ import (
 type Office struct {
 	OfficeID    uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
 	OfficeName  string    `gorm:"not null;unique"`
-	BuildingID  uuid.UUID `gorm:"not null;type:uuid;foreignKey:BuildingID;references:BuildingID"`
-	FloorNumber int       `gorm:"not null;foreignKey:BuildingID,FloorNumber;references:BuildingID,FloorNumber"`
+	BuildingID  uuid.UUID
+	FloorNumber int
 }
