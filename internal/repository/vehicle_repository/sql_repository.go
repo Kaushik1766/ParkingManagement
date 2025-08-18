@@ -54,7 +54,7 @@ func (sqlvr *SQLVehicleRepository) GetVehiclesByUserId(userId uuid.UUID) ([]mode
 
 func (sqlvr *SQLVehicleRepository) GetVehicleByNumberPlate(numberplate string) (models.Vehicle, error) {
 	var vehicle models.Vehicle
-	err := sqlvr.db.Where("number_plate = ?", numberplate).First(&vehicle).Error
+	err := sqlvr.db.Where("number_plate = ?", numberplate).Preload("AssignedSlot").Preload("User").First(&vehicle).Error
 	if err != nil {
 		return models.Vehicle{}, err
 	}

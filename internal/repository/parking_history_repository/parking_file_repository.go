@@ -65,8 +65,8 @@ func (fpr *FileParkingRepository) AddParking(vehicle models.Vehicle) (string, er
 	}
 
 	for _, parking := range fpr.parkings {
-		if parking.Vehicle.AssignedBuildingID == vehicle.AssignedSlot.BuildingID &&
-			parking.Vehicle.AssignedFloorNumber == vehicle.AssignedSlot.FloorNumber && parking.Vehicle.AssignedSlotNumber == vehicle.AssignedSlot.SlotNumber &&
+		if *parking.Vehicle.AssignedBuildingID == vehicle.AssignedSlot.BuildingID &&
+			*parking.Vehicle.AssignedFloorNumber == vehicle.AssignedSlot.FloorNumber && *parking.Vehicle.AssignedSlotNumber == vehicle.AssignedSlot.SlotNumber &&
 			parking.EndTime.IsZero() {
 			return "", errors.New("vehicle already parked in this slot")
 		}
@@ -116,8 +116,8 @@ func (fpr *FileParkingRepository) GetActiveUserParkings(userId string) ([]models
 				TicketId:     parking.ParkingID.String(),
 				NumberPlate:  parking.Vehicle.NumberPlate,
 				BuildingId:   parking.Vehicle.AssignedBuildingID.String(),
-				FLoorNumber:  parking.Vehicle.AssignedFloorNumber,
-				SlotNumber:   parking.Vehicle.AssignedSlotNumber,
+				FLoorNumber:  *parking.Vehicle.AssignedFloorNumber,
+				SlotNumber:   *parking.Vehicle.AssignedSlotNumber,
 				StartTime:    parking.StartTime.Local(),
 				EndTime:      parking.EndTime.Local(),
 				VechicleType: parking.Vehicle.VehicleType,

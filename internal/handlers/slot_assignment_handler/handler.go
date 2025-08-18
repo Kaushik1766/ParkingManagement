@@ -76,6 +76,8 @@ func (sah *CliSlotAssignmentHandler) AssignSlot(ctx context.Context) {
 		return
 	}
 
+	fmt.Printf("%+v\n", user)
+
 	office, err := sah.officeService.GetOfficeByName(ctx, user.Office)
 	if err != nil {
 		customerrors.DisplayError("error fetching office details")

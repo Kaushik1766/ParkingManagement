@@ -52,12 +52,18 @@ func (sqlur *SQLUserRepository) CreateAdminOffice() error {
 	err := sqlur.db.Where("office_name = ?", constants.AdminOffice).First(&office).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			office = models.Office{
-				OfficeName:  constants.AdminOffice,
-				BuildingID:  uuid.Nil,
-				FloorNumber: 0,
+			building := models.Building{
+				BuildingName: constants.AdminBuilding,
+				Floors: []models.Floor{
+					{
+						FloorNumber: 0,
+						Office: &models.Office{
+							OfficeName: constants.AdminOffice,
+						},
+					},
+				},
 			}
-			err = sqlur.db.Create(&office).Error
+			err = sqlur.db.Create(&building).Error
 			if err != nil {
 				return err
 			}

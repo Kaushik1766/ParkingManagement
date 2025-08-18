@@ -52,7 +52,7 @@ func (us *UserService) GetUserById(ctx context.Context, userId string) (models.U
 		Name:   userStruct.Name,
 		Email:  userStruct.Email,
 		Role:   userStruct.Role.String(),
-		// Office: userStruct.Office,
+		Office: userStruct.Office.OfficeName,
 	}, nil
 }
 
@@ -126,13 +126,22 @@ func (us *UserService) GetRegisteredVehicles(ctx context.Context) []models.Vehic
 	if err != nil {
 		return []models.VehicleDTO{}
 	}
+
 	var userVehicleDTO []models.VehicleDTO
 	for _, v := range userVehicles {
-		userVehicleDTO = append(userVehicleDTO, models.VehicleDTO{
-			NumberPlate:  v.NumberPlate,
-			VehicleType:  v.VehicleType.String(),
-			AssignedSlot: *v.AssignedSlot,
-		})
+		if v.AssignedSlot == nil {
+			userVehicleDTO = append(userVehicleDTO, models.VehicleDTO{
+				NumberPlate:  v.NumberPlate,
+				VehicleType:  v.VehicleType.String(),
+				AssignedSlot: models.Slot{},
+			})
+		} else {
+			userVehicleDTO = append(userVehicleDTO, models.VehicleDTO{
+				NumberPlate:  v.NumberPlate,
+				VehicleType:  v.VehicleType.String(),
+				AssignedSlot: *v.AssignedSlot,
+			})
+		}
 	}
 	return userVehicleDTO
 }

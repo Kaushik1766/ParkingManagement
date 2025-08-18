@@ -55,7 +55,7 @@ func (fsr *FileSlotRepository) GetFreeSlotsByBuilding(buildingId uuid.UUID) ([]s
 	defer fsr.Unlock()
 	var slots []slot.Slot
 	for _, s := range fsr.slots {
-		if s.BuildingID == buildingId && s.OccupantID != nil {
+		if s.BuildingID == buildingId && len(s.Vehicles) > 0 {
 			slots = append(slots, s)
 		}
 	}
@@ -67,7 +67,7 @@ func (fsr *FileSlotRepository) GetFreeSlotsByFloor(buildingId uuid.UUID, floorNu
 	defer fsr.Unlock()
 	var slots []slot.Slot
 	for _, s := range fsr.slots {
-		if s.BuildingID == buildingId && s.FloorNumber == floorNumber && s.OccupantID != nil {
+		if s.BuildingID == buildingId && s.FloorNumber == floorNumber && len(s.Vehicles) > 0 {
 			slots = append(slots, s)
 		}
 	}
@@ -103,7 +103,6 @@ func (fsr *FileSlotRepository) AddSlot(buildingId uuid.UUID, floorNumber int, sl
 		FloorNumber: floorNumber,
 		SlotNumber:  slotNumber,
 		SlotType:    slotType,
-		OccupantID:  nil,
 	})
 	return nil
 }

@@ -43,12 +43,19 @@ func (sqlsr *SQLSlotRepository) GetSlotsByFloor(buildingId uuid.UUID, floorNumbe
 func (sqlsr *SQLSlotRepository) GetFreeSlotsByFloor(buildingId uuid.UUID, floorNumber int) ([]slot.Slot, error) {
 	var slots []slot.Slot
 	err := sqlsr.db.
-		Where("building_id = ? AND floor_number = ? AND occupant_id IS NULL", buildingId, floorNumber).
+		Where("building_id = ? AND floor_number = ?", buildingId, floorNumber).
+		Preload("Vehicles").
 		Find(&slots).Error
 	if err != nil {
 		return nil, err
 	}
-	return slots, nil
+	var res []slot.Slot
+	for _, s := range slots {
+		if len(s.Vehicles) == 0 {
+			res = append(res, s)
+		}
+	}
+	return res, nil
 }
 
 func (sqlsr *SQLSlotRepository) SetSlotOccupied(buildingId uuid.UUID, floorNumber int, slotNumber int, isOccupied bool) error {
@@ -58,12 +65,20 @@ func (sqlsr *SQLSlotRepository) SetSlotOccupied(buildingId uuid.UUID, floorNumbe
 func (sqlsr *SQLSlotRepository) GetFreeSlotsByBuilding(buildingId uuid.UUID) ([]slot.Slot, error) {
 	var slots []slot.Slot
 	err := sqlsr.db.
-		Where("building_id = ? AND occupant_id IS NULL", buildingId).
+		Where("building_id = ? ", buildingId).
+		Preload("Vehicles").
 		Find(&slots).Error
 	if err != nil {
 		return nil, err
 	}
-	return slots, nil
+
+	var freeSlots []slot.Slot
+	for _, s := range slots {
+		if len(s.Vehicles) == 0 {
+			freeSlots = append(freeSlots, s)
+		}
+	}
+	return freeSlots, nil
 }
 
 func (sqlsr *SQLSlotRepository) Save(slot slot.Slot) error {
