@@ -12,5 +12,5 @@ const (
 	ParkingHistoryPath = "data/parking_history.json"
 	SlotsPath          = "data/slots.json"
 	VehiclesPath       = "data/vehicles.json"
-	EnvPath            = "/home/kaushik/ParkingManagement/.env"
+	EnvPath            = "/home/kaushik/Github/ParkingManagement/.env"
 )

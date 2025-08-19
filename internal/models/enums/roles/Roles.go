@@ -7,6 +7,11 @@ const (
 	Admin
 )
 
+//
+// func (v *Role) Scan(value any) error {
+//
+// }
+
 // func (r Role) String() string {
 // 	switch r {
 // 	case Admin:
