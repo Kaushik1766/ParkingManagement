@@ -30,22 +30,22 @@ func NewAuthService(
 	}
 }
 
-func (auth *AuthService) Signup(name, email, password, office string, role roles.Role) error {
-	_, err := mail.ParseAddress(email)
+func (auth *AuthService) Signup(registerReq models.RegisterRequestDTO, role roles.Role) error {
+	_, err := mail.ParseAddress(registerReq.Email)
 	if err != nil {
 		return errors.New("invalid email")
 	}
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(registerReq.Password), 12)
 	if err != nil {
 		return err
 	}
 
-	_, err = auth.officeDb.GetOfficeByName(office)
+	_, err = auth.officeDb.GetOfficeByName(registerReq.Office)
 	if role != roles.Admin && err != nil {
 		return fmt.Errorf("error in signup service: %w", err)
 	}
 
-	err = auth.userDb.CreateUser(name, email, string(hashedPassword), office, role)
+	err = auth.userDb.CreateUser(registerReq.Name, registerReq.Email, string(hashedPassword), registerReq.Office, role)
 	return err
 }
 
