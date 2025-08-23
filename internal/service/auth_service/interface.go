@@ -6,6 +6,6 @@ import (
 )
 
 type AuthenticationManager interface {
-	Login(email, password string) (string, error)
+	Login(loginReq models.LoginRequestDTO) (string, error)
 	Signup(registerReq models.RegisterRequestDTO, role roles.Role) error
 }

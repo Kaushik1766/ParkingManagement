@@ -49,17 +49,17 @@ func (auth *AuthService) Signup(registerReq models.RegisterRequestDTO, role role
 	return err
 }
 
-func (auth *AuthService) Login(email, password string) (string, error) {
-	_, err := mail.ParseAddress(email)
+func (auth *AuthService) Login(loginReq models.LoginRequestDTO) (string, error) {
+	_, err := mail.ParseAddress(loginReq.Email)
 	if err != nil {
 		return "", errors.New("invalid email")
 	}
-	user, err := auth.userDb.GetUserByEmail(email)
+	user, err := auth.userDb.GetUserByEmail(loginReq.Email)
 	if err != nil {
 		return "", err
 	}
 
-	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginReq.Password)); err != nil {
 		return "", err
 	}
 

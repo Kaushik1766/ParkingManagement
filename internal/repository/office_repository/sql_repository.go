@@ -66,9 +66,9 @@ func (sqlor *SQLOfficeRepository) GetAllOffices() ([]models.Office, error) {
 }
 
 func (sqlor *SQLOfficeRepository) GetOfficeByName(officeName string) (models.Office, error) {
-	if officeName == constants.AdminOffice {
-		return models.Office{}, errors.New("officerepo: cannot get admin office by name")
-	}
+	// if officeName == constants.AdminOffice {
+	// 	return models.Office{}, errors.New("officerepo: cannot get admin office by name")
+	// }
 	var office models.Office
 	err := sqlor.db.Where("office_name = ?", officeName).First(&office).Error
 	return office, err

@@ -1,0 +1,816 @@
+openapi: 3.0.4
+info:
+  title: 1337Park
+  version: 1.0.0
+servers:
+- url: https://virtserver.swaggerhub.com/watchguard-475/1337Park/1.0.0
+  description: SwaggerHub API Auto Mocking
+- url: http://localhost:3000/api/
+  description: localhost
+tags:
+- name: auth
+  description: Authentication and registration
+- name: user
+  description: User apis
+- name: vehicle
+  description: vehicle registration/unregistration and listing apis
+- name: parking
+  description: "park, unpark and get parking history apis"
+- name: building
+  description: building crud apis
+- name: floors
+  description: floors crud apis
+- name: slots
+  description: slot occupation
+- name: office
+  description: office crud
+paths:
+  /auth/register:
+    post:
+      tags:
+      - auth
+      summary: UserRegistration
+      operationId: registerUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserOnboarding"
+      responses:
+        "200":
+          description: Registered Successfully
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+  /auth/login:
+    post:
+      tags:
+      - auth
+      summary: Login
+      description: Login
+      operationId: userLogin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserLogin"
+      responses:
+        "200":
+          description: Logged in successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/inline_response_200"
+        "401":
+          description: Unauthorized
+  /users/{userid}:
+    delete:
+      tags:
+      - user
+      summary: delete profile
+      operationId: deleteProfile
+      parameters:
+      - name: userid
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+      - BearerAuth: []
+    patch:
+      tags:
+      - user
+      summary: Update Profile
+      description: customer can update his profile ONLY but admin can update certain fields of any user
+      operationId: updateProfile
+      parameters:
+      - name: userid
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserDTO"
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+      - BearerAuth: []
+  /vehicles:
+    get:
+      tags:
+      - vehicle
+      summary: Get vehicles based on query params
+      description: "returns all vehicles for the current user if query params not provided, if admin, then return all vehicles"
+      operationId: getVehicles
+      parameters:
+      - name: userId
+        in: query
+        description: "only admin can fetch for other users, else the userid would be validated and responded accordingly"
+        required: false
+        schema:
+          type: string
+      - name: numberplate
+        in: query
+        description: user can only query for his own vehicles
+        required: false
+        schema:
+          type: string
+      - name: isUnassigned
+        in: query
+        required: false
+        schema:
+          type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VehicleDTO"
+        "401":
+          description: Unauthorized
+      security:
+      - BearerAuth: []
+    post:
+      tags:
+      - vehicle
+      summary: register vehicle
+      operationId: registerVehicle
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/vehicles_body"
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+      security:
+      - BearerAuth: []
+  /users:
+    get:
+      tags:
+      - user
+      summary: Get all users
+      description: admin can get all users
+      operationId: getAllUsers
+      parameters:
+      - name: userId
+        in: query
+        description: Optional userid
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserDTO"
+        "401":
+          description: Unauthorized
+      security:
+      - BearerAuth: []
+  /vehicles/{id}:
+    delete:
+      tags:
+      - vehicle
+      summary: delete vehicle by id
+      operationId: deleteVehicleById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+      - BearerAuth: []
+  /parkings:
+    get:
+      tags:
+      - parking
+      summary: get all vehicles
+      operationId: getParkings
+      parameters:
+      - name: startTime
+        in: query
+        description: 'start time; default - 1 month ago '
+        required: false
+        schema:
+          type: string
+      - name: endTime
+        in: query
+        description: end time; default - now
+        required: false
+        schema:
+          type: string
+      - name: parkingId
+        in: query
+        description: query by parking id
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ParkingDTO"
+        "401":
+          description: Unauthorized
+      security:
+      - BearerAuth: []
+    post:
+      tags:
+      - parking
+      summary: park vehicle
+      operationId: parkVehicle
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/parkings_body"
+      responses:
+        "200":
+          description: OK
+          content: {}
+        "401":
+          description: Unauthorized
+      security:
+      - BearerAuth: []
+  /parking/{parkingId}/unpark:
+    patch:
+      tags:
+      - parking
+      summary: unpark vehicle by id
+      operationId: unparkVehicleById
+      parameters:
+      - name: parkingId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+      security:
+      - BearerAuth: []
+  /buildings:
+    get:
+      tags:
+      - building
+      summary: get all buildings
+      operationId: getAllBuidings
+      parameters:
+      - name: buildingId
+        in: query
+        description: query building by id
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BuildingDTO"
+        "401":
+          description: Unauthorized
+      security:
+      - BearerAuth: []
+    post:
+      tags:
+      - building
+      summary: create new building
+      operationId: createBuilding
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/buildings_body"
+      responses:
+        "201":
+          description: Created
+        "401":
+          description: Unauthorized
+      security:
+      - BearerAuth: []
+  /buildings/{building_id}/offices/:
+    get:
+      tags:
+      - office
+      summary: get all offices
+      operationId: getAllOffices
+      parameters:
+      - name: building_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: officeId
+        in: query
+        description: query office by id
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OfficeDTO"
+        "401":
+          description: Unauthorized
+      security:
+      - BearerAuth: []
+    post:
+      tags:
+      - office
+      summary: create new office
+      operationId: createOffice
+      parameters:
+      - name: building_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/building_id_offices_body"
+      responses:
+        "201":
+          description: Created
+        "401":
+          description: Unauthorized
+      security:
+      - BearerAuth: []
+  /buildings/{building_id}/offices/{office_id}:
+    delete:
+      tags:
+      - office
+      summary: delete office by id
+      operationId: deleteOfficeById
+      parameters:
+      - name: building_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: office_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OfficeDTO"
+      security:
+      - BearerAuth: []
+  /buildings/{building_id}:
+    delete:
+      tags:
+      - building
+      summary: delete building by id
+      operationId: delete-building-building_id
+      parameters:
+      - name: building_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+      - BearerAuth: []
+  /buildings/{building_id}/floors:
+    get:
+      tags:
+      - floors
+      summary: get all floors in building
+      operationId: getAllFloorsInBuilding
+      parameters:
+      - name: building_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: floorId
+        in: query
+        description: query floor by id (number)
+        required: false
+        schema:
+          type: number
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FloorDTO"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+      - BearerAuth: []
+    post:
+      tags:
+      - floors
+      summary: create new floor
+      operationId: post-building-building_id-floor
+      parameters:
+      - name: building_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/building_id_floors_body"
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      security:
+      - BearerAuth: []
+  /buildings/{building_id}/floors/{floor_id}:
+    delete:
+      tags:
+      - floors
+      summary: delete floor by floor number
+      operationId: deleteFloorByFloorNumber
+      parameters:
+      - name: building_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: floor_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+      - BearerAuth: []
+  /buildings/{building_id}/floors/{floor_id}/slots/{slot_id}:
+    get:
+      tags:
+      - slots
+      summary: 'get slot by slot number '
+      operationId: getSlotBySlotNumber
+      parameters:
+      - name: building_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: floor_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: slot_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SlotDTO"
+        "401":
+          description: Unauthorized
+      security:
+      - BearerAuth: []
+components:
+  schemas:
+    UserOnboarding:
+      title: UserOnboarding
+      required:
+      - email
+      - name
+      - officeName
+      - password
+      type: object
+      properties:
+        name:
+          type: string
+          x-stoplight:
+            id: subd1etdr7sya
+        email:
+          type: string
+          x-stoplight:
+            id: m5pithk1t2imm
+        officeName:
+          type: string
+          x-stoplight:
+            id: hkcevv771w1sg
+        password:
+          type: string
+          x-stoplight:
+            id: iq0gp0macd6o7
+    UserDTO:
+      title: UserDTO
+      type: object
+      properties:
+        id:
+          type: string
+          x-stoplight:
+            id: k1fjywcjyn2xh
+        name:
+          type: string
+        email:
+          type: string
+        officeName:
+          type: string
+        role:
+          type: string
+          x-stoplight:
+            id: bph5ntil01gtp
+          enum:
+          - Customer
+          - Admin
+      description: ""
+    UserLogin:
+      title: UserLogin
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+          x-stoplight:
+            id: ucnj5f1inedb1
+    VehicleDTO:
+      title: VehicleDTO
+      required:
+      - numberplate
+      - type
+      type: object
+      properties:
+        id:
+          type: string
+        numberplate:
+          type: string
+          x-stoplight:
+            id: 9qh4n7q17cquw
+        type:
+          type: string
+          x-stoplight:
+            id: 1kesndu2asf2b
+          enum:
+          - TwoWheeler
+          - FourWheeler
+    Error:
+      title: Error
+      type: object
+      properties:
+        Message:
+          type: string
+    ParkingDTO:
+      title: ParkingDTO
+      type: object
+      properties:
+        parking_id:
+          type: string
+        start_time:
+          type: string
+          x-stoplight:
+            id: xcnwiaysam9io
+        end_time:
+          type: string
+          x-stoplight:
+            id: 49y9ebqjmp0av
+        number_plate:
+          type: string
+          x-stoplight:
+            id: 8s6rhhmcw98r4
+    BuildingDTO:
+      title: BuildingDTO
+      type: object
+      properties:
+        building_id:
+          type: string
+        name:
+          type: string
+          x-stoplight:
+            id: lrluyasnky7zq
+    FloorDTO:
+      title: FloorDTO
+      type: object
+      properties:
+        building_id:
+          type: string
+        floor_number:
+          type: string
+    SlotDTO:
+      title: SlotDTO
+      type: object
+      properties:
+        building_id:
+          type: string
+        floor_number:
+          type: string
+        slot_number:
+          type: string
+          x-stoplight:
+            id: ia7mhnoq003vf
+        slot_type:
+          type: string
+          x-stoplight:
+            id: 3t172qzz1o25h
+          enum:
+          - TwoWheeler
+          - FourWheeler
+        is_occupied:
+          type: boolean
+          x-stoplight:
+            id: hdtqqmx4qib0c
+    OfficeDTO:
+      title: OfficeDTO
+      type: object
+      properties:
+        building_id:
+          type: string
+        floor_number:
+          type: string
+        office_name:
+          type: string
+          x-stoplight:
+            id: m0y9j8llpvyu6
+        ? ""
+        : type: string
+          x-stoplight:
+            id: lolmnrbfg5wjq
+    inline_response_200:
+      type: object
+      properties:
+        jwt:
+          type: string
+          x-stoplight:
+            id: 7fkye2lajgzy5
+    vehicles_body:
+      type: object
+      properties:
+        numberplate:
+          type: string
+          x-stoplight:
+            id: dlg5h2xefbt3v
+        type:
+          type: string
+          x-stoplight:
+            id: ybnsy6ws2c5qa
+          enum:
+          - TwoWheeler
+          - FourWheeler
+    parkings_body:
+      type: object
+      properties:
+        numberplate:
+          type: string
+          x-stoplight:
+            id: sa1tpkf4rcphl
+    buildings_body:
+      type: object
+      properties:
+        building_name:
+          type: string
+          x-stoplight:
+            id: hs3g4g38nng2p
+    building_id_offices_body:
+      type: object
+      properties:
+        building_id:
+          type: string
+        office_name:
+          type: string
+          x-stoplight:
+            id: oypd8hqmsn3cf
+    building_id_floors_body:
+      type: object
+      properties:
+        floor_number:
+          type: integer
+          x-stoplight:
+            id: rgge22au8wx3x
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

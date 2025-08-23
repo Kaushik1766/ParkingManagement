@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
@@ -31,4 +32,23 @@ func CliAuthenticate(ctx context.Context, token string) (context.Context, error)
 	fmt.Println(tokenClaims)
 	userCtx := context.WithValue(ctx, constants.User, tokenClaims)
 	return userCtx, nil
+}
+
+func AuthenticatedRoute(fn func(ctx context.Context, w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			http.Error(w, "Missing Authorization header", http.StatusUnauthorized)
+			return
+		}
+
+		token := authHeader[len("Bearer "):]
+		ctx, err := CliAuthenticate(r.Context(), token)
+		if err != nil {
+			http.Error(w, "Unauthorized: "+err.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		fn(ctx, w, r)
+	}
 }
