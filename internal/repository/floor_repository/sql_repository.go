@@ -1,7 +1,9 @@
 package floorrepository
 
 import (
+	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
+	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -11,9 +13,29 @@ type SQLFloorRepository struct {
 }
 
 func (sqlfr *SQLFloorRepository) AddFloor(buildingId uuid.UUID, floorNumber int) error {
+	var slots []models.Slot
+	for i, s := range constants.SlotLayout {
+		if s == '0' {
+			slots = append(slots, models.Slot{
+				BuildingID:  buildingId,
+				FloorNumber: floorNumber,
+				SlotNumber:  i,
+				SlotType:    vehicletypes.TwoWheeler,
+			})
+		} else {
+			slots = append(slots, models.Slot{
+				BuildingID:  buildingId,
+				FloorNumber: floorNumber,
+				SlotNumber:  i,
+				SlotType:    vehicletypes.FourWheeler,
+			})
+		}
+	}
+
 	floor := models.Floor{
 		BuildingID:  buildingId,
 		FloorNumber: floorNumber,
+		Slots:       slots,
 	}
 	return sqlfr.db.Create(&floor).Error
 }

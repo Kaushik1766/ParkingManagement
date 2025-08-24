@@ -20,13 +20,15 @@ type SlotService struct {
 	floorRepo    floorrepository.FloorStorage
 }
 
-func (ss *SlotService) GetSlotsByFloor(ctx context.Context, buildingName string, floorNumber int) ([]models.Slot, error) {
+func (ss *SlotService) GetSlotsByFloor(ctx context.Context, buildingId string, floorNumber int) ([]models.SlotDTO, error) {
 	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return nil, errors.New("unauthorized: only admin or user can view slots")
 	}
 
-	building, err := ss.buildingRepo.GetBuildingByName(buildingName)
+	buildingUUID, err := uuid.Parse(buildingId)
+
+	building, err := ss.buildingRepo.GetBuildingByID(buildingUUID)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +43,20 @@ func (ss *SlotService) GetSlotsByFloor(ctx context.Context, buildingName string,
 		return nil, err
 	}
 
-	return slots, nil
+	var slotsDTO []models.SlotDTO
+	for _, slot := range slots {
+		isOccupied := len(slot.Vehicles) > 0
+		slotDTO := models.SlotDTO{
+			BuildingID:  slot.BuildingID.String(),
+			FloorNumber: slot.FloorNumber,
+			SlotNumber:  slot.SlotNumber,
+			SlotType:    slot.SlotType.String(),
+			IsOccupied:  isOccupied,
+		}
+		slotsDTO = append(slotsDTO, slotDTO)
+	}
+
+	return slotsDTO, nil
 }
 
 func NewSlotService(slotRepo slotrepository.SlotStorage, buildingRepo buildingrepository.BuildingStorage, floorRepo floorrepository.FloorStorage) *SlotService {

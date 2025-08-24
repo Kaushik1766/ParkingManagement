@@ -16,3 +16,8 @@ type Floor struct {
 // func (f Floor) GetID() string {
 // 	return fmt.Sprintf("%v%v", f.BuildingID, f.FloorNumber)
 // }
+
+type FloorDTO struct {
+	BuildingID  string `json:"building_id"`
+	FloorNumber int    `json:"floor_number"`
+}

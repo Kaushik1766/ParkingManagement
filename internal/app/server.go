@@ -21,7 +21,10 @@ import (
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
 	authservice "github.com/Kaushik1766/ParkingManagement/internal/service/auth_service"
+	buildingservice "github.com/Kaushik1766/ParkingManagement/internal/service/building_service"
+	floorservice "github.com/Kaushik1766/ParkingManagement/internal/service/floor_service"
 	slotassignment "github.com/Kaushik1766/ParkingManagement/internal/service/slot_assignment"
+	slotservice "github.com/Kaushik1766/ParkingManagement/internal/service/slot_service"
 	userservice "github.com/Kaushik1766/ParkingManagement/internal/service/user_service"
 	"github.com/fatih/color"
 	"gorm.io/gorm"
@@ -38,6 +41,9 @@ var (
 	userService       userservice.UserManager           = nil
 	assignmentService slotassignment.SlotAssignmentMgr  = nil
 	authService       authservice.AuthenticationManager = nil
+	buildingService   buildingservice.BuildingMgr       = nil
+	floorService      floorservice.FloorMgr             = nil
+	slotService       slotservice.SlotMgr               = nil
 )
 
 type App struct {
@@ -71,6 +77,9 @@ func NewApp(db *gorm.DB) *App {
 	assignmentService = slotassignment.NewSlotAssignmentService(vehicleRepo, floorRepo, buildingRepo, slotRepo, officeRepo)
 	userService = userservice.NewUserService(userRepo, vehicleRepo, officeRepo, assignmentService)
 	authService = authservice.NewAuthService(userRepo, officeRepo)
+	buildingService = buildingservice.NewBuildingService(buildingRepo)
+	floorService = floorservice.NewFloorService(floorRepo, buildingRepo)
+	slotService = slotservice.NewSlotService(slotRepo, buildingRepo, floorRepo)
 
 	err := userRepo.(*userrepository.SQLUserRepository).CreateAdminOffice()
 	if err != nil {
@@ -79,6 +88,9 @@ func NewApp(db *gorm.DB) *App {
 	}
 	app.AuthHandler = *authhandler.NewWebAuthHandler(authService)
 	app.UserHandler = *userhandler.NewWebUserHandler(userService)
+	app.BuildingHandler = *buildinghandler.NewWebBuildingHandler(buildingService)
+	app.FloorHandler = *floorhandler.NewWebFloorHandler(floorService)
+	app.SlotHandler = *slothandler.NewWebSlotHandler(slotService)
 
 	app.registerRoutes()
 

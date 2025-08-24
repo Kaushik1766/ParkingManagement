@@ -13,3 +13,9 @@ type Building struct {
 // func (b Building) GetID() string {
 // 	return b.BuildingID.String()
 // }
+//
+
+type BuildingDTO struct {
+	BuildingID string `json:"building_id"`
+	Name       string `json:"name"`
+}

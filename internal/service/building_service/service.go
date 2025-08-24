@@ -8,13 +8,58 @@ import (
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
+	"github.com/google/uuid"
 )
 
 type BuildingService struct {
 	buildingRepo buildingrepository.BuildingStorage
 }
 
-func (bs *BuildingService) GetAllBuildings(ctx context.Context) ([]string, error) {
+func (bs *BuildingService) DeleteBuildingByID(ctx context.Context, buildingID string) error {
+	ctxUser := ctx.Value(constants.User).(models.UserJwt)
+	if ctxUser.Role != roles.Admin {
+		return errors.New("unauthorized: only admin can delete buildings")
+	}
+
+	buildingUUID, err := uuid.Parse(buildingID)
+	if err != nil {
+		return err
+	}
+
+	building, err := bs.buildingRepo.GetBuildingByID(buildingUUID)
+	if err != nil {
+		return err
+	}
+
+	err = bs.buildingRepo.DeleteBuildingByName(building.BuildingName)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (bs *BuildingService) GetBuildingByID(ctx context.Context, buildingID string) (models.BuildingDTO, error) {
+	ctxUser := ctx.Value(constants.User).(models.UserJwt)
+	if ctxUser.Role != roles.Admin {
+		return models.BuildingDTO{}, errors.New("unauthorized: only admin can view buildings")
+	}
+
+	buildingUUID, err := uuid.Parse(buildingID)
+	if err != nil {
+		return models.BuildingDTO{}, err
+	}
+
+	building, err := bs.buildingRepo.GetBuildingByID(buildingUUID)
+	if err != nil {
+		return models.BuildingDTO{}, err
+	}
+	return models.BuildingDTO{
+		BuildingID: building.BuildingID.String(),
+		Name:       building.BuildingName,
+	}, nil
+}
+
+func (bs *BuildingService) GetAllBuildings(ctx context.Context) ([]models.BuildingDTO, error) {
 	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return nil, errors.New("unauthorized: only admin can view buildings")
@@ -23,11 +68,14 @@ func (bs *BuildingService) GetAllBuildings(ctx context.Context) ([]string, error
 	if err != nil {
 		return nil, err
 	}
-	var buildingNames []string
+	var res []models.BuildingDTO
 	for _, building := range buildings {
-		buildingNames = append(buildingNames, building.BuildingName)
+		res = append(res, models.BuildingDTO{
+			BuildingID: building.BuildingID.String(),
+			Name:       building.BuildingName,
+		})
 	}
-	return buildingNames, nil
+	return res, nil
 }
 
 func NewBuildingService(repo buildingrepository.BuildingStorage) *BuildingService {

@@ -16,6 +16,14 @@ type Slot struct {
 	Vehicles    []Vehicle                `gorm:"foreignKey:AssignedBuildingID,AssignedFloorNumber,AssignedSlotNumber"`
 }
 
+type SlotDTO struct {
+	BuildingID  string `json:"building_id"`
+	FloorNumber int    `json:"floor_number"`
+	SlotNumber  int    `json:"slot_number"`
+	SlotType    string `json:"slot_type"`
+	IsOccupied  bool   `json:"is_occupied"`
+}
+
 // func (s Slot) GetID() string {
 // 	return fmt.Sprintf("%v%v%v", s.BuildingID, s.FloorNumber, s.SlotNumber)
 // }

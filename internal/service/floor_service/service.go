@@ -10,11 +10,30 @@ import (
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
 	floorrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/floor_repository"
+	"github.com/google/uuid"
 )
 
 type FloorService struct {
 	floorRepo    floorrepository.FloorStorage
 	buildingRepo buildingrepository.BuildingStorage
+}
+
+func (fs *FloorService) AddFloorByBuildingId(ctx context.Context, buildingId string, floorNumber int) error {
+	ctxUser := ctx.Value(constants.User).(models.UserJwt)
+	if ctxUser.Role != roles.Admin {
+		return errors.New("unauthorized: only admin can add floors")
+	}
+
+	buildingUUID, err := uuid.Parse(buildingId)
+	if err != nil {
+		return err
+	}
+
+	building, err := fs.buildingRepo.GetBuildingByID(buildingUUID)
+	if err != nil {
+		return err
+	}
+	return fs.floorRepo.AddFloor(building.BuildingID, floorNumber)
 }
 
 func (fs *FloorService) DeleteFloors(ctx context.Context, buildingName string, floorNumbers []int) error {
@@ -35,12 +54,18 @@ func (fs *FloorService) DeleteFloors(ctx context.Context, buildingName string, f
 	return nil
 }
 
-func (fs *FloorService) GetFloorsByBuildingId(ctx context.Context, buildingName string) ([]int, error) {
+func (fs *FloorService) GetFloorsByBuildingId(ctx context.Context, buildingId string) ([]models.FloorDTO, error) {
 	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return nil, errors.New("unauthorized: only admin can view floors")
 	}
-	building, err := fs.buildingRepo.GetBuildingByName(buildingName)
+
+	buildingUUID, err := uuid.Parse(buildingId)
+	if err != nil {
+		return nil, err
+	}
+
+	building, err := fs.buildingRepo.GetBuildingByID(buildingUUID)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +73,16 @@ func (fs *FloorService) GetFloorsByBuildingId(ctx context.Context, buildingName 
 	if err != nil {
 		return nil, err
 	}
-	return floors, nil
+
+	var floorsDTO []models.FloorDTO
+	for _, floor := range floors {
+		floorsDTO = append(floorsDTO, models.FloorDTO{
+			BuildingID:  buildingId,
+			FloorNumber: floor,
+		})
+	}
+
+	return floorsDTO, nil
 }
 
 func (fs *FloorService) AddFloors(ctx context.Context, buildingName string, floorNumbers []int) error {
@@ -81,12 +115,18 @@ func (fs *FloorService) AddFloor(ctx context.Context, buildingName string, floor
 	return fs.floorRepo.AddFloor(building.BuildingID, floorNumber)
 }
 
-func (fs *FloorService) DeleteFloor(ctx context.Context, buildingName string, floorNumber int) error {
+func (fs *FloorService) DeleteFloor(ctx context.Context, buildingId string, floorNumber int) error {
 	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return errors.New("unauthorized: only admin can delete floors")
 	}
-	building, err := fs.buildingRepo.GetBuildingByName(buildingName)
+
+	buildingUUID, err := uuid.Parse(buildingId)
+	if err != nil {
+		return err
+	}
+
+	building, err := fs.buildingRepo.GetBuildingByID(buildingUUID)
 	if err != nil {
 		return err
 	}
