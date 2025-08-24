@@ -8,6 +8,7 @@ import (
 	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
 	floorrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/floor_repository"
 	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
+	"github.com/google/uuid"
 )
 
 type OfficeService struct {
@@ -27,43 +28,51 @@ func NewOfficeService(officeRepo officerepository.OfficeStorage,
 	}
 }
 
-func (officeServ *OfficeService) AddOffice(ctx context.Context, officeName string, buildingName string, floorNumber int) error {
-	if officeName == "" || buildingName == "" || floorNumber <= 0 {
+func (officeServ *OfficeService) AddOffice(ctx context.Context, officeName string, buildingId string, floorNumber int) error {
+	if officeName == "" || buildingId == "" || floorNumber <= 0 {
 		return errors.New("invalid input parameters")
 	}
 
-	building, err := officeServ.buildingRepo.GetBuildingByName(buildingName)
+	buildingUUID, err := uuid.Parse(buildingId)
 	if err != nil {
-		return errors.New("building does not exist")
+		return err
 	}
 
-	_, err = officeServ.flooRepo.GetFloor(building.BuildingID, floorNumber)
+	_, err = officeServ.flooRepo.GetFloor(buildingUUID, floorNumber)
 	if err != nil {
 		return errors.New("floor does not exist in the specified building")
 	}
 
-	return officeServ.officeRepo.AddOffice(officeName, building.BuildingID, floorNumber)
+	return officeServ.officeRepo.AddOffice(officeName, buildingUUID, floorNumber)
 }
 
-func (officeServ *OfficeService) RemoveOffice(ctx context.Context, officeName string) error {
-	return officeServ.officeRepo.DeleteOffice(officeName)
+func (officeServ *OfficeService) RemoveOffice(ctx context.Context, officeId string) error {
+	return officeServ.officeRepo.DeleteOffice(officeId)
 }
 
-func (officeServ *OfficeService) ListOfficesByBuilding(ctx context.Context, buildingName string) (map[int]string, error) {
-	building, err := officeServ.buildingRepo.GetBuildingByName(buildingName)
+func (officeServ *OfficeService) ListOfficesByBuilding(ctx context.Context, buildingId string) ([]models.OfficeDTO, error) {
+	buildingUUID, err := uuid.Parse(buildingId)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid building ID format")
 	}
-	offices, err := officeServ.officeRepo.GetOfficesByBuilding(building.BuildingID)
+
+	offices, err := officeServ.officeRepo.GetOfficesByBuilding(buildingUUID)
 	if err != nil {
 		return nil, errors.New("no offices in building")
 	}
 
-	officeMap := make(map[int]string)
+	var officeDTOs []models.OfficeDTO
 	for _, office := range offices {
-		officeMap[office.FloorNumber] = office.OfficeName
+		officeDTO := models.OfficeDTO{
+			OfficeName:  office.OfficeName,
+			BuildingID:  office.BuildingID.String(),
+			FloorNumber: office.FloorNumber,
+			OfficeID:    office.OfficeID.String(),
+		}
+		officeDTOs = append(officeDTOs, officeDTO)
 	}
-	return officeMap, nil
+
+	return officeDTOs, nil
 }
 
 func (officeServ *OfficeService) GetAllOfficeNames(ctx context.Context) ([]string, error) {

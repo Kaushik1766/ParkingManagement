@@ -126,17 +126,17 @@ func (us *UserService) UnregisterVehicle(ctx context.Context, numberplate string
 	return errors.New("vehicle not found for the user")
 }
 
-func (us *UserService) GetRegisteredVehicles(ctx context.Context) []models.VehicleDTO {
+func (us *UserService) GetRegisteredVehicles(ctx context.Context) ([]models.VehicleDTO, error) {
 	currentUser := ctx.Value(constants.User).(models.UserJwt)
 	// fmt.Println(currentUser.ID)
 	uid, err := uuid.Parse(currentUser.ID)
 	if err != nil {
 		log.Println(err)
-		return []models.VehicleDTO{}
+		return []models.VehicleDTO{}, err
 	}
 	userVehicles, err := us.vehicleRepo.GetVehiclesByUserId(uid)
 	if err != nil {
-		return []models.VehicleDTO{}
+		return []models.VehicleDTO{}, err
 	}
 
 	var userVehicleDTO []models.VehicleDTO
@@ -155,7 +155,7 @@ func (us *UserService) GetRegisteredVehicles(ctx context.Context) []models.Vehic
 			})
 		}
 	}
-	return userVehicleDTO
+	return userVehicleDTO, nil
 }
 
 func NewUserService(

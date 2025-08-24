@@ -12,7 +12,7 @@ type UserManager interface {
 	DeleteProfile(ctx context.Context, userId string) error
 	RegisterVehicle(ctx context.Context, numberplate string, vehicleType vehicletypes.VehicleType) error
 	UnregisterVehicle(ctx context.Context, numberplate string) error
-	GetRegisteredVehicles(ctx context.Context) []models.VehicleDTO
+	GetRegisteredVehicles(ctx context.Context) ([]models.VehicleDTO, error)
 	GetUserProfile(ctx context.Context) (models.UserDTO, error)
 	GetUserById(ctx context.Context, userId string) (models.UserDTO, error)
 	GetAllUsers(ctx context.Context) ([]models.UserDTO, error)

@@ -7,9 +7,9 @@ import (
 )
 
 type OfficeMgr interface {
-	AddOffice(ctx context.Context, officeName string, buildingName string, floorNumber int) error
-	RemoveOffice(ctx context.Context, officeName string) error
-	ListOfficesByBuilding(ctx context.Context, buildingName string) (map[int]string, error)
+	AddOffice(ctx context.Context, officeName string, buildingId string, floorNumber int) error
+	RemoveOffice(ctx context.Context, officeId string) error
+	ListOfficesByBuilding(ctx context.Context, buildingId string) ([]models.OfficeDTO, error)
 	GetAllOfficeNames(ctx context.Context) ([]string, error)
 	GetOfficeByName(ctx context.Context, officeName string) (models.Office, error)
 }

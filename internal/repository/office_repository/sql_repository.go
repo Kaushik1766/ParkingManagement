@@ -1,8 +1,6 @@
 package officerepository
 
 import (
-	"errors"
-
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/google/uuid"
@@ -29,11 +27,16 @@ func (sqlor *SQLOfficeRepository) AddOffice(officeName string, buildingID uuid.U
 	return sqlor.db.Create(&office).Error
 }
 
-func (sqlor *SQLOfficeRepository) DeleteOffice(officeName string) error {
-	if officeName == constants.AdminOffice {
-		return errors.New("officerepo: cannot delete admin office")
+func (sqlor *SQLOfficeRepository) DeleteOffice(officeId string) error {
+	officeUUID, err := uuid.Parse(officeId)
+	if err != nil {
+		return err
 	}
-	return sqlor.db.Where("office_name = ?", officeName).Delete(&models.Office{}).Error
+
+	// if officeName == constants.AdminOffice {
+	// 	return errors.New("officerepo: cannot delete admin office")
+	// }
+	return sqlor.db.Where("office_id = ?", officeUUID).Delete(&models.Office{}).Error
 }
 
 func (sqlor *SQLOfficeRepository) GetBuildingAndFloorByOffice(officeName string) (uuid.UUID, int, error) {

@@ -10,3 +10,10 @@ type Office struct {
 	BuildingID  uuid.UUID
 	FloorNumber int
 }
+
+type OfficeDTO struct {
+	BuildingID  string `json:"building_id"`
+	FloorNumber int    `json:"floor_number"`
+	OfficeName  string `json:"office_name"`
+	OfficeID    string `json:"office_id"`
+}

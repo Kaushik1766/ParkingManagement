@@ -7,7 +7,7 @@ import (
 
 type OfficeStorage interface {
 	AddOffice(officeName string, buildingID uuid.UUID, floorNumber int) error
-	DeleteOffice(officeName string) error
+	DeleteOffice(officeId string) error
 	GetBuildingAndFloorByOffice(officeName string) (uuid.UUID, int, error)
 	GetOfficesByBuilding(buildingID uuid.UUID) ([]models.Office, error)
 	GetAllOffices() ([]models.Office, error)

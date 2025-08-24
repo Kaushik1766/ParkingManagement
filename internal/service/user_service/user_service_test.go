@@ -54,7 +54,11 @@ func TestUserService_GetRegisteredVehicles(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			us := userservice.NewUserService(tt.repo, tt.vehicRepo, tt.officeRepo, tt.assignmentService)
-			got := us.GetRegisteredVehicles(userCtx)
+			got, err := us.GetRegisteredVehicles(userCtx)
+			if err != nil {
+				t.Errorf("GetRegisteredVehicles() error = %v", err)
+				return
+			}
 
 			if true {
 				t.Errorf("GetRegisteredVehicles() = %v, want %v", got, tt.want)
