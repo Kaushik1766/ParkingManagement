@@ -86,6 +86,11 @@ func (handler WebAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	http.SetCookie(w, &http.Cookie{
+		Name:  "token",
+		Value: token,
+		// Secure: true,
+	})
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"jwt":"` + token + `"}`))
 }

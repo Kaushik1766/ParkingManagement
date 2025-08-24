@@ -14,7 +14,7 @@ type SQLUserRepository struct {
 
 func (sqlur *SQLUserRepository) GetUserByEmail(email string) (models.User, error) {
 	var user models.User
-	err := sqlur.db.Where("email = ?", email).Preload("Office").First(&user).Error
+	err := sqlur.db.Where("email = ? AND is_active = true", email).Preload("Office").First(&user).Error
 	if err != nil {
 		return models.User{}, err
 	}
@@ -23,7 +23,11 @@ func (sqlur *SQLUserRepository) GetUserByEmail(email string) (models.User, error
 
 func (sqlur *SQLUserRepository) GetUserById(id string) (models.User, error) {
 	var user models.User
-	err := sqlur.db.Where("user_id = ?", uuid.MustParse(id)).Preload("Office").First(&user).Error
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return models.User{}, err
+	}
+	err = sqlur.db.Where("user_id = ? AND is_active = true", uid).Preload("Office").First(&user).Error
 	if err != nil {
 		return models.User{}, err
 	}
@@ -32,7 +36,7 @@ func (sqlur *SQLUserRepository) GetUserById(id string) (models.User, error) {
 
 func (sqlur *SQLUserRepository) GetAllUsers() ([]models.User, error) {
 	var users []models.User
-	err := sqlur.db.Find(&users).Error
+	err := sqlur.db.Where("is_active = true").Find(&users).Error
 	if err != nil {
 		return nil, err
 	}

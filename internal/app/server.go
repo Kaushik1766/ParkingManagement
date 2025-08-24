@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -77,6 +78,7 @@ func NewApp(db *gorm.DB) *App {
 		os.Exit(1)
 	}
 	app.AuthHandler = *authhandler.NewWebAuthHandler(authService)
+	app.UserHandler = *userhandler.NewWebUserHandler(userService)
 
 	app.registerRoutes()
 
@@ -84,6 +86,7 @@ func NewApp(db *gorm.DB) *App {
 }
 
 func (app *App) Run() {
+	fmt.Println("Server started at localhost:3000")
 	err := http.ListenAndServe("localhost:3000", app.apiMux)
 	if err != nil {
 		log.Panic(err)

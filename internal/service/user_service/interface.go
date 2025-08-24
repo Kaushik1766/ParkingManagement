@@ -8,12 +8,12 @@ import (
 )
 
 type UserManager interface {
-	UpdateProfile(ctx context.Context, name, email, password, office string) error
-	DeleteProfile(ctx context.Context) error
+	UpdateProfile(ctx context.Context, userId string, updateReq models.UpdateUserDTO) error
+	DeleteProfile(ctx context.Context, userId string) error
 	RegisterVehicle(ctx context.Context, numberplate string, vehicleType vehicletypes.VehicleType) error
 	UnregisterVehicle(ctx context.Context, numberplate string) error
 	GetRegisteredVehicles(ctx context.Context) []models.VehicleDTO
 	GetUserProfile(ctx context.Context) (models.UserDTO, error)
 	GetUserById(ctx context.Context, userId string) (models.UserDTO, error)
-	GetAllUsers(ctx context.Context) ([]models.User, error)
+	GetAllUsers(ctx context.Context) ([]models.UserDTO, error)
 }

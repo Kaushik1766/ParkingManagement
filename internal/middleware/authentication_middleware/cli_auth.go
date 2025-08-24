@@ -10,6 +10,7 @@ import (
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
+	customerrors "github.com/Kaushik1766/ParkingManagement/pkg/customErrors"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -38,14 +39,20 @@ func AuthenticatedRoute(fn func(ctx context.Context, w http.ResponseWriter, r *h
 	return func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
-			http.Error(w, "Missing Authorization header", http.StatusUnauthorized)
+			customerrors.UnauthorizedError(w, customerrors.WebError{
+				Message: "Missing Authorization header",
+				Code:    http.StatusUnauthorized,
+			})
 			return
 		}
 
 		token := authHeader[len("Bearer "):]
 		ctx, err := CliAuthenticate(r.Context(), token)
 		if err != nil {
-			http.Error(w, "Unauthorized: "+err.Error(), http.StatusUnauthorized)
+			customerrors.UnauthorizedError(w, customerrors.WebError{
+				Message: "Unauthorized: " + err.Error(),
+				Code:    http.StatusUnauthorized,
+			})
 			return
 		}
 

@@ -11,7 +11,7 @@ type WebError struct {
 	Code    int    `json:"code"`
 }
 
-func UnathorizedError(w http.ResponseWriter, err WebError) {
+func UnauthorizedError(w http.ResponseWriter, err WebError) {
 	w.WriteHeader(http.StatusUnauthorized)
 
 	log.Println("Unauthorized access attempt:", err.Message)

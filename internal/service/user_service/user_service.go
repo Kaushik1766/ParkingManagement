@@ -8,6 +8,7 @@ import (
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
+	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
@@ -82,7 +83,7 @@ func (us *UserService) RegisterVehicle(ctx context.Context, numberplate string, 
 	return err
 }
 
-func (us *UserService) GetAllUsers(ctx context.Context) ([]models.User, error) {
+func (us *UserService) GetAllUsers(ctx context.Context) ([]models.UserDTO, error) {
 	allUsers, err := us.userRepo.GetAllUsers()
 	if err != nil {
 		return nil, err
@@ -93,7 +94,18 @@ func (us *UserService) GetAllUsers(ctx context.Context) ([]models.User, error) {
 			activeUsers = append(activeUsers, u)
 		}
 	}
-	return activeUsers, nil
+
+	activerUsersDTO := make([]models.UserDTO, len(activeUsers))
+	for i, u := range activeUsers {
+		activerUsersDTO[i] = models.UserDTO{
+			UserId: u.UserID.String(),
+			Name:   u.Name,
+			Email:  u.Email,
+			Role:   u.Role.String(),
+			Office: u.Office.OfficeName,
+		}
+	}
+	return activerUsersDTO, nil
 }
 
 func (us *UserService) UnregisterVehicle(ctx context.Context, numberplate string) error {
@@ -160,32 +172,36 @@ func NewUserService(
 	}
 }
 
-func (us *UserService) UpdateProfile(ctx context.Context, name, email, password, office string) error {
+func (us *UserService) UpdateProfile(ctx context.Context, userId string, updateReq models.UpdateUserDTO) error {
 	ctxVal := ctx.Value(constants.User)
 	if ctxVal == nil {
 		return errors.New("invalid context")
 	}
 	currentUser := ctxVal.(models.UserJwt)
 
-	updatedUser, err := us.userRepo.GetUserById(currentUser.ID)
+	if currentUser.Role != roles.Admin && currentUser.ID != userId {
+		return errors.New("unauthorized to update other user's profile")
+	}
+
+	updatedUser, err := us.userRepo.GetUserById(userId)
 	if err != nil {
 		return err
 	}
 
-	if name != "" {
-		updatedUser.Name = name
+	if updateReq.Name != "" {
+		updatedUser.Name = updateReq.Name
 	}
-	if email != "" {
-		updatedUser.Email = email
+	if updateReq.Email != "" {
+		updatedUser.Email = updateReq.Email
 	}
-	if office != "" {
-		_, err = us.officeRepo.GetOfficeByName(office)
+	if updateReq.Office != "" {
+		_, err = us.officeRepo.GetOfficeByName(updateReq.Office)
 		if err != nil {
 			return errors.New("office does not exist")
 		}
 		// updatedUser.Office = office
 	}
-	if password != "" {
+	if updateReq.Password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updatedUser.Password), 12)
 		if err != nil {
 			return err
@@ -196,9 +212,18 @@ func (us *UserService) UpdateProfile(ctx context.Context, name, email, password,
 	return err
 }
 
-func (us *UserService) DeleteProfile(ctx context.Context) error {
-	currentUser := ctx.Value(constants.User).(models.User)
-	currentUser.IsActive = false
-	err := us.userRepo.Save(currentUser)
+func (us *UserService) DeleteProfile(ctx context.Context, userId string) error {
+	ctxUser := ctx.Value(constants.User).(models.UserJwt)
+	if ctxUser.Role != roles.Admin && ctxUser.ID != userId {
+		return errors.New("unauthorized to delete other user's profile")
+	}
+
+	user, err := us.userRepo.GetUserById(userId)
+	if err != nil {
+		return err
+	}
+
+	user.IsActive = false
+	err = us.userRepo.Save(user)
 	return err
 }
