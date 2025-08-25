@@ -4,3 +4,4 @@
 main
 **/*.out
 .env
+*.html
