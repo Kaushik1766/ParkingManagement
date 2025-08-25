@@ -15,6 +15,26 @@ type VehicleService struct {
 	parkingRepo parkinghistoryrepository.ParkingHistoryStorage
 }
 
+func (vs *VehicleService) UnparkByNumberPlate(ctx context.Context, numberplate string) error {
+	userCtx := ctx.Value(constants.User).(models.UserJwt)
+
+	vehicle, err := vs.vehicleRepo.GetVehicleByNumberPlate(numberplate)
+	if err != nil {
+		return err
+	}
+
+	if vehicle.UserID.String() != userCtx.ID {
+		return customerrors.Unathorized{}
+	}
+
+	err = vs.parkingRepo.UnparkByNumberPlate(numberplate)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (vs *VehicleService) Park(ctx context.Context, numberplate string) (string, error) {
 	userCtx := ctx.Value(constants.User).(models.UserJwt)
 

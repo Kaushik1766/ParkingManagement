@@ -11,8 +11,8 @@ type VehicleDTO struct {
 }
 
 type AddVehicleDTO struct {
-	NumberPlate string `json:"number_plate" binding:"required"`
-	VehicleType int    `json:"vehicle_type"`
+	NumberPlate string `json:"numberplate" binding:"required"`
+	VehicleType int    `json:"type"`
 }
 
 func (v VehicleDTO) String() string {

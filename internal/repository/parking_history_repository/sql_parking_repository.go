@@ -13,6 +13,14 @@ type SQLParkingRepository struct {
 	db *gorm.DB
 }
 
+func (sqlpr *SQLParkingRepository) UnparkByNumberPlate(numberplate string) error {
+	err := sqlpr.db.Model(&models.ParkingHistory{}).
+		Joins("left join vehicles on vehicles.vehicle_id = parking_histories.vehicle_id").
+		Where("vehicles.number_plate = ? AND end_time IS NULL", numberplate).
+		Update("end_time", time.Now()).Error
+	return err
+}
+
 func (sqlpr *SQLParkingRepository) AddParking(vehicle models.Vehicle) (string, error) {
 	if vehicle.AssignedSlot == nil {
 		return "", errors.New("parkingrepo: vehicle does not have an assigned slot")
@@ -69,7 +77,12 @@ func (sqlpr *SQLParkingRepository) GetParkingHistoryByNumberPlate(numberplate st
 
 func (sqlpr *SQLParkingRepository) GetParkingHistoryByUser(userId string, startTime time.Time, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
 	var history []models.ParkingHistory
-	err := sqlpr.db.Joins("left join vehicles on vehicles.vehicle_id = parking_histories.vehicle_id").Where("vehicles.user_id = ? AND start_time >= ? AND end_time <= ? AND end_time IS NOT NULL", uuid.MustParse(userId), startTime, endTime).Preload("Vehicle.AssignedSlot").Find(&history).Error
+	err := sqlpr.db.
+		Joins("left join vehicles on vehicles.vehicle_id = parking_histories.vehicle_id").
+		Where("vehicles.user_id = ? AND start_time >= ? AND end_time <= ? AND end_time IS NOT NULL", uuid.MustParse(userId), startTime, endTime).
+		Preload("Vehicle.AssignedSlot").
+		Find(&history).
+		Error
 	if err != nil {
 		return nil, err
 	}

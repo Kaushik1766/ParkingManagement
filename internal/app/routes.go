@@ -30,6 +30,9 @@ func (app *App) registerRoutes() {
 		"GET /buildings/{buildingId}/floors/{floorId}/slots": authenticationmiddleware.AuthenticatedRoute(app.SlotHandler.GetSlots),
 		"GET /vehicles":                                      authenticationmiddleware.AuthenticatedRoute(app.VehicleHandler.GetVehicles),
 		"POST /vehicles":                                     authenticationmiddleware.AuthenticatedRoute(app.VehicleHandler.RegisterVehicle),
+		"POST /parkings":                                     authenticationmiddleware.AuthenticatedRoute(app.ParkingHandler.AddParking),
+		"GET /parkings":                                      authenticationmiddleware.AuthenticatedRoute(app.ParkingHandler.GetParkings),
+		"PATCH /parkings/{numberplate}/unpark":               authenticationmiddleware.AuthenticatedRoute(app.ParkingHandler.UnparkVehicle),
 	}
 
 	for route, handler := range routes {

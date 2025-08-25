@@ -12,4 +12,5 @@ type ParkingHistoryStorage interface {
 	GetParkingHistoryByNumberPlate(numberplate string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error)
 	GetParkingHistoryByUser(userId string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error)
 	GetActiveUserParkings(userId string) ([]models.ParkingHistoryDTO, error)
+	UnparkByNumberPlate(numberplate string) error
 }

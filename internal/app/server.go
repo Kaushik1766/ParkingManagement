@@ -25,6 +25,7 @@ import (
 	buildingservice "github.com/Kaushik1766/ParkingManagement/internal/service/building_service"
 	floorservice "github.com/Kaushik1766/ParkingManagement/internal/service/floor_service"
 	officeservice "github.com/Kaushik1766/ParkingManagement/internal/service/office_service"
+	parkinghistoryservice "github.com/Kaushik1766/ParkingManagement/internal/service/parking_history_service"
 	slotassignment "github.com/Kaushik1766/ParkingManagement/internal/service/slot_assignment"
 	slotservice "github.com/Kaushik1766/ParkingManagement/internal/service/slot_service"
 	userservice "github.com/Kaushik1766/ParkingManagement/internal/service/user_service"
@@ -42,14 +43,15 @@ var (
 	buildingRepo buildingrepository.BuildingStorage             = nil
 	parkingRepo  parkinghistoryrepository.ParkingHistoryStorage = nil
 
-	userService       userservice.UserManager           = nil
-	assignmentService slotassignment.SlotAssignmentMgr  = nil
-	authService       authservice.AuthenticationManager = nil
-	buildingService   buildingservice.BuildingMgr       = nil
-	floorService      floorservice.FloorMgr             = nil
-	slotService       slotservice.SlotMgr               = nil
-	officeService     officeservice.OfficeMgr           = nil
-	vehicleService    vehicleservice.VehicleMgr         = nil
+	userService       userservice.UserManager                 = nil
+	assignmentService slotassignment.SlotAssignmentMgr        = nil
+	authService       authservice.AuthenticationManager       = nil
+	buildingService   buildingservice.BuildingMgr             = nil
+	floorService      floorservice.FloorMgr                   = nil
+	slotService       slotservice.SlotMgr                     = nil
+	officeService     officeservice.OfficeMgr                 = nil
+	vehicleService    vehicleservice.VehicleMgr               = nil
+	parkingService    parkinghistoryservice.ParkingHistoryMgr = nil
 )
 
 type App struct {
@@ -89,6 +91,7 @@ func NewApp(db *gorm.DB) *App {
 	slotService = slotservice.NewSlotService(slotRepo, buildingRepo, floorRepo)
 	officeService = officeservice.NewOfficeService(officeRepo, buildingRepo, floorRepo)
 	vehicleService = vehicleservice.NewVehicleService(vehicleRepo, parkingRepo)
+	parkingService = parkinghistoryservice.NewParkingHistoryService(parkingRepo, vehicleRepo)
 
 	err := userRepo.(*userrepository.SQLUserRepository).CreateAdminOffice()
 	if err != nil {
@@ -102,6 +105,7 @@ func NewApp(db *gorm.DB) *App {
 	app.SlotHandler = *slothandler.NewWebSlotHandler(slotService)
 	app.OfficeHandler = *officehandler.NewWebOfficeHandler(officeService)
 	app.VehicleHandler = *vehiclehandler.NewWebVehicleHandler(vehicleService, userService)
+	app.ParkingHandler = *parkinghandler.NewWebParkingHandler(parkingService, vehicleService)
 
 	app.registerRoutes()
 

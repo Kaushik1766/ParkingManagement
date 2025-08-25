@@ -37,6 +37,7 @@ func CliAuthenticate(ctx context.Context, token string) (context.Context, error)
 
 func AuthenticatedRoute(fn func(ctx context.Context, w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
 			customerrors.UnauthorizedError(w, customerrors.WebError{
