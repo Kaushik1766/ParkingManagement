@@ -5,17 +5,15 @@ import (
 	"log"
 	"os"
 
-	"github.com/Kaushik1766/ParkingManagement/internal/config"
-	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 func InitDB() (*gorm.DB, error) {
-	err := godotenv.Load(config.EnvPath)
-	if err != nil {
-		panic("Error loading .env file")
-	}
+	// err := godotenv.Load(config.EnvPath)
+	// if err != nil {
+	// 	panic("Error loading .env file")
+	// }
 
 	dbURL := os.Getenv("DATABASE_URL")
 	return gorm.Open(postgres.Open(dbURL), &gorm.Config{})
