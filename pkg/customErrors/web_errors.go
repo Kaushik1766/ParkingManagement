@@ -30,7 +30,7 @@ func BadRequestError(w http.ResponseWriter, err WebError) {
 func InternalServerError(w http.ResponseWriter, err WebError) {
 	w.WriteHeader(http.StatusInternalServerError)
 
-	log.Println("Internale server error:", err.Message)
+	log.Println("Internal server error:", err.Message)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(err)
 }

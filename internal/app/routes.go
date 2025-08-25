@@ -12,27 +12,28 @@ var routes map[string]func(w http.ResponseWriter, r *http.Request)
 var basePath = "/api/v1"
 
 func (app *App) registerRoutes() {
+	authMiddleware := authenticationmiddleware.AuthenticatedRoute
 	routes = map[string]func(w http.ResponseWriter, r *http.Request){
 		"POST /auth/register":                                app.AuthHandler.Signup,
 		"POST /auth/login":                                   app.AuthHandler.Login,
-		"GET /users":                                         authenticationmiddleware.AuthenticatedRoute(app.UserHandler.GetAllUsers),
-		"PATCH /users/{userId}":                              authenticationmiddleware.AuthenticatedRoute(app.UserHandler.UpdateProfile),
-		"DELETE /users/{userId}":                             authenticationmiddleware.AuthenticatedRoute(app.UserHandler.DeleteProfile),
-		"GET /buildings":                                     authenticationmiddleware.AuthenticatedRoute(app.BuildingHandler.GetBuildings),
-		"POST /buildings":                                    authenticationmiddleware.AuthenticatedRoute(app.BuildingHandler.AddBuilding),
-		"DELETE /buildings/{buildingId}":                     authenticationmiddleware.AuthenticatedRoute(app.BuildingHandler.DeleteBuilding),
-		"GET /buildings/{buildingId}/floors":                 authenticationmiddleware.AuthenticatedRoute(app.FloorHandler.GetFloors),
-		"POST /buildings/{buildingId}/floors":                authenticationmiddleware.AuthenticatedRoute(app.FloorHandler.AddFloor),
-		"GET /buildings/{buildingId}/offices":                authenticationmiddleware.AuthenticatedRoute(app.OfficeHandler.GetOffices),
-		"POST /buildings/{buildingId}/offices":               authenticationmiddleware.AuthenticatedRoute(app.OfficeHandler.AddOffice),
-		"DELETE /buildings/{buildingId}/offices/{officeId}":  authenticationmiddleware.AuthenticatedRoute(app.OfficeHandler.DeleteOffice),
-		"DELETE /buildings/{buildingId}/floors/{floorId}":    authenticationmiddleware.AuthenticatedRoute(app.FloorHandler.DeleteFloor),
-		"GET /buildings/{buildingId}/floors/{floorId}/slots": authenticationmiddleware.AuthenticatedRoute(app.SlotHandler.GetSlots),
-		"GET /vehicles":                                      authenticationmiddleware.AuthenticatedRoute(app.VehicleHandler.GetVehicles),
-		"POST /vehicles":                                     authenticationmiddleware.AuthenticatedRoute(app.VehicleHandler.RegisterVehicle),
-		"POST /parkings":                                     authenticationmiddleware.AuthenticatedRoute(app.ParkingHandler.AddParking),
-		"GET /parkings":                                      authenticationmiddleware.AuthenticatedRoute(app.ParkingHandler.GetParkings),
-		"PATCH /parkings/{numberplate}/unpark":               authenticationmiddleware.AuthenticatedRoute(app.ParkingHandler.UnparkVehicle),
+		"GET /users":                                         authMiddleware(app.UserHandler.GetAllUsers),
+		"PATCH /users/{userId}":                              authMiddleware(app.UserHandler.UpdateProfile),
+		"DELETE /users/{userId}":                             authMiddleware(app.UserHandler.DeleteProfile),
+		"GET /buildings":                                     authMiddleware(app.BuildingHandler.GetBuildings),
+		"POST /buildings":                                    authMiddleware(app.BuildingHandler.AddBuilding),
+		"DELETE /buildings/{buildingId}":                     authMiddleware(app.BuildingHandler.DeleteBuilding),
+		"GET /buildings/{buildingId}/floors":                 authMiddleware(app.FloorHandler.GetFloors),
+		"POST /buildings/{buildingId}/floors":                authMiddleware(app.FloorHandler.AddFloor),
+		"GET /buildings/{buildingId}/offices":                authMiddleware(app.OfficeHandler.GetOffices),
+		"POST /buildings/{buildingId}/offices":               authMiddleware(app.OfficeHandler.AddOffice),
+		"DELETE /buildings/{buildingId}/offices/{officeId}":  authMiddleware(app.OfficeHandler.DeleteOffice),
+		"DELETE /buildings/{buildingId}/floors/{floorId}":    authMiddleware(app.FloorHandler.DeleteFloor),
+		"GET /buildings/{buildingId}/floors/{floorId}/slots": authMiddleware(app.SlotHandler.GetSlots),
+		"GET /vehicles":                                      authMiddleware(app.VehicleHandler.GetVehicles),
+		"POST /vehicles":                                     authMiddleware(app.VehicleHandler.RegisterVehicle),
+		"POST /parkings":                                     authMiddleware(app.ParkingHandler.AddParking),
+		"GET /parkings":                                      authMiddleware(app.ParkingHandler.GetParkings),
+		"PATCH /parkings/{numberplate}/unpark":               authMiddleware(app.ParkingHandler.UnparkVehicle),
 	}
 
 	for route, handler := range routes {
