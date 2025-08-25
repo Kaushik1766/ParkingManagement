@@ -10,5 +10,5 @@ type UserStorage interface {
 	GetUserById(id string) (models.User, error)
 	GetAllUsers() ([]models.User, error)
 	Save(user models.User) error
-	CreateUser(name, email, password, office string, role roles.Role) error
+	CreateUser(name, email, password, officeName string, role roles.Role) error
 }

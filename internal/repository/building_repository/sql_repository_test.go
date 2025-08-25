@@ -4,6 +4,7 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/Kaushik1766/ParkingManagement/db"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
 	"github.com/Kaushik1766/ParkingManagement/utils"
@@ -175,6 +176,41 @@ func TestSQLBuildingRepository_GetBuildingByName(t *testing.T) {
 			}
 			if got.BuildingID != tt.want.BuildingID || got.BuildingName != tt.want.BuildingName {
 				t.Errorf("GetBuildingByName() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSQLBuildingRepository_DeleteBuildingByID(t *testing.T) {
+	utils.PutDsnInEnv(t)
+	gormDB, _ := db.InitDB()
+	tests := []struct {
+		name string // description of this test case
+		// Named input parameters for receiver constructor.
+		db *gorm.DB
+		// Named input parameters for target function.
+		buildingID string
+		wantErr    bool
+	}{
+		{
+			name:       "delete building by ID",
+			db:         gormDB,
+			buildingID: "725d4963-20a9-4927-a105-0d4f73938497",
+			wantErr:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sqlbr := buildingrepository.NewSQLBuildingRepository(tt.db)
+			gotErr := sqlbr.DeleteBuildingByID(tt.buildingID)
+			if gotErr != nil {
+				if !tt.wantErr {
+					t.Errorf("DeleteBuildingByID() failed: %v", gotErr)
+				}
+				return
+			}
+			if tt.wantErr {
+				t.Fatal("DeleteBuildingByID() succeeded unexpectedly")
 			}
 		})
 	}

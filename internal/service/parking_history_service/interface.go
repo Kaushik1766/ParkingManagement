@@ -8,9 +8,8 @@ import (
 )
 
 type ParkingHistoryMgr interface {
-	GetParkingHistoryByNumberPlate(ctx context.Context, numberplate string, startTime, endTime string) ([]models.ParkingHistoryDTO, error)
-	GetParkingHistoryByUser(ctx context.Context, userId string, startTime, endTime string) ([]models.ParkingHistoryDTO, error)
+	GetParkingHistoryByNumberPlate(ctx context.Context, numberplate string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error)
 	GetActiveUserParkings(ctx context.Context) ([]models.ParkingHistoryDTO, error)
 	GetParkingHistory(ctx context.Context, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error)
-	GetParkingHistoryById(userId string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error)
+	GetParkingHistoryByUserId(userId string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error)
 }

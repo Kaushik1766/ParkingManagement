@@ -21,17 +21,7 @@ func (bs *BuildingService) DeleteBuildingByID(ctx context.Context, buildingID st
 		return errors.New("unauthorized: only admin can delete buildings")
 	}
 
-	buildingUUID, err := uuid.Parse(buildingID)
-	if err != nil {
-		return err
-	}
-
-	building, err := bs.buildingRepo.GetBuildingByID(buildingUUID)
-	if err != nil {
-		return err
-	}
-
-	err = bs.buildingRepo.DeleteBuildingByName(building.BuildingName)
+	err := bs.buildingRepo.DeleteBuildingByID(buildingID)
 	if err != nil {
 		return err
 	}

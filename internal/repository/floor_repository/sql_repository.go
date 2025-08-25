@@ -12,19 +12,25 @@ type SQLFloorRepository struct {
 	db *gorm.DB
 }
 
-func (sqlfr *SQLFloorRepository) AddFloor(buildingId uuid.UUID, floorNumber int) error {
+func (sqlfr *SQLFloorRepository) AddFloor(buildingId string, floorNumber int) error {
 	var slots []models.Slot
+
+	buildingUUID, err := uuid.Parse(buildingId)
+	if err != nil {
+		return err
+	}
+
 	for i, s := range constants.SlotLayout {
 		if s == '0' {
 			slots = append(slots, models.Slot{
-				BuildingID:  buildingId,
+				BuildingID:  buildingUUID,
 				FloorNumber: floorNumber,
 				SlotNumber:  i,
 				SlotType:    vehicletypes.TwoWheeler,
 			})
 		} else {
 			slots = append(slots, models.Slot{
-				BuildingID:  buildingId,
+				BuildingID:  buildingUUID,
 				FloorNumber: floorNumber,
 				SlotNumber:  i,
 				SlotType:    vehicletypes.FourWheeler,
@@ -33,16 +39,20 @@ func (sqlfr *SQLFloorRepository) AddFloor(buildingId uuid.UUID, floorNumber int)
 	}
 
 	floor := models.Floor{
-		BuildingID:  buildingId,
+		BuildingID:  buildingUUID,
 		FloorNumber: floorNumber,
 		Slots:       slots,
 	}
 	return sqlfr.db.Create(&floor).Error
 }
 
-func (sqlfr *SQLFloorRepository) DeleteFloor(buildingId uuid.UUID, floorNumber int) error {
+func (sqlfr *SQLFloorRepository) DeleteFloor(buildingId string, floorNumber int) error {
+	buildingUUID, err := uuid.Parse(buildingId)
+	if err != nil {
+		return err
+	}
 	floor := models.Floor{}
-	err := sqlfr.db.Where("building_id = ? and floor_number = ?", buildingId, floorNumber).First(&floor).Error
+	err = sqlfr.db.Where("building_id = ? and floor_number = ?", buildingUUID, floorNumber).First(&floor).Error
 	if err != nil {
 		return err
 	}
@@ -59,17 +69,17 @@ func (sqlfr *SQLFloorRepository) GetFloor(buildingId uuid.UUID, floorNumber int)
 	return floor.FloorNumber, nil
 }
 
-func (sqlfr *SQLFloorRepository) GetFloorsByBuildingId(buildingId uuid.UUID) ([]int, error) {
-	var floors []models.Floor
-	err := sqlfr.db.Where("building_id = ?", buildingId).Find(&floors).Error
-	returnedFloors := make([]int, len(floors))
+func (sqlfr *SQLFloorRepository) GetFloorsByBuildingId(buildingId string) ([]models.Floor, error) {
+	buildingUUID, err := uuid.Parse(buildingId)
 	if err != nil {
 		return nil, err
 	}
-	for i, floor := range floors {
-		returnedFloors[i] = floor.FloorNumber
+	var floors []models.Floor
+	err = sqlfr.db.Where("building_id = ?", buildingUUID).Find(&floors).Error
+	if err != nil {
+		return nil, err
 	}
-	return returnedFloors, nil
+	return floors, nil
 }
 
 func NewSQLFloorRepository(db *gorm.DB) *SQLFloorRepository {

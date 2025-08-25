@@ -17,9 +17,13 @@ func NewSQLOfficeRepository(db *gorm.DB) *SQLOfficeRepository {
 	}
 }
 
-func (sqlor *SQLOfficeRepository) AddOffice(officeName string, buildingID uuid.UUID, floorNumber int) error {
+func (sqlor *SQLOfficeRepository) AddOffice(officeName string, buildingID string, floorNumber int) error {
+	buildingUUID, err := uuid.Parse(buildingID)
+	if err != nil {
+		return err
+	}
 	office := models.Office{
-		BuildingID:  buildingID,
+		BuildingID:  buildingUUID,
 		FloorNumber: floorNumber,
 		OfficeName:  officeName,
 	}
@@ -49,10 +53,14 @@ func (sqlor *SQLOfficeRepository) GetBuildingAndFloorByOffice(officeName string)
 	return office.BuildingID, office.FloorNumber, nil
 }
 
-func (sqlor *SQLOfficeRepository) GetOfficesByBuilding(buildingID uuid.UUID) ([]models.Office, error) {
+func (sqlor *SQLOfficeRepository) GetOfficesByBuilding(buildingID string) ([]models.Office, error) {
 	var offices []models.Office
+	buildingUUID, err := uuid.Parse(buildingID)
+	if err != nil {
+		return nil, err
+	}
 
-	err := sqlor.db.Where("building_id = ? AND office_name <> ?", buildingID, constants.AdminOffice).Find(&offices).Error
+	err = sqlor.db.Where("building_id = ? AND office_name <> ?", buildingUUID, constants.AdminOffice).Find(&offices).Error
 	if err != nil {
 		return nil, err
 	}

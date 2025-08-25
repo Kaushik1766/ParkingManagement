@@ -13,6 +13,20 @@ type SQLBuildingRepository struct {
 	db *gorm.DB
 }
 
+func (sqlbr *SQLBuildingRepository) DeleteBuildingByID(buildingID string) error {
+	buildingUUID, err := uuid.Parse(buildingID)
+	if err != nil {
+		return err
+	}
+
+	err = sqlbr.db.
+		Delete(&models.Building{
+			BuildingID: buildingUUID,
+		}).
+		Error
+	return err
+}
+
 func (sqlbr *SQLBuildingRepository) DeleteBuildingByName(buildingName string) error {
 	if buildingName == constants.AdminBuilding {
 		return errors.New("buildingrepo: cannot delete admin building")

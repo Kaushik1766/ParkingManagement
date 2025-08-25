@@ -2,31 +2,26 @@ package authservice
 
 import (
 	"errors"
-	"fmt"
 	"net/mail"
 	"time"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
-	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
-	userDb   userrepository.UserStorage
-	officeDb officerepository.OfficeStorage
+	userDb userrepository.UserStorage
 }
 
 func NewAuthService(
 	db userrepository.UserStorage,
-	officeDb officerepository.OfficeStorage,
 ) *AuthService {
 	return &AuthService{
-		userDb:   db,
-		officeDb: officeDb,
+		userDb: db,
 	}
 }
 
@@ -38,11 +33,6 @@ func (auth *AuthService) Signup(registerReq models.RegisterRequestDTO, role role
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(registerReq.Password), 12)
 	if err != nil {
 		return err
-	}
-
-	_, err = auth.officeDb.GetOfficeByName(registerReq.Office)
-	if role != roles.Admin && err != nil {
-		return fmt.Errorf("error in signup service: %w", err)
 	}
 
 	err = auth.userDb.CreateUser(registerReq.Name, registerReq.Email, string(hashedPassword), registerReq.Office, role)

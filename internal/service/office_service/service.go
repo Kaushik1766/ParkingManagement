@@ -8,7 +8,6 @@ import (
 	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
 	floorrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/floor_repository"
 	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
-	"github.com/google/uuid"
 )
 
 type OfficeService struct {
@@ -18,13 +17,9 @@ type OfficeService struct {
 }
 
 func NewOfficeService(officeRepo officerepository.OfficeStorage,
-	buildingRepo buildingrepository.BuildingStorage,
-	flooRepo floorrepository.FloorStorage,
 ) *OfficeService {
 	return &OfficeService{
-		officeRepo:   officeRepo,
-		buildingRepo: buildingRepo,
-		flooRepo:     flooRepo,
+		officeRepo: officeRepo,
 	}
 }
 
@@ -33,17 +28,7 @@ func (officeServ *OfficeService) AddOffice(ctx context.Context, officeName strin
 		return errors.New("invalid input parameters")
 	}
 
-	buildingUUID, err := uuid.Parse(buildingId)
-	if err != nil {
-		return err
-	}
-
-	_, err = officeServ.flooRepo.GetFloor(buildingUUID, floorNumber)
-	if err != nil {
-		return errors.New("floor does not exist in the specified building")
-	}
-
-	return officeServ.officeRepo.AddOffice(officeName, buildingUUID, floorNumber)
+	return officeServ.officeRepo.AddOffice(officeName, buildingId, floorNumber)
 }
 
 func (officeServ *OfficeService) RemoveOffice(ctx context.Context, officeId string) error {
@@ -51,12 +36,7 @@ func (officeServ *OfficeService) RemoveOffice(ctx context.Context, officeId stri
 }
 
 func (officeServ *OfficeService) ListOfficesByBuilding(ctx context.Context, buildingId string) ([]models.OfficeDTO, error) {
-	buildingUUID, err := uuid.Parse(buildingId)
-	if err != nil {
-		return nil, errors.New("invalid building ID format")
-	}
-
-	offices, err := officeServ.officeRepo.GetOfficesByBuilding(buildingUUID)
+	offices, err := officeServ.officeRepo.GetOfficesByBuilding(buildingId)
 	if err != nil {
 		return nil, errors.New("no offices in building")
 	}
