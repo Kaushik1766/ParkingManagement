@@ -273,6 +273,7 @@ func TestBuildingService_GetAllBuildings(t *testing.T) {
 			Floors:       nil,
 		},
 	}, nil)
+	mockBuildingStorage.EXPECT().GetAllBuildings().Return([]models.Building{}, errors.New("buildings "))
 
 	type fields struct {
 		buildingRepo buildingrepository.BuildingStorage
@@ -302,6 +303,17 @@ func TestBuildingService_GetAllBuildings(t *testing.T) {
 				},
 			},
 			wantErr: false,
+		},
+		{
+			name: "authorised user but no buildings",
+			fields: fields{
+				buildingRepo: mockBuildingStorage,
+			},
+			args: args{
+				ctx: adminCtx,
+			},
+			want:    []models.BuildingDTO{},
+			wantErr: true,
 		},
 		{
 			name: "unauthorised user",

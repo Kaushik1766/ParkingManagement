@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=interface.go -destination=../../../mocks/vehicle_storage_mock.go -package=mocks
 type VehicleStorage interface {
 	AddVehicle(numberplate string, userid uuid.UUID, vehicleType vehicletypes.VehicleType) (models.Vehicle, error)
 	RemoveVehicle(numberplate string) error

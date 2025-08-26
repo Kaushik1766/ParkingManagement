@@ -5,6 +5,7 @@ import (
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 )
 
+//go:generate mockgen -source=interface.go -destination=../../../mocks/user_storage_mock.go -package=mocks
 type UserStorage interface {
 	GetUserByEmail(email string) (models.User, error)
 	GetUserById(id string) (models.User, error)

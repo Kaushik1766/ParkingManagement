@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=interface.go -destination=../../../mocks/slot_storage_mock.go -package=mocks
 type SlotStorage interface {
 	AddSlot(buildingId uuid.UUID, floorNumber, slotNumber int, slotType vehicletypes.VehicleType) error
 	DeleteSlot(buildingId uuid.UUID, floorNumber, slotNumber int) error

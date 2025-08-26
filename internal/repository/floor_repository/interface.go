@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=interface.go -destination=../../../mocks/floor_storage_mock.go -package=mocks
 type FloorStorage interface {
 	AddFloor(buildingId string, floorNumber int) error
 	DeleteFloor(buildingId string, floorNumber int) error

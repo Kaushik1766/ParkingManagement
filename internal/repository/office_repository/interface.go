@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=interface.go -destination=../../../mocks/office_storage_mock.go -package=mocks
 type OfficeStorage interface {
 	AddOffice(officeName string, buildingID string, floorNumber int) error
 	DeleteOffice(officeId string) error

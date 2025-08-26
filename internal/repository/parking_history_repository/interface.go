@@ -6,6 +6,7 @@ import (
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
 )
 
+//go:generate mockgen -source=interface.go -destination=../../../mocks/parking_history_storage_mock.go -package=mocks
 type ParkingHistoryStorage interface {
 	AddParking(vehicle models.Vehicle) (string, error)
 	Unpark(id string) error

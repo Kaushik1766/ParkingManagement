@@ -35,8 +35,7 @@ func (auth *AuthService) Signup(registerReq models.RegisterRequestDTO, role role
 		return err
 	}
 
-	err = auth.userDb.CreateUser(registerReq.Name, registerReq.Email, string(hashedPassword), registerReq.Office, role)
-	return err
+	return auth.userDb.CreateUser(registerReq.Name, registerReq.Email, string(hashedPassword), registerReq.Office, role)
 }
 
 func (auth *AuthService) Login(loginReq models.LoginRequestDTO) (string, error) {
@@ -65,9 +64,9 @@ func (auth *AuthService) Login(loginReq models.LoginRequestDTO) (string, error) 
 			},
 		},
 	)
-	signedToken, err := jwtToken.SignedString([]byte(config.JWTSecret))
-	if err != nil {
-		return "", err
-	}
+	signedToken, _ := jwtToken.SignedString([]byte(config.JWTSecret))
+	//if err != nil {
+	//	return "", err
+	//}
 	return signedToken, nil
 }
