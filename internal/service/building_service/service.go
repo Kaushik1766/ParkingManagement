@@ -74,20 +74,18 @@ func NewBuildingService(repo buildingrepository.BuildingStorage) *BuildingServic
 	}
 }
 
-func (bs *BuildingService) AddBuilding(ctx context.Context, name string) error {
+func (bs *BuildingService) AddBuilding(ctx context.Context, buildingName string) error {
 	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return errors.New("unauthorized: only admin can add buildings")
 	}
-	err := bs.buildingRepo.AddBuilding(name)
-	return err
+	return bs.buildingRepo.AddBuilding(buildingName)
 }
 
-func (bs *BuildingService) DeleteBuilding(ctx context.Context, name string) error {
+func (bs *BuildingService) DeleteBuilding(ctx context.Context, buildingName string) error {
 	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	if ctxUser.Role != roles.Admin {
 		return errors.New("unauthorized: only admin can delete buildings")
 	}
-	err := bs.buildingRepo.DeleteBuildingByName(name)
-	return err
+	return bs.buildingRepo.DeleteBuildingByName(buildingName)
 }

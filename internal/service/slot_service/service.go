@@ -27,18 +27,11 @@ func (ss *SlotService) GetSlotsByFloor(ctx context.Context, buildingId string, f
 	}
 
 	buildingUUID, err := uuid.Parse(buildingId)
-
-	building, err := ss.buildingRepo.GetBuildingByID(buildingUUID)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = ss.floorRepo.GetFloor(building.BuildingID, floorNumber)
-	if err != nil {
-		return nil, err
-	}
-
-	slots, err := ss.slotRepo.GetSlotsByFloor(building.BuildingID, floorNumber)
+	slots, err := ss.slotRepo.GetSlotsByFloor(buildingUUID, floorNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -67,55 +60,60 @@ func NewSlotService(slotRepo slotrepository.SlotStorage, buildingRepo buildingre
 	}
 }
 
-func (ss *SlotService) AddSlots(ctx context.Context, buildingName string, floorNumber int, slotNumbers []int, slotType vehicletypes.VehicleType) error {
-	ctxUser := ctx.Value(constants.User).(models.UserJwt)
-	if ctxUser.Role != roles.Admin {
-		return errors.New("unauthorized: only admin can add slots")
-	}
-
-	building, err := ss.buildingRepo.GetBuildingByName(buildingName)
-	if err != nil {
-		return err
-	}
-
-	_, err = ss.floorRepo.GetFloor(building.BuildingID, floorNumber)
-	if err != nil {
-		return err
-	}
-
-	for _, slotNumber := range slotNumbers {
-		err = ss.slotRepo.AddSlot(building.BuildingID, floorNumber, slotNumber, slotType)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (ss *SlotService) DeleteSlots(ctx context.Context, buildingName string, floorNumber int, slotNumbers []int) error {
-	ctxUser := ctx.Value(constants.User).(models.UserJwt)
-	if ctxUser.Role != roles.Admin {
-		return errors.New("unauthorized: only admin can delete slots")
-	}
-
-	building, err := ss.buildingRepo.GetBuildingByName(buildingName)
-	if err != nil {
-		return err
-	}
-
-	_, err = ss.floorRepo.GetFloor(building.BuildingID, floorNumber)
-	if err != nil {
-		return err
-	}
-
-	for _, slotNumber := range slotNumbers {
-		err = ss.slotRepo.DeleteSlot(building.BuildingID, floorNumber, slotNumber)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
+// func (ss *SlotService) AddSlots(ctx context.Context, buildingName string, floorNumber int, slotNumbers []int, slotType vehicletypes.VehicleType) error {
+// 	ctxUser := ctx.Value(constants.User).(models.UserJwt)
+// 	if ctxUser.Role != roles.Admin {
+// 		return errors.New("unauthorized: only admin can add slots")
+// 	}
+//
+// 	building, err := ss.buildingRepo.GetBuildingByName(buildingName)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	_, err = ss.floorRepo.GetFloor(building.BuildingID, floorNumber)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	buildingUUID,err := uuid.Parse(building.BuildingID)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	for _, slotNumber := range slotNumbers {
+// 		err = ss.slotRepo.AddSlot(building.BuildingID, floorNumber, slotNumber, slotType)
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
+// 	return nil
+// }
+//
+// func (ss *SlotService) DeleteSlots(ctx context.Context, buildingName string, floorNumber int, slotNumbers []int) error {
+// 	ctxUser := ctx.Value(constants.User).(models.UserJwt)
+// 	if ctxUser.Role != roles.Admin {
+// 		return errors.New("unauthorized: only admin can delete slots")
+// 	}
+//
+// 	building, err := ss.buildingRepo.GetBuildingByName(buildingName)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	_, err = ss.floorRepo.GetFloor(building.BuildingID, floorNumber)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	for _, slotNumber := range slotNumbers {
+// 		err = ss.slotRepo.DeleteSlot(building.BuildingID, floorNumber, slotNumber)
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
+// 	return nil
+// }
 
 func (ss *SlotService) GetFreeSlotsByBuilding(ctx context.Context, buildingID uuid.UUID, vehicleType vehicletypes.VehicleType) ([]models.Slot, error) {
 	freeSlots, err := ss.slotRepo.GetFreeSlotsByBuilding(buildingID)

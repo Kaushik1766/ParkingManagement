@@ -5,15 +5,11 @@ import (
 	"errors"
 
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
-	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
-	floorrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/floor_repository"
 	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
 )
 
 type OfficeService struct {
-	officeRepo   officerepository.OfficeStorage
-	buildingRepo buildingrepository.BuildingStorage
-	flooRepo     floorrepository.FloorStorage
+	officeRepo officerepository.OfficeStorage
 }
 
 func NewOfficeService(officeRepo officerepository.OfficeStorage,

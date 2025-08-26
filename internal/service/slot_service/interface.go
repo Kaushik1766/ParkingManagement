@@ -9,8 +9,8 @@ import (
 )
 
 type SlotMgr interface {
-	AddSlots(ctx context.Context, buildingName string, floorNumber int, slotNumbers []int, slotType vehicletypes.VehicleType) error
-	DeleteSlots(ctx context.Context, buildingName string, floorNumber int, slotNumbers []int) error
+	// AddSlots(ctx context.Context, buildingName string, floorNumber int, slotNumbers []int, slotType vehicletypes.VehicleType) error
+	// DeleteSlots(ctx context.Context, buildingName string, floorNumber int, slotNumbers []int) error
 	GetSlotsByFloor(ctx context.Context, buildingId string, floorNumber int) ([]models.SlotDTO, error)
 	GetFreeSlotsByBuilding(ctx context.Context, buildingID uuid.UUID, vehicleType vehicletypes.VehicleType) ([]models.Slot, error)
 }

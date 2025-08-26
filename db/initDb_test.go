@@ -5,6 +5,7 @@ import (
 
 	"github.com/Kaushik1766/ParkingManagement/db"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
+	"github.com/Kaushik1766/ParkingManagement/utils"
 	"gorm.io/gorm"
 )
 
@@ -49,7 +50,7 @@ func TestInitDB(t *testing.T) {
 }
 
 func TestMigrateModels(t *testing.T) {
-	t.Setenv("DATABASE_URL", "postgresql://kaushik:123@localhost:5432/kaushik")
+	utils.PutDsnInEnv(t)
 	tests := []struct {
 		name string // description of this test case
 		// Named input parameters for target function.
