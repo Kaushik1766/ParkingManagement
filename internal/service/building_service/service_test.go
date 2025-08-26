@@ -1,4 +1,4 @@
-package buildingservice_test
+package buildingservice
 
 import (
 	"context"
@@ -11,7 +11,6 @@ import (
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
-	buildingservice "github.com/Kaushik1766/ParkingManagement/internal/service/building_service"
 	"github.com/Kaushik1766/ParkingManagement/mocks"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -69,7 +68,7 @@ func TestBuildingService_AddBuilding(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			bs := buildingservice.NewBuildingService(tt.repo)
+			bs := NewBuildingService(tt.repo)
 			gotErr := bs.AddBuilding(tt.ctx, tt.buildingName)
 			if gotErr != nil {
 				if !tt.wantErr {
@@ -123,7 +122,7 @@ func TestBuildingService_DeleteBuildingByID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			bs := buildingservice.NewBuildingService(tt.repo)
+			bs := NewBuildingService(tt.repo)
 			gotErr := bs.DeleteBuildingByID(tt.ctx, tt.buildingID)
 			if gotErr != nil {
 				if !tt.wantErr {
@@ -148,19 +147,19 @@ func TestBuildingService_TestNewBuildingService(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want *buildingservice.BuildingService
+		want *BuildingService
 	}{
 		{
 			name: "valid repo",
 			args: args{
 				mockBuildingStorage,
 			},
-			want: buildingservice.NewBuildingService(mockBuildingStorage),
+			want: NewBuildingService(mockBuildingStorage),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := buildingservice.NewBuildingService(tt.args.repo); !reflect.DeepEqual(got, tt.want) {
+			if got := NewBuildingService(tt.args.repo); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewBuildingService() = %v, want %v", got, tt.want)
 			}
 		})
@@ -249,7 +248,7 @@ func TestBuildingService_GetBuildingByID(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			bs := buildingservice.NewBuildingService(tt.fields.buildingRepo)
+			bs := NewBuildingService(tt.fields.buildingRepo)
 			got, err := bs.GetBuildingByID(tt.args.ctx, tt.args.buildingID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetBuildingByID() error = %v, wantErr %v", err, tt.wantErr)
@@ -329,7 +328,7 @@ func TestBuildingService_GetAllBuildings(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			bs := buildingservice.NewBuildingService(tt.fields.buildingRepo)
+			bs := NewBuildingService(tt.fields.buildingRepo)
 			got, err := bs.GetAllBuildings(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetAllBuildings() error = %v, wantErr %v", err, tt.wantErr)
@@ -386,7 +385,7 @@ func TestBuildingService_DeleteBuilding(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			bs := buildingservice.NewBuildingService(tt.fields.buildingRepo)
+			bs := NewBuildingService(tt.fields.buildingRepo)
 			if err := bs.DeleteBuilding(tt.args.ctx, tt.args.buildingName); (err != nil) != tt.wantErr {
 				t.Errorf("DeleteBuilding() error = %v, wantErr %v", err, tt.wantErr)
 			}

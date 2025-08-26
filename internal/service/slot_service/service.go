@@ -8,16 +8,12 @@ import (
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
-	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
-	floorrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/floor_repository"
 	slotrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/slot_repository"
 	"github.com/google/uuid"
 )
 
 type SlotService struct {
-	slotRepo     slotrepository.SlotStorage
-	buildingRepo buildingrepository.BuildingStorage
-	floorRepo    floorrepository.FloorStorage
+	slotRepo slotrepository.SlotStorage
 }
 
 func (ss *SlotService) GetSlotsByFloor(ctx context.Context, buildingId string, floorNumber int) ([]models.SlotDTO, error) {
@@ -52,11 +48,9 @@ func (ss *SlotService) GetSlotsByFloor(ctx context.Context, buildingId string, f
 	return slotsDTO, nil
 }
 
-func NewSlotService(slotRepo slotrepository.SlotStorage, buildingRepo buildingrepository.BuildingStorage, floorRepo floorrepository.FloorStorage) *SlotService {
+func NewSlotService(slotRepo slotrepository.SlotStorage) *SlotService {
 	return &SlotService{
-		slotRepo:     slotRepo,
-		buildingRepo: buildingRepo,
-		floorRepo:    floorRepo,
+		slotRepo: slotRepo,
 	}
 }
 
@@ -116,6 +110,10 @@ func NewSlotService(slotRepo slotrepository.SlotStorage, buildingRepo buildingre
 // }
 
 func (ss *SlotService) GetFreeSlotsByBuilding(ctx context.Context, buildingID uuid.UUID, vehicleType vehicletypes.VehicleType) ([]models.Slot, error) {
+	userCtx := ctx.Value(constants.User).(models.UserJwt)
+	if userCtx.Role != roles.Admin {
+		return nil, errors.New("unauthorized: only admin or user can view slots")
+	}
 	freeSlots, err := ss.slotRepo.GetFreeSlotsByBuilding(buildingID)
 	if err != nil {
 		return nil, err

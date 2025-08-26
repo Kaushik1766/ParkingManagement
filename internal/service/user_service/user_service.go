@@ -66,11 +66,7 @@ func (us *UserService) RegisterVehicle(ctx context.Context, numberplate string, 
 		return errors.New("numberplate must be 10 characters long")
 	}
 	ctxUser := ctx.Value(constants.User).(models.UserJwt)
-	currentUser, err := us.userRepo.GetUserById(ctxUser.ID)
-	if err != nil {
-		return err
-	}
-	newVehicle, err := us.vehicleRepo.AddVehicle(numberplate, currentUser.UserID, vehicleType)
+	newVehicle, err := us.vehicleRepo.AddVehicle(numberplate, uuid.MustParse(ctxUser.ID), vehicleType)
 	if err != nil {
 		return err
 	}

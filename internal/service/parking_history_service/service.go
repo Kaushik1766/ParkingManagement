@@ -18,23 +18,13 @@ type ParkingHistoryService struct {
 }
 
 func (phs *ParkingHistoryService) GetParkingHistoryByUserId(userId string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
-	parkingHistory, err := phs.parkingRepo.GetParkingHistoryByUser(userId, startTime, endTime)
-	if err != nil {
-		return []models.ParkingHistoryDTO{}, err
-	}
-
-	return parkingHistory, nil
+	return phs.parkingRepo.GetParkingHistoryByUser(userId, startTime, endTime)
 }
 
 func (phs *ParkingHistoryService) GetParkingHistory(ctx context.Context, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
 	userCtx := ctx.Value(constants.User).(models.UserJwt)
 
-	parkingHistory, err := phs.parkingRepo.GetParkingHistoryByUser(userCtx.ID, startTime, endTime)
-	if err != nil {
-		return nil, err
-	}
-
-	return parkingHistory, nil
+	return phs.parkingRepo.GetParkingHistoryByUser(userCtx.ID, startTime, endTime)
 }
 
 func (phs *ParkingHistoryService) GetParkingHistoryByNumberPlate(ctx context.Context, numberplate string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
@@ -49,23 +39,13 @@ func (phs *ParkingHistoryService) GetParkingHistoryByNumberPlate(ctx context.Con
 		return nil, customerrors.Unathorized{}
 	}
 
-	parkingHistory, err := phs.parkingRepo.GetParkingHistoryByNumberPlate(numberplate, startTime, endTime)
-	if err != nil {
-		return nil, err
-	}
-
-	return parkingHistory, err
+	return phs.parkingRepo.GetParkingHistoryByNumberPlate(numberplate, startTime, endTime)
 }
 
 func (phs *ParkingHistoryService) GetActiveUserParkings(ctx context.Context) ([]models.ParkingHistoryDTO, error) {
 	userCtx := ctx.Value(constants.User).(models.UserJwt)
 
-	activeParkings, err := phs.parkingRepo.GetActiveUserParkings(userCtx.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	return activeParkings, nil
+	return phs.parkingRepo.GetActiveUserParkings(userCtx.ID)
 }
 
 func NewParkingHistoryService(parkingRepo parkinghistoryrepository.ParkingHistoryStorage, vehicleRepo vehiclerepository.VehicleStorage) *ParkingHistoryService {
