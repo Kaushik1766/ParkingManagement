@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=interface.go -destination=../../../mocks/slot_service_mock.go -package=mocks
 type SlotMgr interface {
 	// AddSlots(ctx context.Context, buildingName string, floorNumber int, slotNumbers []int, slotType vehicletypes.VehicleType) error
 	// DeleteSlots(ctx context.Context, buildingName string, floorNumber int, slotNumbers []int) error

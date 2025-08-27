@@ -6,6 +6,7 @@ import (
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
 )
 
+//go:generate mockgen -source=interface.go -destination=../../../mocks/building_service_mock.go -package=mocks
 type BuildingMgr interface {
 	AddBuilding(ctx context.Context, name string) error
 	DeleteBuilding(ctx context.Context, name string) error
