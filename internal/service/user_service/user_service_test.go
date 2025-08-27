@@ -675,19 +675,20 @@ func TestUserService_UpdateProfile(t *testing.T) {
 					Name:   "kaushik",
 					Office: "wg",
 					Email:  "kaushik@a.com",
-					Password: func() (p string) {
+					Password: func() string {
+						p := ""
 						for range 100 {
 							p += "a"
 						}
-						return
+						return p
 					}(),
 				}},
 			mock: func() {
 				mockUserRepo.EXPECT().GetUserById(userId.String()).Return(user, nil)
 				mockOfficeRepo.EXPECT().GetOfficeByName("wg").Return(office, nil)
-				mockUserRepo.EXPECT().Save(gomock.Any()).Return(nil)
+				// No Save expectation since bcrypt should fail with a long password
 			},
-			wantErr: false,
+			wantErr: true, // bcrypt will fail with very long passwords (>72 bytes)
 		},
 		{
 			name:    "unauthorized",

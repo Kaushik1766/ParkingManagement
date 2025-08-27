@@ -103,7 +103,7 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 			if err != nil {
 				return err
 			}
- 
+
 			err = sas.slotRepo.Save(val)
 			if err != nil {
 				return err
@@ -169,15 +169,10 @@ func (sas *SlotAssignmentService) UnassignSlot(ctx context.Context, vehicleId st
 		if err != nil {
 			return err
 		}
-
 	}
 
 	newVehicle.AssignedSlot = &models.Slot{}
-	err = sas.vehicleRepo.Save(newVehicle)
-	if err != nil {
-		return err
-	}
-	return nil
+	return sas.vehicleRepo.Save(newVehicle)
 }
 
 func (sas *SlotAssignmentService) AssignSlot(ctx context.Context, vehicleId string, slot models.Slot) error {

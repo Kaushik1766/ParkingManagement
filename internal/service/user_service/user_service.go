@@ -189,7 +189,7 @@ func (us *UserService) UpdateProfile(ctx context.Context, userId string, updateR
 		// updatedUser.Office = office
 	}
 	if updateReq.Password != "" {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updatedUser.Password), 12)
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updateReq.Password), 12)
 		if err != nil {
 			return err
 		}
