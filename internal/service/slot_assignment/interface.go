@@ -7,6 +7,7 @@ import (
 	vehicle "github.com/Kaushik1766/ParkingManagement/internal/models"
 )
 
+//go:generate mockgen -destination=../../../mocks/slot_assignment_service_mock.go -source=interface.go -package=mocks
 type SlotAssignmentMgr interface {
 	AutoAssignSlot(ctx context.Context, vehicleId string) error
 	UnassignSlot(ctx context.Context, vehicleId string) error

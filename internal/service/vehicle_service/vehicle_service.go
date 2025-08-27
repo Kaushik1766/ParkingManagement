@@ -47,15 +47,12 @@ func (vs *VehicleService) Park(ctx context.Context, numberplate string) (string,
 		return "", customerrors.Unathorized{}
 	}
 
-	ticketId, err := vs.parkingRepo.AddParking(vehicle)
-	if err != nil {
-		return "", err
-	}
+	return vs.parkingRepo.AddParking(vehicle)
 
-	return ticketId, nil
 }
 
 func (vs *VehicleService) Unpark(ctx context.Context, ticketId string) error {
+	// TODO: check if auth is correct in usecase
 	// userCtx := ctx.Value(constants.User).(models.UserJwt)
 
 	// vehicle, err := vs.vehicleRepo.GetVehicleByNumberPlate(ticketId)
@@ -67,12 +64,7 @@ func (vs *VehicleService) Unpark(ctx context.Context, ticketId string) error {
 	// 	return customerrors.Unathorized{}
 	// }
 
-	err := vs.parkingRepo.Unpark(ticketId)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return vs.parkingRepo.Unpark(ticketId)
 }
 
 func NewVehicleService(vehicleRepo vehiclerepository.VehicleStorage, parkingRepo parkinghistoryrepository.ParkingHistoryStorage) *VehicleService {

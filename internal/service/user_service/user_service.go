@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
@@ -125,11 +124,7 @@ func (us *UserService) UnregisterVehicle(ctx context.Context, numberplate string
 func (us *UserService) GetRegisteredVehicles(ctx context.Context) ([]models.VehicleDTO, error) {
 	currentUser := ctx.Value(constants.User).(models.UserJwt)
 	// fmt.Println(currentUser.ID)
-	uid, err := uuid.Parse(currentUser.ID)
-	if err != nil {
-		log.Println(err)
-		return []models.VehicleDTO{}, err
-	}
+	uid, _ := uuid.Parse(currentUser.ID)
 	userVehicles, err := us.vehicleRepo.GetVehiclesByUserId(uid)
 	if err != nil {
 		return []models.VehicleDTO{}, err
@@ -169,11 +164,7 @@ func NewUserService(
 }
 
 func (us *UserService) UpdateProfile(ctx context.Context, userId string, updateReq models.UpdateUserDTO) error {
-	ctxVal := ctx.Value(constants.User)
-	if ctxVal == nil {
-		return errors.New("invalid context")
-	}
-	currentUser := ctxVal.(models.UserJwt)
+	currentUser := ctx.Value(constants.User).(models.UserJwt)
 
 	if currentUser.Role != roles.Admin && currentUser.ID != userId {
 		return errors.New("unauthorized to update other user's profile")
@@ -204,8 +195,7 @@ func (us *UserService) UpdateProfile(ctx context.Context, userId string, updateR
 		}
 		updatedUser.Password = string(hashedPassword)
 	}
-	err = us.userRepo.Save(updatedUser)
-	return err
+	return us.userRepo.Save(updatedUser)
 }
 
 func (us *UserService) DeleteProfile(ctx context.Context, userId string) error {

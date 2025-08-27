@@ -103,7 +103,7 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 			if err != nil {
 				return err
 			}
-
+ 
 			err = sas.slotRepo.Save(val)
 			if err != nil {
 				return err
