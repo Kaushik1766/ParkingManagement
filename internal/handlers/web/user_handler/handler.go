@@ -53,7 +53,7 @@ func (handler *WebUserHandler) GetAllUsers(ctx context.Context, w http.ResponseW
 			res = append(res, u)
 		}
 	} else {
-		u, err := handler.userService.GetUserById(ctx, ctxUser.ID)
+		u, err := handler.userService.GetUserById(ctx, ctxUser.Subject)
 		if err != nil {
 			customerrors.InternalServerError(w, customerrors.WebError{
 				Message: "Failed to fetch user: " + err.Error(),
@@ -70,18 +70,18 @@ func (handler *WebUserHandler) UpdateProfile(ctx context.Context, w http.Respons
 	w.Header().Set("Content-Type", "application/json")
 
 	userId := r.PathValue("userId")
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		customerrors.InternalServerError(w, customerrors.WebError{
-			Message: "Failed to read request body",
-			Code:    http.StatusInternalServerError,
-		})
-		return
-	}
+	data, _ := io.ReadAll(r.Body)
+	//if err != nil {
+	//	customerrors.InternalServerError(w, customerrors.WebError{
+	//		Message: "Failed to read request body",
+	//		Code:    http.StatusInternalServerError,
+	//	})
+	//	return
+	//}
 
 	var req models.UpdateUserDTO
 
-	err = json.Unmarshal(data, &req)
+	err := json.Unmarshal(data, &req)
 	if err != nil {
 		customerrors.BadRequestError(w, customerrors.WebError{
 			Message: "Invalid request body",

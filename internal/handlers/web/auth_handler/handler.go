@@ -23,18 +23,11 @@ func NewWebAuthHandler(service authservice.AuthenticationManager) *WebAuthHandle
 
 func (handler WebAuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		customerrors.InternalServerError(w, customerrors.WebError{
-			Message: "Failed to read request body",
-			Code:    http.StatusInternalServerError,
-		})
-		return
-	}
+	data, _ := io.ReadAll(r.Body)
 
 	var req models.RegisterRequestDTO
 
-	err = json.Unmarshal(data, &req)
+	err := json.Unmarshal(data, &req)
 	if err != nil {
 		customerrors.BadRequestError(w, customerrors.WebError{
 			Message: "Invalid request body",
@@ -58,17 +51,17 @@ func (handler WebAuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 func (handler WebAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		customerrors.InternalServerError(w, customerrors.WebError{
-			Message: "Failed to read request body",
-			Code:    http.StatusInternalServerError,
-		})
-		return
-	}
+	data, _ := io.ReadAll(r.Body)
+	//if err != nil {
+	//	customerrors.InternalServerError(w, customerrors.WebError{
+	//		Message: "Failed to read request body",
+	//		Code:    http.StatusInternalServerError,
+	//	})
+	//	return
+	//}
 
 	var req models.LoginRequestDTO
-	err = json.Unmarshal(data, &req)
+	err := json.Unmarshal(data, &req)
 	if err != nil {
 		customerrors.BadRequestError(w, customerrors.WebError{
 			Message: "Invalid request body",
@@ -86,11 +79,11 @@ func (handler WebAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.SetCookie(w, &http.Cookie{
-		Name:  "token",
-		Value: token,
-		// Secure: true,
-	})
+	//http.SetCookie(w, &http.Cookie{
+	//	Name:  "token",
+	//	Value: token,
+	//	// Secure: true,
+	//})
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"jwt":"` + token + `"}`))
 }
