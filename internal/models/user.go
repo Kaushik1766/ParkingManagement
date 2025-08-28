@@ -16,7 +16,3 @@ type User struct {
 	Office   Office
 	Vehicles []Vehicle
 }
-
-func (u User) GetID() string {
-	return u.UserID.String()
-}

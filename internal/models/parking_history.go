@@ -23,7 +23,3 @@ type ParkingHistory struct {
 	EndTime   *time.Time `gorm:"default:null"`
 	// VehicleType vehicletypes.VehicleType `gorm:"not null"`
 }
-
-func (p ParkingHistory) GetID() string {
-	return p.ParkingID.String()
-}

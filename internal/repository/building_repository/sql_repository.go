@@ -27,18 +27,6 @@ func (sqlbr *SQLBuildingRepository) DeleteBuildingByID(buildingID string) error 
 	return err
 }
 
-func (sqlbr *SQLBuildingRepository) DeleteBuildingByName(buildingName string) error {
-	if buildingName == constants.AdminBuilding {
-		return errors.New("buildingrepo: cannot delete admin building")
-	}
-	building := models.Building{}
-	err := sqlbr.db.Where("building_name = ?", buildingName).First(&building).Error
-	if err != nil {
-		return err
-	}
-	return sqlbr.db.Delete(&building).Error
-}
-
 func (sqlbr *SQLBuildingRepository) GetBuildingByName(buildingName string) (models.Building, error) {
 	if buildingName == constants.AdminBuilding {
 		return models.Building{}, errors.New("buildingrepo: cannot get admin building")

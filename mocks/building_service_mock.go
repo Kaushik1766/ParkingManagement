@@ -55,20 +55,6 @@ func (mr *MockBuildingMgrMockRecorder) AddBuilding(ctx, name any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddBuilding", reflect.TypeOf((*MockBuildingMgr)(nil).AddBuilding), ctx, name)
 }
 
-// DeleteBuilding mocks base method.
-func (m *MockBuildingMgr) DeleteBuilding(ctx context.Context, name string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteBuilding", ctx, name)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteBuilding indicates an expected call of DeleteBuilding.
-func (mr *MockBuildingMgrMockRecorder) DeleteBuilding(ctx, name any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBuilding", reflect.TypeOf((*MockBuildingMgr)(nil).DeleteBuilding), ctx, name)
-}
-
 // DeleteBuildingByID mocks base method.
 func (m *MockBuildingMgr) DeleteBuildingByID(ctx context.Context, buildingID string) error {
 	m.ctrl.T.Helper()

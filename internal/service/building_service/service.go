@@ -81,11 +81,3 @@ func (bs *BuildingService) AddBuilding(ctx context.Context, buildingName string)
 	}
 	return bs.buildingRepo.AddBuilding(buildingName)
 }
-
-func (bs *BuildingService) DeleteBuilding(ctx context.Context, buildingName string) error {
-	ctxUser := ctx.Value(constants.User).(models.UserJwt)
-	if ctxUser.Role != roles.Admin {
-		return errors.New("unauthorized: only admin can delete buildings")
-	}
-	return bs.buildingRepo.DeleteBuildingByName(buildingName)
-}

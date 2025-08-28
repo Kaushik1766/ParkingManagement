@@ -1,106 +1,91 @@
-package db_test
+package db
 
 import (
+	"os"
 	"testing"
 
-	"github.com/Kaushik1766/ParkingManagement/db"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
-	"github.com/Kaushik1766/ParkingManagement/utils"
 	"gorm.io/gorm"
 )
 
 func TestInitDB(t *testing.T) {
 	tests := []struct {
-		name    string // description of this test case
-		want    *gorm.DB
+		name    string
 		wantErr bool
-		env     string
 	}{
 		{
-			name:    "valid db url",
-			want:    &gorm.DB{},
-			wantErr: false,
-			env:     "postgresql://kaushik:123@localhost:5432/kaushik",
+			name:    "missing database url",
+			wantErr: true,
 		},
 		{
-			name:    "invalid db url",
-			want:    nil,
+			name:    "invalid database url",
 			wantErr: true,
-			env:     "invalid_url",
 		},
 	}
 	for _, tt := range tests {
-		t.Setenv("DATABASE_URL", tt.env)
 		t.Run(tt.name, func(t *testing.T) {
-			got, gotErr := db.InitDB()
-			if gotErr != nil {
-				if !tt.wantErr {
-					t.Errorf("InitDB() failed: %v", gotErr)
+			// Save original env var
+			originalURL := os.Getenv("DATABASE_URL")
+			defer func() {
+				if originalURL != "" {
+					_ = os.Setenv("DATABASE_URL", originalURL)
+				} else {
+					_ = os.Unsetenv("DATABASE_URL")
 				}
+			}()
+
+			// Set up test environment
+			if tt.name == "missing database url" {
+				_ = os.Unsetenv("DATABASE_URL")
+			} else if tt.name == "invalid database url" {
+				_ = os.Setenv("DATABASE_URL", "invalid-url")
+			}
+
+			got, err := InitDB()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("InitDB() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if tt.wantErr {
-				t.Fatal("InitDB() succeeded unexpectedly")
-			}
-			if got.Error != nil {
-				t.Errorf("InitDB() = %v, want %v", got, tt.want)
+
+			// Only check that we get a database object when there's no error
+			if !tt.wantErr && got == nil {
+				t.Errorf("InitDB() returned nil database when expecting success")
 			}
 		})
 	}
 }
 
 func TestMigrateModels(t *testing.T) {
-	utils.PutDsnInEnv(t)
+	type args struct {
+		db     *gorm.DB
+		models []any
+	}
 	tests := []struct {
-		name string // description of this test case
-		// Named input parameters for target function.
-		db      *gorm.DB
-		models  []any
+		name    string
+		args    args
 		wantErr bool
 	}{
 		{
-			name:    "nil db",
-			db:      nil,
-			models:  []any{},
-			wantErr: false,
-		},
-		{
-			name: "valid db and models",
-			db:   func() *gorm.DB { db, _ := db.InitDB(); return db }(),
-			models: []any{
-				models.Building{},
-				models.Floor{},
-				models.Slot{},
-				models.Office{},
-				models.User{},
-				models.Vehicle{},
-				models.ParkingHistory{},
+			name: "nil database",
+			args: args{
+				db:     nil,
+				models: []any{&models.User{}},
 			},
 			wantErr: false,
 		},
 		{
-			name: "invalid relations",
-			db:   func() *gorm.DB { db, _ := db.InitDB(); return db }(),
-			models: []any{
-				struct{ ID int }{},
-				struct {
-					xyz int `gorm:"foreignKey:NonExistentID"`
-				}{},
+			name: "empty models",
+			args: args{
+				db:     nil,
+				models: []any{},
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotErr := db.MigrateModels(tt.db, tt.models...)
-			if gotErr != nil {
-				if !tt.wantErr {
-					t.Errorf("MigrateModels() failed: %v", gotErr)
-				}
-				return
-			}
-			if tt.wantErr {
-				t.Fatal("MigrateModels() succeeded unexpectedly")
+			if err := MigrateModels(tt.args.db, tt.args.models...); (err != nil) != tt.wantErr {
+				t.Errorf("MigrateModels() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

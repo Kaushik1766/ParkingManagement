@@ -1,216 +1,482 @@
-package buildingrepository_test
+package buildingrepository
 
 import (
-	"slices"
+	"errors"
+	"reflect"
 	"testing"
 
-	"github.com/Kaushik1766/ParkingManagement/db"
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
-	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
-	"github.com/Kaushik1766/ParkingManagement/utils"
 	"github.com/google/uuid"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
+func TestNewSQLBuildingRepository(t *testing.T) {
+	db, _, _ := sqlmock.New()
+	defer db.Close()
+
+	gormDb, _ := gorm.Open(postgres.New(postgres.Config{
+		Conn: db,
+	}), &gorm.Config{})
+
+	type args struct {
+		db *gorm.DB
+	}
+	tests := []struct {
+		name string
+		args args
+		want *SQLBuildingRepository
+	}{
+		{
+			name: "success",
+			args: args{db: gormDb},
+			want: &SQLBuildingRepository{
+				db: gormDb,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := NewSQLBuildingRepository(tt.args.db); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("NewSQLBuildingRepository() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestSQLBuildingRepository_AddBuilding(t *testing.T) {
-	db, err := utils.GetDB()
-	if err != nil {
-		t.Fatal(err)
-	}
-	tests := []struct {
-		name string // description of this test case
-		// Named input parameters for receiver constructor.
+
+	db, mock, _ := sqlmock.New()
+	defer db.Close()
+
+	gormDb, _ := gorm.Open(postgres.New(postgres.Config{
+		Conn: db,
+	}))
+
+	type fields struct {
 		db *gorm.DB
-		// Named input parameters for target function.
+	}
+	type args struct {
 		buildingName string
-		wantErr      bool
-	}{
-		{
-			name:         "data input",
-			db:           db,
-			buildingName: "advant",
-			wantErr:      true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			sqlbr := buildingrepository.NewSQLBuildingRepository(tt.db)
-			gotErr := sqlbr.AddBuilding(tt.buildingName)
-			if gotErr != nil {
-				if !tt.wantErr {
-					t.Errorf("AddBuilding() failed: %v", gotErr)
-				}
-				return
-			}
-			if tt.wantErr {
-				t.Fatal("AddBuilding() succeeded unexpectedly")
-			}
-		})
-	}
-}
-
-func TestSQLBuildingRepository_GetAllBuildings(t *testing.T) {
-	db, err := utils.GetDB()
-	if err != nil {
-		t.Fatal(err)
 	}
 	tests := []struct {
-		name string // description of this test case
-		// Named input parameters for receiver constructor.
-		db      *gorm.DB
-		want    []models.Building
-		wantErr bool
+		name      string
+		fields    fields
+		args      args
+		mockSetup func()
+		wantErr   bool
 	}{
 		{
-			name: "get all buildings",
-			db:   db,
-			want: []models.Building{
-				{
-					BuildingID:   uuid.MustParse("26c7d4d8-3ebe-4fad-a3fe-4ef83221acc1"),
-					BuildingName: "advant",
-				},
+			name: "success",
+			fields: fields{
+				db: gormDb,
+			},
+			args: args{
+				buildingName: "advant",
+			},
+			mockSetup: func() {
+				mock.ExpectBegin()
+				mock.ExpectQuery(`INSERT INTO "buildings"`).
+					WithArgs("advant").
+					WillReturnRows(sqlmock.NewRows([]string{"building_id"}).AddRow(uuid.New().String()))
+				mock.ExpectCommit()
 			},
 			wantErr: false,
 		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			sqlbr := buildingrepository.NewSQLBuildingRepository(tt.db)
-			got, gotErr := sqlbr.GetAllBuildings()
-			if gotErr != nil {
-				if !tt.wantErr {
-					t.Errorf("GetAllBuildings() failed: %v", gotErr)
-				}
-				return
-			}
-			if tt.wantErr {
-				t.Fatal("GetAllBuildings() succeeded unexpectedly")
-			}
-			for _, b := range tt.want {
-				if !slices.ContainsFunc(got, func(g models.Building) bool {
-					return g.BuildingID == b.BuildingID && g.BuildingName == b.BuildingName
-				}) {
-					t.Errorf("GetAllBuildings() = %v, want %v", got, tt.want)
-				}
-			}
-		})
-	}
-}
-
-func TestSQLBuildingRepository_GetBuildingByID(t *testing.T) {
-	db, _ := utils.GetDB()
-	tests := []struct {
-		name string // description of this test case
-		// Named input parameters for receiver constructor.
-		db *gorm.DB
-		// Named input parameters for target function.
-		buildingID uuid.UUID
-		want       models.Building
-		wantErr    bool
-	}{
 		{
-			name:       "get building by ID",
-			db:         db,
-			buildingID: uuid.MustParse("26c7d4d8-3ebe-4fad-a3fe-4ef83221acc1"),
-			want: models.Building{
-				BuildingID:   uuid.MustParse("26c7d4d8-3ebe-4fad-a3fe-4ef83221acc1"),
-				BuildingName: "advant",
+			name: "duplicate building",
+			fields: fields{
+				db: gormDb,
 			},
-			wantErr: false,
+			args: args{
+				buildingName: "advant",
+			},
+			mockSetup: func() {
+				mock.ExpectBegin()
+				mock.ExpectQuery(`INSERT INTO "buildings"`).
+					WithArgs("advant").
+					WillReturnError(errors.New("duplicate building"))
+				mock.ExpectRollback()
+			},
+			wantErr: true,
+		},
+		{
+			name: "admin building",
+			fields: fields{
+				db: gormDb,
+			},
+			args: args{
+				buildingName: constants.AdminBuilding,
+			},
+			mockSetup: func() {},
+			wantErr:   true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			sqlbr := buildingrepository.NewSQLBuildingRepository(tt.db)
-			got, gotErr := sqlbr.GetBuildingByID(tt.buildingID)
-			if gotErr != nil {
-				if !tt.wantErr {
-					t.Errorf("GetBuildingByID() failed: %v", gotErr)
-				}
-				return
+			tt.mockSetup()
+			sqlbr := &SQLBuildingRepository{
+				db: tt.fields.db,
 			}
-			if tt.wantErr {
-				t.Fatal("GetBuildingByID() succeeded unexpectedly")
-			}
-			if got.BuildingID != tt.want.BuildingID || got.BuildingName != tt.want.BuildingName {
-				t.Errorf("GetBuildingByID() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestSQLBuildingRepository_GetBuildingByName(t *testing.T) {
-	db, _ := utils.GetDB()
-	tests := []struct {
-		name string // description of this test case
-		// Named input parameters for receiver constructor.
-		db *gorm.DB
-		// Named input parameters for target function.
-		buildingName string
-		want         models.Building
-		wantErr      bool
-	}{
-		{
-			name:         "get building by name",
-			db:           db,
-			buildingName: "advant",
-			want: models.Building{
-				BuildingID:   uuid.MustParse("26c7d4d8-3ebe-4fad-a3fe-4ef83221acc1"),
-				BuildingName: "advant",
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			sqlbr := buildingrepository.NewSQLBuildingRepository(tt.db)
-			got, gotErr := sqlbr.GetBuildingByName(tt.buildingName)
-			if gotErr != nil {
-				if !tt.wantErr {
-					t.Errorf("GetBuildingByName() failed: %v", gotErr)
-				}
-				return
-			}
-			if tt.wantErr {
-				t.Fatal("GetBuildingByName() succeeded unexpectedly")
-			}
-			if got.BuildingID != tt.want.BuildingID || got.BuildingName != tt.want.BuildingName {
-				t.Errorf("GetBuildingByName() = %v, want %v", got, tt.want)
+			if err := sqlbr.AddBuilding(tt.args.buildingName); (err != nil) != tt.wantErr {
+				t.Errorf("AddBuilding() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
 func TestSQLBuildingRepository_DeleteBuildingByID(t *testing.T) {
-	utils.PutDsnInEnv(t)
-	gormDB, _ := db.InitDB()
-	tests := []struct {
-		name string // description of this test case
-		// Named input parameters for receiver constructor.
+	db, mock, _ := sqlmock.New()
+	defer db.Close()
+
+	gormDb, _ := gorm.Open(postgres.New(postgres.Config{
+		Conn: db,
+	}))
+
+	type fields struct {
 		db *gorm.DB
-		// Named input parameters for target function.
+	}
+	type args struct {
 		buildingID string
-		wantErr    bool
+	}
+	tests := []struct {
+		name      string
+		fields    fields
+		args      args
+		wantErr   bool
+		mockSetup func()
 	}{
 		{
-			name:       "delete building by ID",
-			db:         gormDB,
-			buildingID: "725d4963-20a9-4927-a105-0d4f73938497",
-			wantErr:    false,
+			name: "success",
+			fields: fields{
+				db: gormDb,
+			},
+			args: args{
+				buildingID: uuid.New().String(),
+			},
+			mockSetup: func() {
+				mock.ExpectBegin()
+				mock.ExpectExec(`DELETE FROM "buildings"`).
+					WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectCommit()
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid building id",
+			fields: fields{
+				db: gormDb,
+			},
+			args: args{
+				buildingID: "asdfasdf",
+			},
+			mockSetup: func() {
+
+			},
+			wantErr: true,
+		},
+		{
+			name: "database error",
+			fields: fields{
+				db: gormDb,
+			},
+			args: args{
+				buildingID: uuid.New().String(),
+			},
+			mockSetup: func() {
+				mock.ExpectBegin()
+				mock.ExpectExec(`DELETE FROM "buildings"`).
+					WillReturnError(errors.New("database error"))
+				mock.ExpectRollback()
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			sqlbr := buildingrepository.NewSQLBuildingRepository(tt.db)
-			gotErr := sqlbr.DeleteBuildingByID(tt.buildingID)
-			if gotErr != nil {
-				if !tt.wantErr {
-					t.Errorf("DeleteBuildingByID() failed: %v", gotErr)
-				}
+			tt.mockSetup()
+			sqlbr := &SQLBuildingRepository{
+				db: tt.fields.db,
+			}
+			if err := sqlbr.DeleteBuildingByID(tt.args.buildingID); (err != nil) != tt.wantErr {
+				t.Errorf("DeleteBuildingByID() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestSQLBuildingRepository_GetAllBuildings(t *testing.T) {
+	db, mock, _ := sqlmock.New()
+	defer db.Close()
+
+	gormDb, _ := gorm.Open(postgres.New(postgres.Config{
+		Conn: db,
+	}))
+
+	type fields struct {
+		db *gorm.DB
+	}
+	tests := []struct {
+		name      string
+		fields    fields
+		want      []models.Building
+		mockSetup func()
+		wantErr   bool
+	}{
+		{
+			name: "success",
+			fields: fields{
+				db: gormDb,
+			},
+			want: []models.Building{
+				{
+					BuildingID:   uuid.Nil,
+					BuildingName: "advant",
+					Floors:       nil,
+				},
+			},
+			mockSetup: func() {
+				mock.ExpectQuery(`FROM "buildings"`).
+					WithArgs(constants.AdminBuilding).
+					WillReturnRows(sqlmock.NewRows([]string{"building_id", "building_name"}).
+						AddRow(uuid.Nil, "advant"))
+			},
+		},
+		{
+			name: "database error",
+			fields: fields{
+				db: gormDb,
+			},
+			want: []models.Building{},
+			mockSetup: func() {
+				mock.ExpectQuery(`FROM "buildings"`).
+					WithArgs(constants.AdminBuilding).
+					WillReturnError(errors.New("database error"))
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.mockSetup()
+			sqlbr := &SQLBuildingRepository{
+				db: tt.fields.db,
+			}
+			got, err := sqlbr.GetAllBuildings()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetAllBuildings() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if tt.wantErr {
-				t.Fatal("DeleteBuildingByID() succeeded unexpectedly")
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetAllBuildings() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSQLBuildingRepository_GetBuildingByID(t *testing.T) {
+	db, mock, _ := sqlmock.New()
+	defer db.Close()
+
+	gormDb, _ := gorm.Open(postgres.New(postgres.Config{
+		Conn: db,
+	}))
+
+	wantBuilding := models.Building{
+		BuildingID:   uuid.New(),
+		BuildingName: "advant",
+		Floors:       nil,
+	}
+
+	notFoundID := uuid.New()
+	dbErrorID := uuid.New()
+
+	type fields struct {
+		db *gorm.DB
+	}
+	type args struct {
+		buildingID uuid.UUID
+	}
+	tests := []struct {
+		name      string
+		fields    fields
+		args      args
+		want      models.Building
+		wantErr   bool
+		mockSetup func()
+	}{
+		{
+			name: "success",
+			fields: fields{
+				db: gormDb,
+			},
+			args: args{
+				buildingID: wantBuilding.BuildingID,
+			},
+			mockSetup: func() {
+				mock.ExpectQuery(`FROM "buildings"`).
+					WithArgs(wantBuilding.BuildingID, constants.AdminBuilding, 1).
+					WillReturnRows(sqlmock.NewRows([]string{"building_id", "building_name"}).AddRow(wantBuilding.BuildingID, wantBuilding.BuildingName))
+			},
+			wantErr: false,
+			want:    wantBuilding,
+		},
+		{
+			name: "building not found",
+			fields: fields{
+				db: gormDb,
+			},
+			args: args{
+				buildingID: notFoundID,
+			},
+			mockSetup: func() {
+				mock.ExpectQuery(`FROM "buildings"`).
+					WithArgs(notFoundID, constants.AdminBuilding, 1).
+					WillReturnError(gorm.ErrRecordNotFound)
+			},
+			wantErr: true,
+			want:    models.Building{},
+		},
+		{
+			name: "database error",
+			fields: fields{
+				db: gormDb,
+			},
+			args: args{
+				buildingID: dbErrorID,
+			},
+			mockSetup: func() {
+				mock.ExpectQuery(`FROM "buildings"`).
+					WithArgs(dbErrorID, constants.AdminBuilding, 1).
+					WillReturnError(errors.New("database error"))
+			},
+			wantErr: true,
+			want:    models.Building{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.mockSetup()
+			sqlbr := &SQLBuildingRepository{
+				db: tt.fields.db,
+			}
+			got, err := sqlbr.GetBuildingByID(tt.args.buildingID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetBuildingByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetBuildingByID() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSQLBuildingRepository_GetBuildingByName(t *testing.T) {
+	db, mock, _ := sqlmock.New()
+	defer db.Close()
+
+	gormDb, _ := gorm.Open(postgres.New(postgres.Config{
+		Conn: db,
+	}))
+
+	wantBuilding := models.Building{
+		BuildingID:   uuid.New(),
+		BuildingName: "advant",
+		Floors:       nil,
+	}
+
+	type fields struct {
+		db *gorm.DB
+	}
+	type args struct {
+		buildingName string
+	}
+	tests := []struct {
+		name      string
+		fields    fields
+		args      args
+		want      models.Building
+		wantErr   bool
+		mockSetup func()
+	}{
+		{
+			name: "success",
+			fields: fields{
+				db: gormDb,
+			},
+			args: args{
+				buildingName: "advant",
+			},
+			mockSetup: func() {
+				mock.ExpectQuery(`FROM "buildings"`).
+					WithArgs("advant", 1).
+					WillReturnRows(sqlmock.NewRows([]string{"building_id", "building_name"}).AddRow(wantBuilding.BuildingID, wantBuilding.BuildingName))
+			},
+			wantErr: false,
+			want:    wantBuilding,
+		},
+		{
+			name: "admin building",
+			fields: fields{
+				db: gormDb,
+			},
+			args: args{
+				buildingName: constants.AdminBuilding,
+			},
+			mockSetup: func() {
+			},
+			wantErr: true,
+			want:    models.Building{},
+		},
+		{
+			name: "building not found",
+			fields: fields{
+				db: gormDb,
+			},
+			args: args{
+				buildingName: "nonexistent",
+			},
+			mockSetup: func() {
+				mock.ExpectQuery(`FROM "buildings"`).
+					WithArgs("nonexistent", 1).
+					WillReturnError(gorm.ErrRecordNotFound)
+			},
+			wantErr: true,
+			want:    models.Building{},
+		},
+		{
+			name: "database error",
+			fields: fields{
+				db: gormDb,
+			},
+			args: args{
+				buildingName: "advant",
+			},
+			mockSetup: func() {
+				mock.ExpectQuery(`FROM "buildings"`).
+					WithArgs("advant", 1).
+					WillReturnError(errors.New("database error"))
+			},
+			wantErr: true,
+			want:    models.Building{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.mockSetup()
+			sqlbr := &SQLBuildingRepository{
+				db: tt.fields.db,
+			}
+			got, err := sqlbr.GetBuildingByName(tt.args.buildingName)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetBuildingByName() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetBuildingByName() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

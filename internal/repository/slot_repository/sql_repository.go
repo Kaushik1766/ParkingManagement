@@ -33,6 +33,7 @@ func (sqlsr *SQLSlotRepository) GetSlotsByFloor(buildingId uuid.UUID, floorNumbe
 	var slots []slot.Slot
 	err := sqlsr.db.
 		Where("building_id = ? AND floor_number = ?", buildingId, floorNumber).
+		Order("slot_number asc").
 		Find(&slots).Error
 	if err != nil {
 		return nil, err
@@ -44,6 +45,7 @@ func (sqlsr *SQLSlotRepository) GetFreeSlotsByFloor(buildingId uuid.UUID, floorN
 	var slots []slot.Slot
 	err := sqlsr.db.
 		Where("building_id = ? AND floor_number = ?", buildingId, floorNumber).
+		Order("slot_number asc").
 		Preload("Vehicles").
 		Find(&slots).Error
 	if err != nil {
@@ -66,6 +68,7 @@ func (sqlsr *SQLSlotRepository) GetFreeSlotsByBuilding(buildingId uuid.UUID) ([]
 	var slots []slot.Slot
 	err := sqlsr.db.
 		Where("building_id = ? ", buildingId).
+		Order("slot_number asc").
 		Preload("Vehicles").
 		Find(&slots).Error
 	if err != nil {
