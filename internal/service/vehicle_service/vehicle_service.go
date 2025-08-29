@@ -24,7 +24,7 @@ func (vs *VehicleService) UnparkByNumberPlate(ctx context.Context, numberplate s
 	}
 
 	if vehicle.UserID.String() != userCtx.ID {
-		return customerrors.Unathorized{}
+		return customerrors.Unauthorized{}
 	}
 
 	err = vs.parkingRepo.UnparkByNumberPlate(numberplate)
@@ -44,7 +44,7 @@ func (vs *VehicleService) Park(ctx context.Context, numberplate string) (string,
 	}
 
 	if vehicle.UserID.String() != userCtx.ID {
-		return "", customerrors.Unathorized{}
+		return "", customerrors.Unauthorized{}
 	}
 
 	return vs.parkingRepo.AddParking(vehicle)
@@ -61,7 +61,7 @@ func (vs *VehicleService) Unpark(ctx context.Context, ticketId string) error {
 	// }
 	//
 	// if vehicle.UserId.String() != userCtx.ID {
-	// 	return customerrors.Unathorized{}
+	// 	return customerrors.Unauthorized{}
 	// }
 
 	return vs.parkingRepo.Unpark(ticketId)

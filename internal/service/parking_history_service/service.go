@@ -36,7 +36,7 @@ func (phs *ParkingHistoryService) GetParkingHistoryByNumberPlate(ctx context.Con
 	}
 
 	if userCtx.Role != roles.Admin && userCtx.ID != vehicle.UserID.String() {
-		return nil, customerrors.Unathorized{}
+		return nil, customerrors.Unauthorized{}
 	}
 
 	return phs.parkingRepo.GetParkingHistoryByNumberPlate(numberplate, startTime, endTime)

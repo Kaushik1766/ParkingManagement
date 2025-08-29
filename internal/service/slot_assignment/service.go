@@ -119,7 +119,7 @@ func (sas *SlotAssignmentService) GetVehiclesWithUnassignedSlots(ctx context.Con
 	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 
 	if ctxUser.Role != roles.Admin {
-		return nil, customerrors.Unathorized{}
+		return nil, customerrors.Unauthorized{}
 	}
 
 	vehicles, err := sas.vehicleRepo.GetVehiclesWithUnassignedSlots()

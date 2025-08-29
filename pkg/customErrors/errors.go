@@ -13,9 +13,9 @@ func (e UserNotFound) Error() string {
 	return "user not found"
 }
 
-type Unathorized struct{}
+type Unauthorized struct{}
 
-func (e Unathorized) Error() string {
+func (e Unauthorized) Error() string {
 	return "user unauthorized"
 }
 
