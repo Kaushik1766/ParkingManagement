@@ -38,7 +38,7 @@ func (auth *AuthService) Signup(registerReq models.RegisterRequestDTO, role role
 
 	err = auth.userDb.CreateUser(registerReq.Name, registerReq.Email, string(hashedPassword), registerReq.Office, role)
 	if err != nil {
-		return customerrors.NewWebError(errorcodes.InternalServerError)
+		return customerrors.NewWebError(errorcodes.UserAlreadyExists)
 	}
 	return nil
 }

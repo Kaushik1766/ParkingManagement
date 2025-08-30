@@ -78,6 +78,21 @@ func (sqlur *SQLUserRepository) CreateAdminOffice() error {
 	return nil
 }
 
+func (sqlur *SQLUserRepository) SeedBuildingAndOfice() error {
+	err := sqlur.db.Create(&models.Building{
+		BuildingName: constants.TestBuilding,
+		Floors: []models.Floor{
+			{
+				FloorNumber: 1,
+				Office: &models.Office{
+					OfficeName: constants.TestOffice,
+				},
+			},
+		},
+	}).Error
+	return err
+}
+
 func (sqlur *SQLUserRepository) CreateUser(name string, email string, password string, office string, role roles.Role) error {
 	var officeStruct models.Office
 

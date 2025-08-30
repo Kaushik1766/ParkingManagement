@@ -1,0 +1,4 @@
+name,email,office,password,status,testName
+kaushik,kaushik@a.com,TEST_OFFICE,123,,valid register
+kaushik,kaushik@a.com,TEST_OFFICE,123,,repeated registration
+kaushik,kaushik,TEST_OFFICE,123,400,invalid email

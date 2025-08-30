@@ -27,11 +27,14 @@ func (err WebError) Error() string {
 }
 
 func SendError(w http.ResponseWriter, err error) {
+	w.Header().Set("Content-Type", "application/json")
 	webErr, ok := err.(WebError)
 	if !ok {
-		log.Println(err)
+		log.Printf("cant type assert %v to weberr\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err)
+		return
 	}
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(webErr.statusCode)
 	json.NewEncoder(w).Encode(err)
 }
