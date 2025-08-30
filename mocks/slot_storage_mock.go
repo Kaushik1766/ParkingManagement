@@ -128,17 +128,3 @@ func (mr *MockSlotStorageMockRecorder) Save(slot any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockSlotStorage)(nil).Save), slot)
 }
-
-// SetSlotOccupied mocks base method.
-func (m *MockSlotStorage) SetSlotOccupied(buildingId uuid.UUID, floorNumber, slotNumber int, isOccupied bool) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetSlotOccupied", buildingId, floorNumber, slotNumber, isOccupied)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SetSlotOccupied indicates an expected call of SetSlotOccupied.
-func (mr *MockSlotStorageMockRecorder) SetSlotOccupied(buildingId, floorNumber, slotNumber, isOccupied any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSlotOccupied", reflect.TypeOf((*MockSlotStorage)(nil).SetSlotOccupied), buildingId, floorNumber, slotNumber, isOccupied)
-}

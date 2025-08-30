@@ -336,63 +336,6 @@ func TestSQLSlotRepository_GetFreeSlotsByFloor(t *testing.T) {
 	}
 }
 
-func TestSQLSlotRepository_SetSlotOccupied(t *testing.T) {
-	db, mock, _ := sqlmock.New()
-	defer db.Close()
-
-	gormDb, _ := gorm.Open(postgres.New(postgres.Config{
-		Conn: db,
-	}), &gorm.Config{})
-
-	buildingID := uuid.New()
-
-	type args struct {
-		buildingId  uuid.UUID
-		floorNumber int
-		slotNumber  int
-		isOccupied  bool
-	}
-	tests := []struct {
-		name      string
-		sqlsr     *SQLSlotRepository
-		args      args
-		mockSetup func()
-		wantErr   bool
-	}{
-		{
-			name: "not_implemented",
-			sqlsr: &SQLSlotRepository{
-				db: gormDb,
-			},
-			args: args{
-				buildingId:  buildingID,
-				floorNumber: 1,
-				slotNumber:  1,
-				isOccupied:  true,
-			},
-			mockSetup: func() {},
-			wantErr:   true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.mockSetup()
-			defer func() {
-				if r := recover(); r == nil {
-					t.Errorf("SQLSlotRepository.SetSlotOccupied() should have panicked")
-				}
-			}()
-			err := tt.sqlsr.SetSlotOccupied(tt.args.buildingId, tt.args.floorNumber, tt.args.slotNumber, tt.args.isOccupied)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SQLSlotRepository.SetSlotOccupied() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if err := mock.ExpectationsWereMet(); err != nil {
-				t.Errorf("there were unfulfilled expectations: %s", err)
-			}
-		})
-	}
-}
-
 func TestSQLSlotRepository_GetFreeSlotsByBuilding(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 	defer db.Close()

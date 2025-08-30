@@ -58,7 +58,6 @@ func (handler *WebParkingHandler) GetParkings(ctx context.Context, w http.Respon
 			return
 		}
 	}
-	// TODO: parking history by numberplate and parking id
 	parkings, err := handler.parkingService.GetParkingHistory(ctx, startTime, endTime)
 	if err != nil {
 		customerrors.InternalServerError(w, customerrors.WebError{

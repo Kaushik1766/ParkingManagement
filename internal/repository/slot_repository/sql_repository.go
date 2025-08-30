@@ -60,10 +60,6 @@ func (sqlsr *SQLSlotRepository) GetFreeSlotsByFloor(buildingId uuid.UUID, floorN
 	return res, nil
 }
 
-func (sqlsr *SQLSlotRepository) SetSlotOccupied(buildingId uuid.UUID, floorNumber int, slotNumber int, isOccupied bool) error {
-	panic("not implemented") // TODO: Implement
-}
-
 func (sqlsr *SQLSlotRepository) GetFreeSlotsByBuilding(buildingId uuid.UUID) ([]slot.Slot, error) {
 	var slots []slot.Slot
 	err := sqlsr.db.

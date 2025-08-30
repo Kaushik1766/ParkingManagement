@@ -99,25 +99,6 @@ func TestWebVehicleHandler_GetVehicles(t *testing.T) {
 			expectedStatus: http.StatusOK,
 		},
 		{
-			name: "admin gets not implemented",
-			setupMocks: func(mockVehicleService *mocks.MockVehicleMgr, mockUserService *mocks.MockUserManager) {
-				// No expectations as admin functionality is not implemented
-			},
-			setupContext: func() context.Context {
-				userJwt := models.UserJwt{
-					RegisteredClaims: jwt.RegisteredClaims{Subject: "admin-456"},
-					Email:            "admin@a.com",
-					Role:             roles.Admin,
-					Office:           "office-1",
-				}
-				return context.WithValue(context.Background(), constants.User, userJwt)
-			},
-			setupRequest: func() *http.Request {
-				return httptest.NewRequest("GET", "/vehicles", nil)
-			},
-			expectedStatus: http.StatusNotImplemented,
-		},
-		{
 			name: "customer service error",
 			setupMocks: func(mockVehicleService *mocks.MockVehicleMgr, mockUserService *mocks.MockUserManager) {
 				mockUserService.EXPECT().GetRegisteredVehicles(gomock.Any()).Return(nil, errors.New("database error"))

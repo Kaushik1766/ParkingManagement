@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/Kaushik1766/ParkingManagement/internal/constants/error_codes"
+	errorcodes "github.com/Kaushik1766/ParkingManagement/internal/constants/error_codes"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	authservice "github.com/Kaushik1766/ParkingManagement/internal/service/auth_service"
@@ -30,7 +30,7 @@ func (handler WebAuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 
 	err := json.Unmarshal(data, &req)
 	if err != nil {
-		customerrors.SendError(w, customerrors.NewWebError(errorcodes.InvalidInput))
+		customerrors.SendError(w, customerrors.NewWebError(err, errorcodes.InvalidInput))
 		return
 	}
 
@@ -51,7 +51,7 @@ func (handler WebAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req models.LoginRequestDTO
 	err := json.Unmarshal(data, &req)
 	if err != nil {
-		customerrors.SendError(w, customerrors.NewWebError(errorcodes.InvalidInput))
+		customerrors.SendError(w, customerrors.NewWebError(err, errorcodes.InvalidInput))
 		return
 	}
 

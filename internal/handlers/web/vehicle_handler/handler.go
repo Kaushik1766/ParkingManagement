@@ -30,13 +30,18 @@ func (handler *WebVehicleHandler) GetVehicles(ctx context.Context, w http.Respon
 	w.Header().Set("Content-Type", "application/json")
 	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 
-	// queryParams := r.URL.Query()
-
 	var vehicles []models.VehicleDTO
 	var err error
 
 	if ctxUser.Role == roles.Admin {
-		w.WriteHeader(http.StatusNotImplemented)
+		queryParams := r.URL.Query()
+		if queryParams.Get("userId") != "" {
+			vehicles, err = handler.userService.GetVehiclesByUserId(ctx, queryParams.Get("userId"))
+			if err != nil {
+				customerrors.SendError(w, err)
+				return
+			}
+		}
 	} else {
 		vehicles, err = handler.userService.GetRegisteredVehicles(ctx)
 		if err != nil {

@@ -1,0 +1,7 @@
+email,username,officeName,password,status,testName,apiName
+kaushik@a.com,kaushik,TEST_OFFICE,123,201,valid register,register
+kaushik@a.com,kaushik,TEST_OFFICE,123,409,invalid register,register
+kaushik.com,kaushik,TEST_OFFICE,123,400,invalid register,register
+kaushik@a.com,,,123,200,valid login,login
+admin@a.com,,,123,200,valid login,login
+kaushik@a.com,,,1233,200,invalid login,login

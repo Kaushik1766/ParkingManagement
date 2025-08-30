@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
+	errorcodes "github.com/Kaushik1766/ParkingManagement/internal/constants/error_codes"
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
@@ -13,6 +14,7 @@ import (
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
 	slotassignment "github.com/Kaushik1766/ParkingManagement/internal/service/slot_assignment"
+	customerrors "github.com/Kaushik1766/ParkingManagement/pkg/customErrors"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -212,4 +214,25 @@ func (us *UserService) DeleteProfile(ctx context.Context, userId string) error {
 	user.IsActive = false
 	err = us.userRepo.Save(user)
 	return err
+}
+
+func (us *UserService) GetVehiclesByUserId(ctx context.Context, userId string) ([]models.VehicleDTO, error) {
+	uid, err := uuid.Parse(userId)
+	if err != nil {
+		return nil, customerrors.NewWebError(err, errorcodes.InvalidInput)
+	}
+	userVehicles, err := us.vehicleRepo.GetVehiclesByUserId(uid)
+	if err != nil {
+		return nil, err
+	}
+
+	var vehicleDTOs []models.VehicleDTO
+	for _, v := range userVehicles {
+		vehicleDTOs = append(vehicleDTOs, models.VehicleDTO{
+			NumberPlate:  v.NumberPlate,
+			VehicleType:  v.VehicleType.String(),
+			AssignedSlot: *v.AssignedSlot,
+		})
+	}
+	return vehicleDTOs, nil
 }

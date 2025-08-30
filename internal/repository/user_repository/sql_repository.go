@@ -1,10 +1,13 @@
 package userrepository
 
 import (
+	"fmt"
+
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -91,6 +94,36 @@ func (sqlur *SQLUserRepository) SeedBuildingAndOfice() error {
 		},
 	}).Error
 	return err
+}
+
+func (sqlur *SQLUserRepository) SeedAdmin() error {
+	var adminOffice models.Office
+	err := sqlur.db.Where("office_name = ?", constants.AdminOffice).First(&adminOffice).Error
+	if err != nil {
+		return err
+	}
+	fmt.Println("Admin office found:", adminOffice)
+
+	user := models.User{
+		Name:  "Admin",
+		Email: "admin@a.com",
+		Role:  roles.Admin,
+		Office: models.Office{
+			OfficeID: adminOffice.OfficeID,
+		},
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("123"), 12)
+	if err != nil {
+		return err
+	}
+
+	user.Password = string(hashedPassword)
+	err = sqlur.db.Create(&user).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (sqlur *SQLUserRepository) CreateUser(name string, email string, password string, office string, role roles.Role) error {

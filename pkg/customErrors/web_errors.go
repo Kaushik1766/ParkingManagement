@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Kaushik1766/ParkingManagement/internal/constants/error_codes"
+	errorcodes "github.com/Kaushik1766/ParkingManagement/internal/constants/error_codes"
 )
 
 type WebError struct {
@@ -14,7 +14,8 @@ type WebError struct {
 	statusCode int
 }
 
-func NewWebError(code errorcodes.ErrorCodes) WebError {
+func NewWebError(err error, code errorcodes.ErrorCodes) WebError {
+	log.Printf("error occurrred %v\n", err)
 	return WebError{
 		Message:    code.String(),
 		Code:       code,

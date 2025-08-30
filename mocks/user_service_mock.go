@@ -116,6 +116,21 @@ func (mr *MockUserManagerMockRecorder) GetUserProfile(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserProfile", reflect.TypeOf((*MockUserManager)(nil).GetUserProfile), ctx)
 }
 
+// GetVehiclesByUserId mocks base method.
+func (m *MockUserManager) GetVehiclesByUserId(ctx context.Context, userId string) ([]models.VehicleDTO, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetVehiclesByUserId", ctx, userId)
+	ret0, _ := ret[0].([]models.VehicleDTO)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetVehiclesByUserId indicates an expected call of GetVehiclesByUserId.
+func (mr *MockUserManagerMockRecorder) GetVehiclesByUserId(ctx, userId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVehiclesByUserId", reflect.TypeOf((*MockUserManager)(nil).GetVehiclesByUserId), ctx, userId)
+}
+
 // RegisterVehicle mocks base method.
 func (m *MockUserManager) RegisterVehicle(ctx context.Context, numberplate string, vehicleType vehicletypes.VehicleType) error {
 	m.ctrl.T.Helper()
