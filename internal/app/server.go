@@ -99,7 +99,7 @@ func NewApp(db *gorm.DB) *App {
 	}
 
 	// for dev only
-	err = userRepo.(*userrepository.SQLUserRepository).SeedBuildingAndOfice()
+	err = userRepo.(*userrepository.SQLUserRepository).SeedBuildingAndOffice()
 	if err != nil {
 		color.Red("Error seeding test building and offices: %v", err)
 		os.Exit(1)

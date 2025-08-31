@@ -6,6 +6,7 @@ import (
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
+	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -81,7 +82,21 @@ func (sqlur *SQLUserRepository) CreateAdminOffice() error {
 	return nil
 }
 
-func (sqlur *SQLUserRepository) SeedBuildingAndOfice() error {
+func (sqlur *SQLUserRepository) SeedBuildingAndOffice() error {
+	var slots []models.Slot
+	for i, s := range constants.SlotLayout {
+		if s == '0' {
+			slots = append(slots, models.Slot{
+				SlotNumber: i,
+				SlotType:   vehicletypes.TwoWheeler,
+			})
+		} else {
+			slots = append(slots, models.Slot{
+				SlotNumber: i,
+				SlotType:   vehicletypes.FourWheeler,
+			})
+		}
+	}
 	err := sqlur.db.Create(&models.Building{
 		BuildingName: constants.TestBuilding,
 		Floors: []models.Floor{
@@ -90,6 +105,7 @@ func (sqlur *SQLUserRepository) SeedBuildingAndOfice() error {
 				Office: &models.Office{
 					OfficeName: constants.TestOffice,
 				},
+				Slots: slots,
 			},
 		},
 	}).Error

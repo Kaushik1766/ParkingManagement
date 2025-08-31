@@ -126,6 +126,12 @@ func TestAuthService_Signup(t *testing.T) {
 		MaxTimes(3).
 		Return(nil)
 
+	// Add a separate mock for the error case
+	mockUserRepoError := mocks.NewMockUserStorage(ctrl)
+	mockUserRepoError.EXPECT().
+		CreateUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(errors.New("database error"))
+
 	type fields struct {
 		userDb userrepository.UserStorage
 	}
@@ -193,6 +199,22 @@ func TestAuthService_Signup(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "user creation error",
+			fields: fields{
+				userDb: mockUserRepoError,
+			},
+			args: args{
+				registerReq: models.RegisterRequestDTO{
+					Name:     "kaushik",
+					Email:    "kaushik@a.com",
+					Office:   "watchguard",
+					Password: "123",
+				},
+				role: 0,
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -204,23 +226,32 @@ func TestAuthService_Signup(t *testing.T) {
 	}
 }
 
-//
-//func TestNewAuthService(t *testing.T) {
-//	type args struct {
-//		db userrepository.UserStorage
-//	}
-//	tests := []struct {
-//		name string
-//		args args
-//		want *AuthService
-//	}{
-//		// TODO: Add test cases.
-//	}
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			if got := authservice.NewAuthService(tt.args.db); !reflect.DeepEqual(got, tt.want) {
-//				t.Errorf("NewAuthService() = %v, want %v", got, tt.want)
-//			}
-//		})
-//	}
-//}
+func TestNewAuthService(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUserRepo := mocks.NewMockUserStorage(ctrl)
+
+	type args struct {
+		db userrepository.UserStorage
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "successful creation",
+			args: args{
+				db: mockUserRepo,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := authservice.NewAuthService(tt.args.db)
+			if got == nil {
+				t.Errorf("NewAuthService() returned nil")
+			}
+		})
+	}
+}

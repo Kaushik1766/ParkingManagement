@@ -62,6 +62,7 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 	}
 
 	for _, val := range userVehicles {
+		// if found update and exit
 		if val.VehicleType == vehicle.VehicleType && val.AssignedBuildingID != nil {
 			vehicle.AssignedSlot = val.AssignedSlot
 			err = sas.vehicleRepo.Save(vehicle)
@@ -72,21 +73,22 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 		}
 	}
 
+	// if not found assign a new slot
 	userOffice, err := sas.officeRepo.GetOfficeByName(ctxUser.Office)
 	if err != nil {
 		return err
 	}
-	building, err := sas.buildingRepo.GetBuildingByID(userOffice.BuildingID)
-	if err != nil {
-		return err
-	}
+	// building, err := sas.buildingRepo.GetBuildingByID(userOffice.BuildingID)
+	// if err != nil {
+	// 	return err
+	// }
 
-	officeBuilding, err := sas.buildingRepo.GetBuildingByName(building.BuildingName)
-	if err != nil {
-		return err
-	}
+	// officeBuilding, err := sas.buildingRepo.GetBuildingByName(building.BuildingName)
+	// if err != nil {
+	// 	return err
+	// }
 
-	freeSlots, err := sas.slotRepo.GetFreeSlotsByFloor(officeBuilding.BuildingID, userOffice.FloorNumber)
+	freeSlots, err := sas.slotRepo.GetFreeSlotsByFloor(userOffice.BuildingID, userOffice.FloorNumber)
 	if err != nil {
 		return err
 	}
@@ -97,17 +99,19 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 
 	for _, val := range freeSlots {
 		if val.SlotType == vehicle.VehicleType {
-			vehicle.AssignedSlot = &val
-			val.Vehicles = append(val.Vehicles, vehicle)
+			// vehicle.AssignedSlot = &val
+			vehicle.AssignedBuildingID = &val.BuildingID
+			vehicle.AssignedFloorNumber = &val.FloorNumber
+			// val.Vehicles = append(val.Vehicles, vehicle)
 			err := sas.vehicleRepo.Save(vehicle)
 			if err != nil {
 				return err
 			}
 
-			err = sas.slotRepo.Save(val)
-			if err != nil {
-				return err
-			}
+			// err = sas.slotRepo.Save(val)
+			// if err != nil {
+			// 	return err
+			// }
 			return nil
 		}
 	}

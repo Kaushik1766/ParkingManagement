@@ -53,7 +53,7 @@ func (handler *WebUserHandler) GetAllUsers(ctx context.Context, w http.ResponseW
 			res = append(res, u)
 		}
 	} else {
-		u, err := handler.userService.GetUserById(ctx, ctxUser.Subject)
+		u, err := handler.userService.GetUserById(ctx, ctxUser.ID)
 		if err != nil {
 			customerrors.InternalServerError(w, customerrors.WebError{
 				Message: "Failed to fetch user: " + err.Error(),

@@ -90,3 +90,20 @@ func (handler *WebVehicleHandler) RegisterVehicle(ctx context.Context, w http.Re
 
 	w.WriteHeader(http.StatusCreated)
 }
+
+func (handler *WebVehicleHandler) RemoveVehicle(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	// ctxUser := ctx.Value(constants.User).(models.UserJwt)
+
+	numberplate := r.PathValue("numberplate")
+
+	err := handler.userService.UnregisterVehicle(ctx, numberplate)
+	if err != nil {
+		customerrors.BadRequestError(w, customerrors.WebError{
+			Message: err.Error(),
+			Code:    http.StatusBadRequest,
+		})
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

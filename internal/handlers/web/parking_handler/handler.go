@@ -58,6 +58,7 @@ func (handler *WebParkingHandler) GetParkings(ctx context.Context, w http.Respon
 			return
 		}
 	}
+	// TODO: add option for admin to get parking history for all users
 	parkings, err := handler.parkingService.GetParkingHistory(ctx, startTime, endTime)
 	if err != nil {
 		customerrors.InternalServerError(w, customerrors.WebError{

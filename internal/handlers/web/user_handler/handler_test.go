@@ -81,7 +81,7 @@ func TestWebUserHandler_GetAllUsers(t *testing.T) {
 			},
 			setupContext: func() context.Context {
 				userJwt := models.UserJwt{
-					RegisteredClaims: jwt.RegisteredClaims{Subject: "admin-456"},
+					RegisteredClaims: jwt.RegisteredClaims{ID: "admin-456"},
 					Email:            "admin@a.com",
 					Role:             roles.Admin,
 					Office:           "office-1",
@@ -106,7 +106,7 @@ func TestWebUserHandler_GetAllUsers(t *testing.T) {
 			},
 			setupContext: func() context.Context {
 				userJwt := models.UserJwt{
-					RegisteredClaims: jwt.RegisteredClaims{Subject: "admin-456"},
+					RegisteredClaims: jwt.RegisteredClaims{ID: "admin-456"},
 					Email:            "admin@a.com",
 					Role:             roles.Admin,
 					Office:           "office-1",
@@ -132,7 +132,7 @@ func TestWebUserHandler_GetAllUsers(t *testing.T) {
 			},
 			setupContext: func() context.Context {
 				userJwt := models.UserJwt{
-					RegisteredClaims: jwt.RegisteredClaims{Subject: "user-123"},
+					RegisteredClaims: jwt.RegisteredClaims{ID: "user-123"},
 					Email:            "kaushik@a.com",
 					Role:             roles.Customer,
 					Office:           "office-1",
@@ -151,7 +151,7 @@ func TestWebUserHandler_GetAllUsers(t *testing.T) {
 			},
 			setupContext: func() context.Context {
 				userJwt := models.UserJwt{
-					RegisteredClaims: jwt.RegisteredClaims{Subject: "admin-456"},
+					RegisteredClaims: jwt.RegisteredClaims{ID: "admin-456"},
 					Email:            "admin@a.com",
 					Role:             roles.Admin,
 					Office:           "office-1",
@@ -171,7 +171,7 @@ func TestWebUserHandler_GetAllUsers(t *testing.T) {
 			},
 			setupContext: func() context.Context {
 				userJwt := models.UserJwt{
-					RegisteredClaims: jwt.RegisteredClaims{Subject: "admin-456"},
+					RegisteredClaims: jwt.RegisteredClaims{ID: "admin-456"},
 					Email:            "admin@a.com",
 					Role:             roles.Admin,
 					Office:           "office-1",
@@ -191,7 +191,7 @@ func TestWebUserHandler_GetAllUsers(t *testing.T) {
 			},
 			setupContext: func() context.Context {
 				userJwt := models.UserJwt{
-					RegisteredClaims: jwt.RegisteredClaims{Subject: "user-123"},
+					RegisteredClaims: jwt.RegisteredClaims{ID: "user-123"},
 					Email:            "kaushik@a.com",
 					Role:             roles.Customer,
 					Office:           "office-1",

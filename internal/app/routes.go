@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	authenticationmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/authentication_middleware"
+	loggingmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/logging_middleware"
 )
 
 var routes map[string]func(w http.ResponseWriter, r *http.Request)
@@ -12,7 +13,10 @@ var routes map[string]func(w http.ResponseWriter, r *http.Request)
 var basePath = "/api/v1"
 
 func (app *App) registerRoutes() {
+
 	authMiddleware := authenticationmiddleware.AuthenticatedRoute
+	loggingMiddleware := loggingmiddleware.LoggingMiddleware
+
 	routes = map[string]func(w http.ResponseWriter, r *http.Request){
 		"POST /auth/register":                                app.AuthHandler.Signup,
 		"POST /auth/login":                                   app.AuthHandler.Login,
@@ -31,6 +35,7 @@ func (app *App) registerRoutes() {
 		"GET /buildings/{buildingId}/floors/{floorId}/slots": authMiddleware(app.SlotHandler.GetSlots),
 		"GET /vehicles":                                      authMiddleware(app.VehicleHandler.GetVehicles),
 		"POST /vehicles":                                     authMiddleware(app.VehicleHandler.RegisterVehicle),
+		"DELETE /vehicles/{vehicleId}":                       authMiddleware(app.VehicleHandler.RemoveVehicle),
 		"POST /parkings":                                     authMiddleware(app.ParkingHandler.AddParking),
 		"GET /parkings":                                      authMiddleware(app.ParkingHandler.GetParkings),
 		"PATCH /parkings/{numberplate}/unpark":               authMiddleware(app.ParkingHandler.UnparkVehicle),
@@ -40,6 +45,6 @@ func (app *App) registerRoutes() {
 		pathArr := strings.Split(route, " ")
 		method := pathArr[0]
 		path := basePath + pathArr[1]
-		app.apiMux.HandleFunc(method+" "+path, handler)
+		app.apiMux.HandleFunc(method+" "+path, loggingMiddleware(handler))
 	}
 }
