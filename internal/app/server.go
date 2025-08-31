@@ -102,13 +102,13 @@ func NewApp(db *gorm.DB) *App {
 	err = userRepo.(*userrepository.SQLUserRepository).SeedBuildingAndOffice()
 	if err != nil {
 		color.Red("Error seeding test building and offices: %v", err)
-		os.Exit(1)
+		// os.Exit(1)
 	}
 
 	err = userRepo.(*userrepository.SQLUserRepository).SeedAdmin()
 	if err != nil {
 		color.Red("Error seeding admin user: %v", err)
-		os.Exit(1)
+		// os.Exit(1)
 	}
 
 	app.AuthHandler = *authhandler.NewWebAuthHandler(authService)

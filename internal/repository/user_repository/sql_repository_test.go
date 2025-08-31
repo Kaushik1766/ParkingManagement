@@ -583,3 +583,183 @@ func TestSQLUserRepository_Save(t *testing.T) {
 		})
 	}
 }
+
+func TestSQLUserRepository_SeedBuildingAndOffice(t *testing.T) {
+	db, mock, _ := sqlmock.New()
+	defer db.Close()
+
+	gormDb, _ := gorm.Open(postgres.New(postgres.Config{
+		Conn: db,
+	}))
+
+	type fields struct {
+		db *gorm.DB
+	}
+	tests := []struct {
+		name      string
+		fields    fields
+		wantErr   bool
+		mockSetup func()
+	}{
+		{
+			name: "success",
+			fields: fields{
+				db: gormDb,
+			},
+			mockSetup: func() {
+				// Use flexible mocking for GORM's complex Create operations
+				mock.MatchExpectationsInOrder(false)
+				// Mock building creation
+				mock.ExpectBegin()
+				mock.ExpectQuery(`INSERT INTO "buildings"`).
+					WithArgs("TEST_BUILDING").
+					WillReturnRows(sqlmock.NewRows([]string{"building_id"}).AddRow("123e4567-e89b-12d3-a456-426614174000"))
+				// Mock floor creation
+				mock.ExpectExec(`INSERT INTO "floors"`).
+					WillReturnResult(sqlmock.NewResult(1, 1))
+				// Mock office creation
+				mock.ExpectQuery(`INSERT INTO "offices"`).
+					WithArgs("TEST_OFFICE", "123e4567-e89b-12d3-a456-426614174000", 1).
+					WillReturnRows(sqlmock.NewRows([]string{"office_id"}).AddRow("123e4567-e89b-12d3-a456-426614174002"))
+				// Mock slot creations (multiple slots based on SlotLayout)
+				mock.ExpectExec(`INSERT INTO "slots"`).
+					WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectExec(`INSERT INTO "slots"`).
+					WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectExec(`INSERT INTO "slots"`).
+					WillReturnResult(sqlmock.NewResult(1, 1))
+				mock.ExpectCommit()
+			},
+			wantErr: false,
+		},
+		{
+			name: "database error during building creation",
+			fields: fields{
+				db: gormDb,
+			},
+			mockSetup: func() {
+				mock.MatchExpectationsInOrder(false)
+				mock.ExpectBegin()
+				mock.ExpectQuery(`INSERT INTO "buildings"`).
+					WithArgs("TEST_BUILDING").
+					WillReturnError(errors.New("database error"))
+				mock.ExpectRollback()
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.mockSetup != nil {
+				tt.mockSetup()
+			}
+			sqlur := &SQLUserRepository{
+				db: tt.fields.db,
+			}
+			if err := sqlur.SeedBuildingAndOffice(); (err != nil) != tt.wantErr {
+				t.Errorf("SeedBuildingAndOffice() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestSQLUserRepository_SeedAdmin(t *testing.T) {
+	db, mock, _ := sqlmock.New()
+	defer db.Close()
+
+	gormDb, _ := gorm.Open(postgres.New(postgres.Config{
+		Conn: db,
+	}))
+
+	type fields struct {
+		db *gorm.DB
+	}
+	tests := []struct {
+		name      string
+		fields    fields
+		wantErr   bool
+		mockSetup func()
+	}{
+		{
+			name: "success",
+			fields: fields{
+				db: gormDb,
+			},
+			mockSetup: func() {
+				mock.MatchExpectationsInOrder(false)
+				// Mock finding admin office
+				mock.ExpectQuery(`SELECT \* FROM "offices" WHERE office_name = \$1 ORDER BY "offices"\."office_id" LIMIT \$2`).
+					WithArgs("ADMIN_OFFICE", 1).
+					WillReturnRows(sqlmock.NewRows([]string{"office_id", "office_name", "building_id", "floor_number"}).
+						AddRow("123e4567-e89b-12d3-a456-426614174000", "ADMIN_OFFICE", "123e4567-e89b-12d3-a456-426614174001", 0))
+				// Mock admin user creation with transaction
+				mock.ExpectBegin()
+				mock.ExpectQuery(`INSERT INTO "users" \("name","email","password","role","is_active","office_id"\) VALUES \(\$1,\$2,\$3,\$4,\$5,\$6\) RETURNING "user_id"`).
+					WithArgs("Admin", "admin@a.com", sqlmock.AnyArg(), roles.Admin, true, "123e4567-e89b-12d3-a456-426614174000").
+					WillReturnRows(sqlmock.NewRows([]string{"user_id"}).AddRow("123e4567-e89b-12d3-a456-426614174002"))
+				mock.ExpectCommit()
+			},
+			wantErr: false,
+		},
+		{
+			name: "admin office not found",
+			fields: fields{
+				db: gormDb,
+			},
+			mockSetup: func() {
+				mock.MatchExpectationsInOrder(false)
+				mock.ExpectQuery(`SELECT \* FROM "offices" WHERE office_name = \$1 ORDER BY "offices"\."office_id" LIMIT \$2`).
+					WithArgs("ADMIN_OFFICE", 1).
+					WillReturnError(gorm.ErrRecordNotFound)
+			},
+			wantErr: true,
+		},
+		{
+			name: "database error when finding office",
+			fields: fields{
+				db: gormDb,
+			},
+			mockSetup: func() {
+				mock.MatchExpectationsInOrder(false)
+				mock.ExpectQuery(`SELECT \* FROM "offices" WHERE office_name = \$1 ORDER BY "offices"\."office_id" LIMIT \$2`).
+					WithArgs("ADMIN_OFFICE", 1).
+					WillReturnError(errors.New("database error"))
+			},
+			wantErr: true,
+		},
+		{
+			name: "user creation error",
+			fields: fields{
+				db: gormDb,
+			},
+			mockSetup: func() {
+				mock.MatchExpectationsInOrder(false)
+				// Mock finding admin office
+				mock.ExpectQuery(`SELECT \* FROM "offices" WHERE office_name = \$1 ORDER BY "offices"\."office_id" LIMIT \$2`).
+					WithArgs("ADMIN_OFFICE", 1).
+					WillReturnRows(sqlmock.NewRows([]string{"office_id", "office_name", "building_id", "floor_number"}).
+						AddRow("123e4567-e89b-12d3-a456-426614174000", "ADMIN_OFFICE", "123e4567-e89b-12d3-a456-426614174001", 0))
+				// Mock admin user creation failure
+				mock.ExpectBegin()
+				mock.ExpectQuery(`INSERT INTO "users" \("name","email","password","role","is_active","office_id"\) VALUES \(\$1,\$2,\$3,\$4,\$5,\$6\) RETURNING "user_id"`).
+					WithArgs("Admin", "admin@a.com", sqlmock.AnyArg(), roles.Admin, true, "123e4567-e89b-12d3-a456-426614174000").
+					WillReturnError(errors.New("database error"))
+				mock.ExpectRollback()
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.mockSetup != nil {
+				tt.mockSetup()
+			}
+			sqlur := &SQLUserRepository{
+				db: tt.fields.db,
+			}
+			if err := sqlur.SeedAdmin(); (err != nil) != tt.wantErr {
+				t.Errorf("SeedAdmin() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

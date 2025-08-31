@@ -27,11 +27,12 @@ func MigrateModels(db *gorm.DB, models ...any) error {
 		log.Fatal("failed to create uuid-ossp extension: ", err)
 	}
 	db.Migrator().DropTable(models...)
-	for _, model := range models {
-		if err := db.AutoMigrate(model); err != nil {
-			return err
-		}
-	}
+	// for _, model := range models {
+	// 	if err := db.AutoMigrate(model); err != nil {
+	// 		return err
+	// 	}
+	// }
+	db.AutoMigrate(models...)
 	fmt.Println("models migrated successfully")
 	return nil
 }

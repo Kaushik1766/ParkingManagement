@@ -730,3 +730,116 @@ func TestUserService_UpdateProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestUserService_GetVehiclesByUserId(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockVehicleRepo := mocks.NewMockVehicleStorage(ctrl)
+
+	vehicles := []models.Vehicle{
+		{
+			VehicleID:   uuid.New(),
+			UserID:      userId,
+			NumberPlate: "TEST123456",
+			VehicleType: vehicletypes.FourWheeler,
+			IsActive:    true,
+			AssignedSlot: &models.Slot{
+				BuildingID:  uuid.New(),
+				FloorNumber: 1,
+				SlotNumber:  1,
+				SlotType:    vehicletypes.FourWheeler,
+			},
+		},
+		{
+			VehicleID:    uuid.New(),
+			UserID:       userId,
+			NumberPlate:  "TEST789012",
+			VehicleType:  vehicletypes.TwoWheeler,
+			IsActive:     true,
+			AssignedSlot: nil,
+		},
+	}
+
+	type fields struct {
+		vehicleRepo vehiclerepository.VehicleStorage
+	}
+	type args struct {
+		ctx    context.Context
+		userId string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		mock    func()
+		want    []models.VehicleDTO
+		wantErr bool
+	}{
+		{
+			name:   "Success - Get vehicles with assigned slots",
+			fields: fields{vehicleRepo: mockVehicleRepo},
+			args:   args{ctx: context.Background(), userId: userId.String()},
+			mock: func() {
+				mockVehicleRepo.EXPECT().GetVehiclesByUserId(userId).Return(vehicles, nil)
+			},
+			want: []models.VehicleDTO{
+				{
+					NumberPlate:  "TEST123456",
+					VehicleType:  vehicletypes.FourWheeler.String(),
+					AssignedSlot: *vehicles[0].AssignedSlot,
+				},
+				{
+					NumberPlate:  "TEST789012",
+					VehicleType:  vehicletypes.TwoWheeler.String(),
+					AssignedSlot: models.Slot{}, // Empty slot when no slot is assigned
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:    "Failure - Invalid user ID",
+			fields:  fields{vehicleRepo: mockVehicleRepo},
+			args:    args{ctx: context.Background(), userId: "invalid-uuid"},
+			mock:    func() {},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:   "Failure - Repository error",
+			fields: fields{vehicleRepo: mockVehicleRepo},
+			args:   args{ctx: context.Background(), userId: userId.String()},
+			mock: func() {
+				mockVehicleRepo.EXPECT().GetVehiclesByUserId(userId).Return(nil, errors.New("db error"))
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:   "Success - Empty vehicle list",
+			fields: fields{vehicleRepo: mockVehicleRepo},
+			args:   args{ctx: context.Background(), userId: userId.String()},
+			mock: func() {
+				mockVehicleRepo.EXPECT().GetVehiclesByUserId(userId).Return([]models.Vehicle{}, nil)
+			},
+			want:    []models.VehicleDTO{},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.mock()
+			us := &UserService{
+				vehicleRepo: tt.fields.vehicleRepo,
+			}
+			got, err := us.GetVehiclesByUserId(tt.args.ctx, tt.args.userId)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetVehiclesByUserId() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetVehiclesByUserId() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

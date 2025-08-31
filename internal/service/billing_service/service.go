@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/Kaushik1766/ParkingManagement/internal/config"
 	billingrates "github.com/Kaushik1766/ParkingManagement/internal/constants/billing_rates"
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
@@ -36,8 +35,8 @@ func NewBillingService(userRepo userrepository.UserStorage, parkingRepo parkingh
 }
 
 func (bs *BillingService) GenerateMonthlyInvoice() {
-	time.Sleep(config.BillingDuration)
-	log.Println("billingservice: Generating monthly invoice...")
+	// time.Sleep(config.BillingDuration)
+	// log.Println("billingservice: Generating monthly invoice...")
 	users, err := bs.userRepository.GetAllUsers()
 	if err != nil {
 		log.Println("billingservice: Error fetching users:", err)

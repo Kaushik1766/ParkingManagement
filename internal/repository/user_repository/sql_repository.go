@@ -121,12 +121,10 @@ func (sqlur *SQLUserRepository) SeedAdmin() error {
 	fmt.Println("Admin office found:", adminOffice)
 
 	user := models.User{
-		Name:  "Admin",
-		Email: "admin@a.com",
-		Role:  roles.Admin,
-		Office: models.Office{
-			OfficeID: adminOffice.OfficeID,
-		},
+		Name:     "Admin",
+		Email:    "admin@a.com",
+		Role:     roles.Admin,
+		OfficeID: adminOffice.OfficeID,
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("123"), 12)

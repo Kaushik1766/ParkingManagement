@@ -105,5 +105,5 @@ func (handler *WebVehicleHandler) RemoveVehicle(ctx context.Context, w http.Resp
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusOK)
 }

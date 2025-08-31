@@ -228,11 +228,19 @@ func (us *UserService) GetVehiclesByUserId(ctx context.Context, userId string) (
 
 	var vehicleDTOs []models.VehicleDTO
 	for _, v := range userVehicles {
-		vehicleDTOs = append(vehicleDTOs, models.VehicleDTO{
-			NumberPlate:  v.NumberPlate,
-			VehicleType:  v.VehicleType.String(),
-			AssignedSlot: *v.AssignedSlot,
-		})
+		vehicleDTO := models.VehicleDTO{
+			NumberPlate: v.NumberPlate,
+			VehicleType: v.VehicleType.String(),
+		}
+		if v.AssignedSlot != nil {
+			vehicleDTO.AssignedSlot = *v.AssignedSlot
+		} else {
+			vehicleDTO.AssignedSlot = models.Slot{}
+		}
+		vehicleDTOs = append(vehicleDTOs, vehicleDTO)
+	}
+	if vehicleDTOs == nil {
+		vehicleDTOs = []models.VehicleDTO{}
 	}
 	return vehicleDTOs, nil
 }
