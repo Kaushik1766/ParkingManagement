@@ -1,0 +1,1749 @@
+{
+	"info": {
+		"_postman_id": "bf2b9350-9f28-4f4c-b3e9-f47b356e1391",
+		"name": "1337Park",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29129091"
+	},
+	"item": [
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "register",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+									"    pm.execution.skipRequest()\r",
+									"    return\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(pm.request.body.raw)\r",
+									"\r",
+									"\r",
+									"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+									"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{email}}\",\n  \"name\": \"{{username}}\",\n  \"officeName\": \"{{officeName}}\",\n  \"password\": \"{{password}}\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+									"    pm.execution.skipRequest()\r",
+									"    return\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.iterationData.get(\"apiName\") == pm.info.requestName) {\r",
+									"\r",
+									"    console.log(pm.request.body.raw)\r",
+									"\r",
+									"    pm.test(pm.iterationData.get(\"testName\"), () => {\r",
+									"        pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+									"    })\r",
+									"\r",
+									"    let body = pm.response.json()\r",
+									"    let jwt = body.jwt\r",
+									"    let req = JSON.parse(pm.request.body)\r",
+									"    console.log(req.email)\r",
+									"\r",
+									"    if (pm.response.code == 200) {\r",
+									"        if (req.email == \"admin@a.com\") {\r",
+									"            pm.environment.set(\"adminToken\", jwt)\r",
+									"        }\r",
+									"        else if (req.email == \"kaushik@b.com\") {\r",
+									"            pm.environment.set(\"tempUserToken\", jwt)\r",
+									"        }\r",
+									"        else {\r",
+									"            pm.environment.set(\"userToken\", jwt)\r",
+									"        }\r",
+									"    }\r",
+									"}\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "users",
+			"item": [
+				{
+					"name": "{userid}",
+					"item": [
+						{
+							"name": "deleteProfile",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+											"    pm.execution.skipRequest()\r",
+											"    return\r",
+											"}\r",
+											"\r",
+											"let token = pm.environment.get(\"tempUserToken\");\r",
+											"console.log(token)\r",
+											"\r",
+											"if (token) {\r",
+											"    try {\r",
+											"        let payload = token.split(\".\")[1];\r",
+											"\r",
+											"        let decoded = JSON.parse(\r",
+											"            atob(payload.replace(/-/g, \"+\").replace(/_/g, \"/\"))\r",
+											"        );\r",
+											"\r",
+											"        let userId = decoded.jti;\r",
+											"        console.log(userId)\r",
+											"\r",
+											"        // pm.iterationData.set(\"userId\",userId)\r",
+											"        pm.environment.set(\"userId\",userId)\r",
+											"\r",
+											"\r",
+											"    } catch (e) {\r",
+											"        console.log(\"Failed to decode JWT:\", e);\r",
+											"    }\r",
+											"} else {\r",
+											"    console.log(\"No userToken found in env variables.\");\r",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if(pm.iterationData.get(\"apiName\")==pm.info.requestName)\r",
+											"{console.log(pm.request)\r",
+											"\r",
+											"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+											"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+											"})}\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{tempUserToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/users/:userId",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										":userId"
+									],
+									"variable": [
+										{
+											"key": "userId",
+											"value": "{{userId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "updateProfile",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+											"    pm.execution.skipRequest()\r",
+											"    return\r",
+											"}\r",
+											"\r",
+											"\r",
+											"let token = pm.environment.get(\"userToken\");\r",
+											"// console.log(token)\r",
+											"\r",
+											"if (token) {\r",
+											"    try {\r",
+											"        let payload = token.split(\".\")[1];\r",
+											"\r",
+											"        let decoded = JSON.parse(\r",
+											"            atob(payload.replace(/-/g, \"+\").replace(/_/g, \"/\"))\r",
+											"        );\r",
+											"\r",
+											"        let userId = decoded.jti;\r",
+											"        // console.log(userId)\r",
+											"\r",
+											"        // pm.iterationData.set(\"userId\",userId)\r",
+											"        pm.environment.set(\"userId\",userId)\r",
+											"\r",
+											"\r",
+											"    } catch (e) {\r",
+											"        console.log(\"Failed to decode JWT:\", e);\r",
+											"    }\r",
+											"} else {\r",
+											"    console.log(\"No userToken found in env variables.\");\r",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(pm.request)\r",
+											"\r",
+											"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+											"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+											"})\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{userToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"{{username}}\",\n  \"email\": \"{{email}}\",\n  \"office\": \"{{officeName}}\",\n  \"password\":\"{{password}}\"\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/users/:userid",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"users",
+										":userid"
+									],
+									"variable": [
+										{
+											"key": "userid",
+											"value": "{{userId}}",
+											"description": "(Required) "
+										}
+									]
+								},
+								"description": "customer can update his profile ONLY but admin can update certain fields of any user"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "getUsers",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+									"    pm.execution.skipRequest()\r",
+									"    return\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(pm.request)\r",
+									"\r",
+									"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+									"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/users?userId={{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "{{userId}}"
+								}
+							]
+						},
+						"description": "admin can get all users"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "vehicles",
+			"item": [
+				{
+					"name": "{id}",
+					"item": [
+						{
+							"name": "deleteVehicle",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+											"    pm.execution.skipRequest()\r",
+											"    return\r",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(pm.request)\r",
+											"console.log(pm.response.body)\r",
+											"\r",
+											"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+											"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+											"})\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{userToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/vehicles/:numberplate",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"vehicles",
+										":numberplate"
+									],
+									"variable": [
+										{
+											"key": "numberplate",
+											"value": "{{numberplate}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "getVehicles",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+									"    pm.execution.skipRequest()\r",
+									"    return\r",
+									"}\r",
+									"pm.environment.unset(\"userId\");"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(pm.request)\r",
+									"\r",
+									"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+									"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/vehicles?userId={{userId}}&numberplate={{numberplate}}&isUnassigned={{isUnassigned}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"vehicles"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "{{userId}}",
+									"description": "only admin can fetch for other users, else the userid would be validated and responded accordingly"
+								},
+								{
+									"key": "numberplate",
+									"value": "{{numberplate}}",
+									"description": "user can only query for his own vehicles"
+								},
+								{
+									"key": "isUnassigned",
+									"value": "{{isUnassigned}}"
+								}
+							]
+						},
+						"description": "returns all vehicles for the current user if query params not provided, if admin, then return all vehicles"
+					},
+					"response": []
+				},
+				{
+					"name": "registerVehicle",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+									"    pm.execution.skipRequest()\r",
+									"    return\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(pm.request)\r",
+									"\r",
+									"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+									"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"numberplate\": \"{{numberplate}}\",\n  \"type\": {{vehicleType}}\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/vehicles",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"vehicles"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "parkings",
+			"item": [
+				{
+					"name": "{parkingId}",
+					"item": [
+						{
+							"name": "unpark",
+							"item": [
+								{
+									"name": "unparkVehicle",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+													"    pm.execution.skipRequest()\r",
+													"    return\r",
+													"}"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"console.log(pm.request)\r",
+													"\r",
+													"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+													"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+													"})\r",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{userToken}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PATCH",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/parking/:numberplate/unpark",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"parking",
+												":numberplate",
+												"unpark"
+											],
+											"variable": [
+												{
+													"key": "numberplate",
+													"value": "{{numberplate}}"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "getParkings",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+									"    pm.execution.skipRequest()\r",
+									"    return\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(pm.request)\r",
+									"\r",
+									"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+									"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/parkings?startTime={{startTime}}&endTime={{endTime}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"parkings"
+							],
+							"query": [
+								{
+									"key": "startTime",
+									"value": "{{startTime}}",
+									"description": "start time; default - 1 month ago "
+								},
+								{
+									"key": "endTime",
+									"value": "{{endTime}}",
+									"description": "end time; default - now"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "parkVehicle",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+									"    pm.execution.skipRequest()\r",
+									"    return\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(pm.request)\r",
+									"\r",
+									"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+									"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"numberplate\": \"{{numberplate}}\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/parkings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"parkings"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "buildings",
+			"item": [
+				{
+					"name": "{building_id}",
+					"item": [
+						{
+							"name": "offices",
+							"item": [
+								{
+									"name": "{office_id}",
+									"item": [
+										{
+											"name": "delete office by id",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+															"    pm.execution.skipRequest()\r",
+															"    return\r",
+															"}"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"console.log(pm.request)\r",
+															"\r",
+															"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+															"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+															"})\r",
+															""
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "bearer",
+													"bearer": [
+														{
+															"key": "token",
+															"value": "{{adminToken}}",
+															"type": "string"
+														}
+													]
+												},
+												"method": "DELETE",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/buildings/:building_id/offices/:office_id",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"buildings",
+														":building_id",
+														"offices",
+														":office_id"
+													],
+													"variable": [
+														{
+															"key": "building_id",
+															"value": "{{buildingId}}",
+															"description": "(Required) "
+														},
+														{
+															"key": "office_id",
+															"value": "{{officeId}}",
+															"description": "(Required) "
+														}
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								},
+								{
+									"name": "get all offices",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+													"    pm.execution.skipRequest()\r",
+													"    return\r",
+													"}"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"console.log(pm.request)\r",
+													"\r",
+													"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+													"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+													"})\r",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{adminToken}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/buildings/:building_id/offices/?officeId=string",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"buildings",
+												":building_id",
+												"offices",
+												""
+											],
+											"query": [
+												{
+													"key": "officeId",
+													"value": "string",
+													"description": "query office by id"
+												}
+											],
+											"variable": [
+												{
+													"key": "building_id",
+													"value": "{{buildingId}}",
+													"description": "(Required) "
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "create new office",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+													"    pm.execution.skipRequest()\r",
+													"    return\r",
+													"}"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"console.log(pm.request)\r",
+													"\r",
+													"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+													"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+													"})\r",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{adminToken}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"building_id\": \"{{buildingId}}\",\n  \"office_name\": \"{{officeName}}\"\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/buildings/:building_id/offices/",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"buildings",
+												":building_id",
+												"offices",
+												""
+											],
+											"variable": [
+												{
+													"key": "building_id",
+													"value": "{{buildingId}}",
+													"description": "(Required) "
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "floors",
+							"item": [
+								{
+									"name": "{floor_id}",
+									"item": [
+										{
+											"name": "slots",
+											"item": [
+												{
+													"name": "getAllSlots",
+													"event": [
+														{
+															"listen": "prerequest",
+															"script": {
+																"exec": [
+																	"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+																	"    pm.execution.skipRequest()\r",
+																	"    return\r",
+																	"}"
+																],
+																"type": "text/javascript",
+																"packages": {}
+															}
+														},
+														{
+															"listen": "test",
+															"script": {
+																"exec": [
+																	"console.log(pm.request)\r",
+																	"\r",
+																	"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+																	"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+																	"})\r",
+																	""
+																],
+																"type": "text/javascript",
+																"packages": {}
+															}
+														}
+													],
+													"request": {
+														"auth": {
+															"type": "bearer",
+															"bearer": [
+																{
+																	"key": "token",
+																	"value": "{{adminToken}}",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "GET",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/buildings/:buildingId/floors/:floorId/slots",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"buildings",
+																":buildingId",
+																"floors",
+																":floorId",
+																"slots"
+															],
+															"variable": [
+																{
+																	"key": "buildingId",
+																	"value": "{{builidingId}}"
+																},
+																{
+																	"key": "floorId",
+																	"value": "{{floorNumber}}"
+																}
+															]
+														}
+													},
+													"response": []
+												}
+											]
+										},
+										{
+											"name": "delete floor by floor number",
+											"event": [
+												{
+													"listen": "prerequest",
+													"script": {
+														"exec": [
+															"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+															"    pm.execution.skipRequest()\r",
+															"    return\r",
+															"}"
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												},
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"console.log(pm.request)\r",
+															"\r",
+															"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+															"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+															"})\r",
+															""
+														],
+														"type": "text/javascript",
+														"packages": {}
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "bearer",
+													"bearer": [
+														{
+															"key": "token",
+															"value": "{{adminToken}}",
+															"type": "string"
+														}
+													]
+												},
+												"method": "DELETE",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/buildings/:building_id/floors/:floor_id",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"buildings",
+														":building_id",
+														"floors",
+														":floor_id"
+													],
+													"variable": [
+														{
+															"key": "building_id",
+															"value": "{{buildingId}}",
+															"description": "(Required) "
+														},
+														{
+															"key": "floor_id",
+															"value": "{{floorNumber}}",
+															"description": "(Required) "
+														}
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								},
+								{
+									"name": "get all floors in building",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+													"    pm.execution.skipRequest()\r",
+													"    return\r",
+													"}"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"console.log(pm.request)\r",
+													"\r",
+													"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+													"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+													"})\r",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{adminToken}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/buildings/:building_id/floors?floorId=2624.9741640889292",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"buildings",
+												":building_id",
+												"floors"
+											],
+											"query": [
+												{
+													"key": "floorId",
+													"value": "2624.9741640889292",
+													"description": "query floor by id (number)"
+												}
+											],
+											"variable": [
+												{
+													"key": "building_id",
+													"value": "{{buildingId}}",
+													"description": "(Required) "
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "create new floor",
+									"event": [
+										{
+											"listen": "prerequest",
+											"script": {
+												"exec": [
+													"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+													"    pm.execution.skipRequest()\r",
+													"    return\r",
+													"}"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										},
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"console.log(pm.request)\r",
+													"\r",
+													"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+													"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+													"})\r",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "bearer",
+											"bearer": [
+												{
+													"key": "token",
+													"value": "{{adminToken}}",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"floor_number\": {{floorNumber}}\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/buildings/:building_id/floors",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"buildings",
+												":building_id",
+												"floors"
+											],
+											"variable": [
+												{
+													"key": "building_id",
+													"value": "{{buildingId}}",
+													"description": "(Required) "
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "deleteBuildingById",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+											"    pm.execution.skipRequest()\r",
+											"    return\r",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"console.log(pm.request)\r",
+											"\r",
+											"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+											"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+											"})\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{adminToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/buildings/:building_id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"buildings",
+										":building_id"
+									],
+									"variable": [
+										{
+											"key": "building_id",
+											"value": "{{buildingId}}",
+											"description": "(Required) "
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "getBuildings",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+									"    pm.execution.skipRequest()\r",
+									"    return\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(pm.request)\r",
+									"\r",
+									"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+									"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/buildings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"buildings"
+							],
+							"query": [
+								{
+									"key": "buildingId",
+									"value": "{{buildingId}}",
+									"description": "query building by id",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "addBuilding",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"if (pm.iterationData.get(\"apiName\")!=pm.info.requestName){\r",
+									"    pm.execution.skipRequest()\r",
+									"    return\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(pm.request)\r",
+									"\r",
+									"pm.test(pm.iterationData.get(\"testName\"),()=>{\r",
+									"    pm.response.to.have.status(pm.iterationData.get(\"status\"))\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"building_name\": \"{{buildingName}}\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/buildings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"buildings"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000/api/v1"
+		},
+		{
+			"key": "adminToken",
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTY3MjUwNTIsImlhdCI6MTc1NjYzODY1MiwianRpIjoiNzA0NTBhZTEtZWRiOC00YmMzLWI3NjQtOWE2NWQzYjA5ZTI4IiwiZW1haWwiOiJhZG1pbkBhLmNvbSIsInJvbGUiOjEsIm9mZmljZSI6IkFETUlOX09GRklDRSJ9.kjo-I01Qr6-oWRWr8NbmFa4C-j-nixIGKNI82uP2RHU",
+			"disabled": true
+		},
+		{
+			"key": "userToken",
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTY3MjY1MzksImlhdCI6MTc1NjY0MDEzOSwianRpIjoiMThjNzhiZTQtOTk1NC00NDU0LWFhOTYtZTU4NmM1NTYzMjgyIiwiZW1haWwiOiJrYXVzaGlrQGIuY29tIiwicm9sZSI6MCwib2ZmaWNlIjoiVEVTVF9PRkZJQ0UifQ.RzEBdoNn0kIqQmUZ5jeyubk2izqIrB_6qVjxTjbWar8",
+			"disabled": true
+		}
+	]
+}

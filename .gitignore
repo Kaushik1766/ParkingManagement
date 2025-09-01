@@ -1,5 +1,5 @@
 **/*.exe
-**/*.json
+# **/*.json
 **/*.txt
 main
 **/*.out
