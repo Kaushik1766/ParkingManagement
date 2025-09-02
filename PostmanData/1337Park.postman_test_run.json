@@ -1,0 +1,606 @@
+{
+	"id": "7ee0d034-9d07-424c-b98a-765f307353d6",
+	"name": "1337Park",
+	"timestamp": "2025-09-01T04:46:36.212Z",
+	"collection_id": "29129091-bf2b9350-9f28-4f4c-b3e9-f47b356e1391",
+	"folder_id": 0,
+	"environment_id": "29129091-c6ad630d-5871-41a6-baf9-321544d85be1",
+	"totalPass": 25,
+	"delay": 0,
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2025-09-01T04:46:12.571Z",
+	"totalFail": 3,
+	"results": [
+		{
+			"id": "d249479a-2753-4c7c-bef6-37b1716829ca",
+			"name": "register",
+			"url": "http://localhost:3000/api/v1/auth/register",
+			"time": 2,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"invalid register": true
+			},
+			"testPassFailCounts": {
+				"valid register": {
+					"pass": 3,
+					"fail": 0
+				},
+				"invalid register": {
+					"pass": 2,
+					"fail": 0
+				}
+			},
+			"times": [
+				277,
+				274,
+				303,
+				262,
+				2
+			],
+			"allTests": [
+				{
+					"valid register": true
+				},
+				{
+					"valid register": true
+				},
+				{
+					"valid register": true
+				},
+				{
+					"invalid register": true
+				},
+				{
+					"invalid register": true
+				}
+			]
+		},
+		{
+			"id": "ec577ecd-b9f8-47a1-b0cf-307ecffabe56",
+			"name": "login",
+			"url": "http://localhost:3000/api/v1/auth/login",
+			"time": 281,
+			"responseCode": {
+				"code": 401,
+				"name": "Unauthorized"
+			},
+			"tests": {
+				"invalid login": true
+			},
+			"testPassFailCounts": {
+				"valid login": {
+					"pass": 3,
+					"fail": 0
+				},
+				"invalid login": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				286,
+				268,
+				275,
+				281
+			],
+			"allTests": [
+				{
+					"valid login": true
+				},
+				{
+					"valid login": true
+				},
+				{
+					"valid login": true
+				},
+				{
+					"invalid login": true
+				}
+			]
+		},
+		{
+			"id": "078668d7-a89d-4a41-b015-fb6cc3b9c383",
+			"name": "getUsers",
+			"url": "http://localhost:3000/api/v1/users?userId={{userId}}",
+			"time": 10,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"fetch all users": true
+			},
+			"testPassFailCounts": {
+				"fetch all users": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				10
+			],
+			"allTests": [
+				{
+					"fetch all users": true
+				}
+			]
+		},
+		{
+			"id": "6ff488b8-64ee-4fab-bb99-d22c018eac67",
+			"name": "updateProfile",
+			"url": "http://localhost:3000/api/v1/users/613c6d10-2bce-4804-a4b9-3edbbc85889c",
+			"time": 20,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"valid profile update": true
+			},
+			"testPassFailCounts": {
+				"valid profile update": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				20
+			],
+			"allTests": [
+				{
+					"valid profile update": true
+				}
+			]
+		},
+		{
+			"id": "6b9881ab-cba0-4948-971b-dbcf5bd6ab7e",
+			"name": "deleteProfile",
+			"url": "http://localhost:3000/api/v1/users/b5b71851-9b55-4bf6-8478-d8e2b52b0f3d",
+			"time": 18,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"valid profile delete": true
+			},
+			"testPassFailCounts": {
+				"valid profile delete": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				18
+			],
+			"allTests": [
+				{
+					"valid profile delete": true
+				}
+			]
+		},
+		{
+			"id": "78e0eaa1-d6e3-4822-bb3d-6d350253cbbf",
+			"name": "registerVehicle",
+			"url": "http://localhost:3000/api/v1/vehicles",
+			"time": 8,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"invalid reigster vehicle": true
+			},
+			"testPassFailCounts": {
+				"valid register vehicle": {
+					"pass": 1,
+					"fail": 0
+				},
+				"invalid reigster vehicle": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				31,
+				8
+			],
+			"allTests": [
+				{
+					"valid register vehicle": true
+				},
+				{
+					"invalid reigster vehicle": true
+				}
+			]
+		},
+		{
+			"id": "714bd294-3652-4dbf-aaf5-3c6005d6acc9",
+			"name": "getVehicles",
+			"url": "http://localhost:3000/api/v1/vehicles?userId={{userId}}&numberplate=&isUnassigned=",
+			"time": 9,
+			"responseCode": {
+				"code": 500,
+				"name": "Internal Server Error"
+			},
+			"tests": {
+				"get all vehicles": true
+			},
+			"testPassFailCounts": {
+				"get all vehicles": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				9
+			],
+			"allTests": [
+				{
+					"get all vehicles": true
+				}
+			]
+		},
+		{
+			"id": "bb8d8c8b-4849-4194-ac8b-a9f4b2b7c6d2",
+			"name": "deleteVehicle",
+			"url": "http://localhost:3000/api/v1/vehicles/up32df1232",
+			"time": 5,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"delete vehicle": true
+			},
+			"testPassFailCounts": {
+				"delete vehicle": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				5
+			],
+			"allTests": [
+				{
+					"delete vehicle": true
+				}
+			]
+		},
+		{
+			"id": "76f3405d-ed93-40a2-b21e-505a5824128c",
+			"name": "parkVehicle",
+			"url": "http://localhost:3000/api/v1/parkings",
+			"time": 6,
+			"responseCode": {
+				"code": 500,
+				"name": "Internal Server Error"
+			},
+			"tests": {
+				"valid park vehicle": false
+			},
+			"testPassFailCounts": {
+				"valid park vehicle": {
+					"pass": 1,
+					"fail": 1
+				}
+			},
+			"times": [
+				7,
+				6
+			],
+			"allTests": [
+				{
+					"valid park vehicle": true
+				},
+				{
+					"valid park vehicle": false
+				}
+			]
+		},
+		{
+			"id": "2a5fd1e2-a8d2-4651-a959-d2e938f2f64f",
+			"name": "getParkings",
+			"url": "http://localhost:3000/api/v1/parkings?startTime={{startTime}}&endTime={{endTime}}",
+			"time": 3,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"get parkings": false
+			},
+			"testPassFailCounts": {
+				"get parkings": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				3
+			],
+			"allTests": [
+				{
+					"get parkings": false
+				}
+			]
+		},
+		{
+			"id": "f117c7a3-2250-4e7d-b614-cfb0d41e53cf",
+			"name": "unparkVehicle",
+			"url": "http://localhost:3000/api/v1/parking/up32df1233/unpark",
+			"time": 4,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"valid unpark vehicle": false
+			},
+			"testPassFailCounts": {
+				"valid unpark vehicle": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				4
+			],
+			"allTests": [
+				{
+					"valid unpark vehicle": false
+				}
+			]
+		},
+		{
+			"id": "837fa686-c674-4cb2-b5b9-2db0df43476c",
+			"name": "addBuilding",
+			"url": "http://localhost:3000/api/v1/buildings",
+			"time": 8,
+			"responseCode": {
+				"code": 500,
+				"name": "Internal Server Error"
+			},
+			"tests": {
+				"invalid add building": true
+			},
+			"testPassFailCounts": {
+				"valid add building": {
+					"pass": 2,
+					"fail": 0
+				},
+				"invalid add building": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				20,
+				19,
+				8
+			],
+			"allTests": [
+				{
+					"valid add building": true
+				},
+				{
+					"valid add building": true
+				},
+				{
+					"invalid add building": true
+				}
+			]
+		},
+		{
+			"id": "4680a8c3-3dd5-4987-bb07-c695a605be4d",
+			"name": "getBuildings",
+			"url": "http://localhost:3000/api/v1/buildings",
+			"time": 8,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"valid get buildings": true
+			},
+			"testPassFailCounts": {
+				"valid get buildings": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				8
+			],
+			"allTests": [
+				{
+					"valid get buildings": true
+				}
+			]
+		},
+		{
+			"id": "15734df5-1fd7-4e6f-851c-8927e22a55dd",
+			"name": "addFloor",
+			"url": "http://localhost:3000/api/v1/buildings/497cf256-8163-4190-b475-a532020434b7/floors",
+			"time": 8,
+			"responseCode": {
+				"code": 500,
+				"name": "Internal Server Error"
+			},
+			"tests": {
+				"invalid add floor": true
+			},
+			"testPassFailCounts": {
+				"add floors": {
+					"pass": 1,
+					"fail": 0
+				},
+				"invalid add floor": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				24,
+				8
+			],
+			"allTests": [
+				{
+					"add floors": true
+				},
+				{
+					"invalid add floor": true
+				}
+			]
+		},
+		{
+			"id": "e26cad3e-543e-4b94-8389-2dad850b2361",
+			"name": "getFloors",
+			"url": "http://localhost:3000/api/v1/buildings/497cf256-8163-4190-b475-a532020434b7/floors?floorId=1",
+			"time": 6,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"valid get floors": true
+			},
+			"testPassFailCounts": {
+				"valid get floors": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				6
+			],
+			"allTests": [
+				{
+					"valid get floors": true
+				}
+			]
+		},
+		{
+			"id": "7a92a141-b83c-4081-89e7-715fd71a5354",
+			"name": "getAllSlots",
+			"url": "http://localhost:3000/api/v1/buildings/497cf256-8163-4190-b475-a532020434b7/floors/1/slots",
+			"time": 7,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"valid get slots": true
+			},
+			"testPassFailCounts": {
+				"valid get slots": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				7
+			],
+			"allTests": [
+				{
+					"valid get slots": true
+				}
+			]
+		}
+	],
+	"count": 28,
+	"totalTime": 2449,
+	"collection": {
+		"requests": [
+			{
+				"id": "d249479a-2753-4c7c-bef6-37b1716829ca",
+				"method": "POST"
+			},
+			{
+				"id": "ec577ecd-b9f8-47a1-b0cf-307ecffabe56",
+				"method": "POST"
+			},
+			{
+				"id": "6b9881ab-cba0-4948-971b-dbcf5bd6ab7e",
+				"method": "DELETE"
+			},
+			{
+				"id": "6ff488b8-64ee-4fab-bb99-d22c018eac67",
+				"method": "PATCH"
+			},
+			{
+				"id": "078668d7-a89d-4a41-b015-fb6cc3b9c383",
+				"method": "GET"
+			},
+			{
+				"id": "bb8d8c8b-4849-4194-ac8b-a9f4b2b7c6d2",
+				"method": "DELETE"
+			},
+			{
+				"id": "714bd294-3652-4dbf-aaf5-3c6005d6acc9",
+				"method": "GET"
+			},
+			{
+				"id": "78e0eaa1-d6e3-4822-bb3d-6d350253cbbf",
+				"method": "POST"
+			},
+			{
+				"id": "f117c7a3-2250-4e7d-b614-cfb0d41e53cf",
+				"method": "PATCH"
+			},
+			{
+				"id": "2a5fd1e2-a8d2-4651-a959-d2e938f2f64f",
+				"method": "GET"
+			},
+			{
+				"id": "76f3405d-ed93-40a2-b21e-505a5824128c",
+				"method": "POST"
+			},
+			{
+				"id": "a2d3465c-d49f-486b-9a84-3aab77dfb148",
+				"method": "DELETE"
+			},
+			{
+				"id": "6bccff2b-bf85-4880-aecf-3948c668e42b",
+				"method": "GET"
+			},
+			{
+				"id": "49baba73-628d-4198-869f-135485caafa4",
+				"method": "POST"
+			},
+			{
+				"id": "7a92a141-b83c-4081-89e7-715fd71a5354",
+				"method": "GET"
+			},
+			{
+				"id": "8c1b4acf-d706-448a-84df-885de69feda0",
+				"method": "DELETE"
+			},
+			{
+				"id": "e26cad3e-543e-4b94-8389-2dad850b2361",
+				"method": "GET"
+			},
+			{
+				"id": "15734df5-1fd7-4e6f-851c-8927e22a55dd",
+				"method": "POST"
+			},
+			{
+				"id": "dc2d296f-6e97-461a-9ed1-f9ee42aa7091",
+				"method": "DELETE"
+			},
+			{
+				"id": "4680a8c3-3dd5-4987-bb07-c695a605be4d",
+				"method": "GET"
+			},
+			{
+				"id": "837fa686-c674-4cb2-b5b9-2db0df43476c",
+				"method": "POST"
+			}
+		]
+	}
+}

@@ -1,0 +1,14 @@
+
+config:
+  target: "http://localhost:3000"
+  phases:
+    - duration: 30
+      arrivalRate: 5
+scenarios:
+  - name: "User login"
+    flow:
+      - post:
+          url: "/api/v1/auth/login"
+          json:
+            email: "kaushik@a.com"
+            password: "123"

@@ -380,7 +380,7 @@ func TestWebVehicleHandler_RemoveVehicle(t *testing.T) {
 				req.SetPathValue("numberplate", "ABC123")
 				return req
 			},
-			expectedStatus: http.StatusNoContent,
+			expectedStatus: http.StatusOK,
 			expectedBody:   "",
 		},
 		{

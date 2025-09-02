@@ -2,4 +2,3 @@ email,password,status
 "kaushik@a.com","123",200
 "test@a.com","123",401
 "invalid","333",400
-    
