@@ -138,13 +138,13 @@ func (us *UserService) GetRegisteredVehicles(ctx context.Context) ([]models.Vehi
 			userVehicleDTO = append(userVehicleDTO, models.VehicleDTO{
 				NumberPlate:  v.NumberPlate,
 				VehicleType:  v.VehicleType.String(),
-				AssignedSlot: models.Slot{},
+				AssignedSlot: nil,
 			})
 		} else {
 			userVehicleDTO = append(userVehicleDTO, models.VehicleDTO{
 				NumberPlate:  v.NumberPlate,
 				VehicleType:  v.VehicleType.String(),
-				AssignedSlot: *v.AssignedSlot,
+				AssignedSlot: v.AssignedSlot,
 			})
 		}
 	}
@@ -233,9 +233,9 @@ func (us *UserService) GetVehiclesByUserId(ctx context.Context, userId string) (
 			VehicleType: v.VehicleType.String(),
 		}
 		if v.AssignedSlot != nil {
-			vehicleDTO.AssignedSlot = *v.AssignedSlot
+			vehicleDTO.AssignedSlot = v.AssignedSlot
 		} else {
-			vehicleDTO.AssignedSlot = models.Slot{}
+			vehicleDTO.AssignedSlot = nil
 		}
 		vehicleDTOs = append(vehicleDTOs, vehicleDTO)
 	}

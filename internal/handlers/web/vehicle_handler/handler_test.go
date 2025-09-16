@@ -72,14 +72,14 @@ func TestWebVehicleHandler_GetVehicles(t *testing.T) {
 					{
 						NumberPlate: "ABC123",
 						VehicleType: "TwoWheeler",
-						AssignedSlot: models.Slot{
+						AssignedSlot: &models.Slot{
 							SlotNumber: 1,
 						},
 					},
 					{
 						NumberPlate: "XYZ789",
 						VehicleType: "FourWheeler",
-						AssignedSlot: models.Slot{
+						AssignedSlot: &models.Slot{
 							SlotNumber: 2,
 						},
 					},
@@ -128,14 +128,14 @@ func TestWebVehicleHandler_GetVehicles(t *testing.T) {
 					{
 						NumberPlate: "DEF456",
 						VehicleType: "TwoWheeler",
-						AssignedSlot: models.Slot{
+						AssignedSlot: &models.Slot{
 							SlotNumber: 3,
 						},
 					},
 					{
 						NumberPlate: "GHI789",
 						VehicleType: "FourWheeler",
-						AssignedSlot: models.Slot{
+						AssignedSlot: &models.Slot{
 							SlotNumber: 4,
 						},
 					},

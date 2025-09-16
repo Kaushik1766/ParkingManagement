@@ -18,6 +18,7 @@ type Vehicle struct {
 	AssignedSlotNumber *int  `gorm:"default:null;type:int"`
 	AssignedSlot       *Slot `gorm:"foreignKey:AssignedBuildingID,AssignedFloorNumber,AssignedSlotNumber;references:BuildingID,FloorNumber,SlotNumber"`
 	IsActive           bool  `gorm:"default:true"`
+	// ParkingHistories    []ParkingHistory         `gorm:"foreignKey:VehicleID;references:VehicleID"`
 }
 
 // func (v Vehicle) GetID() string {

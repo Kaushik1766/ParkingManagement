@@ -20,8 +20,10 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-var userId = uuid.New()
-var adminId = uuid.New()
+var (
+	userId  = uuid.New()
+	adminId = uuid.New()
+)
 
 var adminCtx = context.WithValue(context.Background(), constants.User, models.UserJwt{
 	RegisteredClaims: jwt.RegisteredClaims{
@@ -31,6 +33,7 @@ var adminCtx = context.WithValue(context.Background(), constants.User, models.Us
 	Role:   roles.Admin,
 	Office: "wg",
 })
+
 var userCtx = context.WithValue(context.Background(), constants.User, models.UserJwt{
 	RegisteredClaims: jwt.RegisteredClaims{
 		ID: userId.String(),
@@ -39,6 +42,7 @@ var userCtx = context.WithValue(context.Background(), constants.User, models.Use
 	Role:   roles.Customer,
 	Office: "wg",
 })
+
 var unauthorizedCtx = context.WithValue(context.Background(), constants.User, models.UserJwt{
 	RegisteredClaims: jwt.RegisteredClaims{
 		ID: uuid.New().String(),
@@ -296,12 +300,12 @@ func TestUserService_GetRegisteredVehicles(t *testing.T) {
 			},
 			want: []models.VehicleDTO{
 				{
-					AssignedSlot: models.Slot{},
+					AssignedSlot: nil,
 					VehicleType:  vehicletypes.TwoWheeler.String(),
 					NumberPlate:  "asdf",
 				},
 				{
-					AssignedSlot: models.Slot{},
+					AssignedSlot: nil,
 					VehicleType:  vehicletypes.TwoWheeler.String(),
 					NumberPlate:  "asde",
 				},
@@ -682,7 +686,8 @@ func TestUserService_UpdateProfile(t *testing.T) {
 						}
 						return p
 					}(),
-				}},
+				},
+			},
 			mock: func() {
 				mockUserRepo.EXPECT().GetUserById(userId.String()).Return(user, nil)
 				mockOfficeRepo.EXPECT().GetOfficeByName("wg").Return(office, nil)
@@ -787,12 +792,12 @@ func TestUserService_GetVehiclesByUserId(t *testing.T) {
 				{
 					NumberPlate:  "TEST123456",
 					VehicleType:  vehicletypes.FourWheeler.String(),
-					AssignedSlot: *vehicles[0].AssignedSlot,
+					AssignedSlot: vehicles[0].AssignedSlot,
 				},
 				{
 					NumberPlate:  "TEST789012",
 					VehicleType:  vehicletypes.TwoWheeler.String(),
-					AssignedSlot: models.Slot{}, // Empty slot when no slot is assigned
+					AssignedSlot: nil,
 				},
 			},
 			wantErr: false,
