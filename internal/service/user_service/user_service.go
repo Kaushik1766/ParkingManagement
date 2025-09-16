@@ -134,19 +134,11 @@ func (us *UserService) GetRegisteredVehicles(ctx context.Context) ([]models.Vehi
 
 	var userVehicleDTO []models.VehicleDTO
 	for _, v := range userVehicles {
-		if v.AssignedSlot == nil {
-			userVehicleDTO = append(userVehicleDTO, models.VehicleDTO{
-				NumberPlate:  v.NumberPlate,
-				VehicleType:  v.VehicleType.String(),
-				AssignedSlot: nil,
-			})
-		} else {
-			userVehicleDTO = append(userVehicleDTO, models.VehicleDTO{
-				NumberPlate:  v.NumberPlate,
-				VehicleType:  v.VehicleType.String(),
-				AssignedSlot: v.AssignedSlot,
-			})
-		}
+		userVehicleDTO = append(userVehicleDTO, models.VehicleDTO{
+			NumberPlate:  v.NumberPlate,
+			VehicleType:  v.VehicleType.String(),
+			AssignedSlot: v.AssignedSlot,
+		})
 	}
 	return userVehicleDTO, nil
 }
@@ -229,13 +221,9 @@ func (us *UserService) GetVehiclesByUserId(ctx context.Context, userId string) (
 	var vehicleDTOs []models.VehicleDTO
 	for _, v := range userVehicles {
 		vehicleDTO := models.VehicleDTO{
-			NumberPlate: v.NumberPlate,
-			VehicleType: v.VehicleType.String(),
-		}
-		if v.AssignedSlot != nil {
-			vehicleDTO.AssignedSlot = v.AssignedSlot
-		} else {
-			vehicleDTO.AssignedSlot = nil
+			NumberPlate:  v.NumberPlate,
+			VehicleType:  v.VehicleType.String(),
+			AssignedSlot: v.AssignedSlot,
 		}
 		vehicleDTOs = append(vehicleDTOs, vehicleDTO)
 	}

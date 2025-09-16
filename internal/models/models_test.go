@@ -290,7 +290,7 @@ func TestVehicleDTO_String(t *testing.T) {
 			v := VehicleDTO{
 				NumberPlate:  tt.fields.NumberPlate,
 				VehicleType:  tt.fields.VehicleType,
-				AssignedSlot: &tt.fields.AssignedSlot,
+				AssignedSlot: tt.fields.AssignedSlot,
 			}
 			if got := v.String(); got != tt.want {
 				t.Errorf("String() = %v, want %v", got, tt.want)

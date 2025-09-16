@@ -13,7 +13,7 @@ type Slot struct {
 	FloorNumber int                      `gorm:"primaryKey;type:int"`
 	SlotNumber  int                      `gorm:"primaryKey;type:int"`
 	SlotType    vehicletypes.VehicleType `gorm:"not null"`
-	Vehicles    []Vehicle                `gorm:"foreignKey:AssignedBuildingID,AssignedFloorNumber,AssignedSlotNumber"`
+	Vehicles    []Vehicle                `json:"-"gorm:"foreignKey:AssignedBuildingID,AssignedFloorNumber,AssignedSlotNumber"`
 }
 
 type SlotDTO struct {

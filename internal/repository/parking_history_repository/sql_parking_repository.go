@@ -22,10 +22,6 @@ func (sqlpr *SQLParkingRepository) UnparkByNumberPlate(numberplate string) error
 }
 
 func (sqlpr *SQLParkingRepository) AddParking(vehicle models.Vehicle) (string, error) {
-	if vehicle.AssignedSlot == nil {
-		return "", errors.New("parkingrepo: vehicle does not have an assigned slot")
-	}
-
 	var pastParking models.ParkingHistory
 	err := sqlpr.db.Joins("left join vehicles on parking_histories.vehicle_id = vehicles.vehicle_id").
 		Where("vehicles.assigned_building_id = ? AND vehicles.assigned_floor_number = ? AND vehicles.assigned_slot_number = ? AND end_time IS NULL", vehicle.AssignedBuildingID, vehicle.AssignedFloorNumber, vehicle.AssignedSlot.SlotNumber).
@@ -65,8 +61,8 @@ func (sqlpr *SQLParkingRepository) GetParkingHistoryByNumberPlate(numberplate st
 			TicketId:     parking.ParkingID.String(),
 			NumberPlate:  parking.Vehicle.NumberPlate,
 			BuildingId:   parking.Vehicle.AssignedBuildingID.String(),
-			FLoorNumber:  *parking.Vehicle.AssignedFloorNumber,
-			SlotNumber:   *parking.Vehicle.AssignedSlotNumber,
+			FLoorNumber:  parking.Vehicle.AssignedFloorNumber,
+			SlotNumber:   parking.Vehicle.AssignedSlotNumber,
 			StartTime:    parking.StartTime.Local(),
 			EndTime:      parking.EndTime.Local(),
 			VechicleType: parking.Vehicle.VehicleType,
@@ -110,17 +106,15 @@ func (sqlpr *SQLParkingRepository) GetActiveUserParkings(userId string) ([]model
 	}
 	var activeParkingsDTO []models.ParkingHistoryDTO
 	for _, parking := range activeParkings {
-		if parking.Vehicle.AssignedSlot != nil {
-			activeParkingsDTO = append(activeParkingsDTO, models.ParkingHistoryDTO{
-				TicketId:     parking.ParkingID.String(),
-				NumberPlate:  parking.Vehicle.NumberPlate,
-				BuildingId:   parking.Vehicle.AssignedSlot.String(),
-				FLoorNumber:  parking.Vehicle.AssignedSlot.FloorNumber,
-				SlotNumber:   parking.Vehicle.AssignedSlot.SlotNumber,
-				StartTime:    parking.StartTime.Local(),
-				VechicleType: parking.Vehicle.VehicleType,
-			})
-		}
+		activeParkingsDTO = append(activeParkingsDTO, models.ParkingHistoryDTO{
+			TicketId:     parking.ParkingID.String(),
+			NumberPlate:  parking.Vehicle.NumberPlate,
+			BuildingId:   parking.Vehicle.AssignedSlot.String(),
+			FLoorNumber:  parking.Vehicle.AssignedSlot.FloorNumber,
+			SlotNumber:   parking.Vehicle.AssignedSlot.SlotNumber,
+			StartTime:    parking.StartTime.Local(),
+			VechicleType: parking.Vehicle.VehicleType,
+		})
 	}
 	return activeParkingsDTO, nil
 }

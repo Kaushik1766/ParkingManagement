@@ -21,11 +21,13 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-var userId = uuid.New()
-var adminId = uuid.New()
-var vehicleId = uuid.New()
-var buildingId = uuid.New()
-var officeId = uuid.New()
+var (
+	userId     = uuid.New()
+	adminId    = uuid.New()
+	vehicleId  = uuid.New()
+	buildingId = uuid.New()
+	officeId   = uuid.New()
+)
 
 var adminCtx = context.WithValue(context.Background(), constants.User, models.UserJwt{
 	RegisteredClaims: jwt.RegisteredClaims{
@@ -35,6 +37,7 @@ var adminCtx = context.WithValue(context.Background(), constants.User, models.Us
 	Role:   roles.Admin,
 	Office: "wg",
 })
+
 var userCtx = context.WithValue(context.Background(), constants.User, models.UserJwt{
 	RegisteredClaims: jwt.RegisteredClaims{
 		ID: userId.String(),
@@ -324,8 +327,8 @@ func TestSlotAssignmentService_AutoAssignSlot(t *testing.T) {
 			mock: func() {
 				existingVehicle := models.Vehicle{
 					VehicleType:        vehicletypes.FourWheeler,
-					AssignedSlot:       &slot,
-					AssignedBuildingID: &buildingId,
+					AssignedSlot:       slot,
+					AssignedBuildingID: buildingId,
 				}
 				mockVehicleRepo.EXPECT().GetVehiclesByUserId(userId).Return([]models.Vehicle{existingVehicle}, nil)
 				mockVehicleRepo.EXPECT().GetVehicleById(vehicleId).Return(vehicle, nil)
@@ -425,8 +428,8 @@ func TestSlotAssignmentService_AutoAssignSlot(t *testing.T) {
 			mock: func() {
 				existingVehicle := models.Vehicle{
 					VehicleType:        vehicletypes.FourWheeler,
-					AssignedSlot:       &slot,
-					AssignedBuildingID: &buildingId,
+					AssignedSlot:       slot,
+					AssignedBuildingID: buildingId,
 				}
 				mockVehicleRepo.EXPECT().GetVehiclesByUserId(userId).Return([]models.Vehicle{existingVehicle}, nil)
 				mockVehicleRepo.EXPECT().GetVehicleById(vehicleId).Return(vehicle, nil)
@@ -553,307 +556,6 @@ func TestSlotAssignmentService_AutoAssignSlot(t *testing.T) {
 			}
 			if err := sas.AutoAssignSlot(tt.args.ctx, tt.args.vehicleId); (err != nil) != tt.wantErr {
 				t.Errorf("AutoAssignSlot() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestSlotAssignmentService_GetVehiclesWithUnassignedSlots(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockVehicleRepo := mocks.NewMockVehicleStorage(ctrl)
-
-	vehicles := []models.Vehicle{
-		{
-			VehicleID:    uuid.New(),
-			UserID:       userId,
-			NumberPlate:  "TEST123456",
-			VehicleType:  vehicletypes.FourWheeler,
-			AssignedSlot: nil,
-			IsActive:     true,
-		},
-		{
-			VehicleID:    uuid.New(),
-			UserID:       userId,
-			NumberPlate:  "TEST654321",
-			VehicleType:  vehicletypes.TwoWheeler,
-			AssignedSlot: nil,
-			IsActive:     true,
-		},
-	}
-
-	type fields struct {
-		vehicleRepo  vehiclerepository.VehicleStorage
-		floorRepo    floorrepository.FloorStorage
-		buildingRepo buildingrepository.BuildingStorage
-		slotRepo     slotrepository.SlotStorage
-		officeRepo   officerepository.OfficeStorage
-	}
-	type args struct {
-		ctx context.Context
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		mock    func()
-		want    []models.Vehicle
-		wantErr bool
-	}{
-		{
-			name: "success - admin gets unassigned vehicles",
-			fields: fields{
-				vehicleRepo: mockVehicleRepo,
-			},
-			args: args{
-				ctx: adminCtx,
-			},
-			mock: func() {
-				mockVehicleRepo.EXPECT().GetVehiclesWithUnassignedSlots().Return(vehicles, nil)
-			},
-			want:    vehicles,
-			wantErr: false,
-		},
-		{
-			name: "failure - non-admin user",
-			fields: fields{
-				vehicleRepo: mockVehicleRepo,
-			},
-			args: args{
-				ctx: userCtx,
-			},
-			mock:    func() {},
-			want:    nil,
-			wantErr: true,
-		},
-		{
-			name: "failure - database error",
-			fields: fields{
-				vehicleRepo: mockVehicleRepo,
-			},
-			args: args{
-				ctx: adminCtx,
-			},
-			mock: func() {
-				mockVehicleRepo.EXPECT().GetVehiclesWithUnassignedSlots().Return(nil, errors.New("db error"))
-			},
-			want:    nil,
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.mock()
-			sas := &SlotAssignmentService{
-				vehicleRepo:  tt.fields.vehicleRepo,
-				floorRepo:    tt.fields.floorRepo,
-				buildingRepo: tt.fields.buildingRepo,
-				slotRepo:     tt.fields.slotRepo,
-				officeRepo:   tt.fields.officeRepo,
-			}
-			got, err := sas.GetVehiclesWithUnassignedSlots(tt.args.ctx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetVehiclesWithUnassignedSlots() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetVehiclesWithUnassignedSlots() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestSlotAssignmentService_UnassignSlot(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockVehicleRepo := mocks.NewMockVehicleStorage(ctrl)
-	mockSlotRepo := mocks.NewMockSlotStorage(ctrl)
-
-	slot := models.Slot{
-		BuildingID:  buildingId,
-		FloorNumber: 1,
-		SlotNumber:  1,
-		SlotType:    vehicletypes.FourWheeler,
-		Vehicles:    []models.Vehicle{},
-	}
-
-	vehicle := models.Vehicle{
-		VehicleID:    vehicleId,
-		UserID:       userId,
-		NumberPlate:  "TEST123456",
-		VehicleType:  vehicletypes.FourWheeler,
-		AssignedSlot: &slot,
-		IsActive:     true,
-	}
-
-	type fields struct {
-		vehicleRepo  vehiclerepository.VehicleStorage
-		floorRepo    floorrepository.FloorStorage
-		buildingRepo buildingrepository.BuildingStorage
-		slotRepo     slotrepository.SlotStorage
-		officeRepo   officerepository.OfficeStorage
-	}
-	type args struct {
-		ctx       context.Context
-		vehicleId string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		mock    func()
-		wantErr bool
-	}{
-		{
-			name: "success - unassign slot with single vehicle",
-			fields: fields{
-				vehicleRepo: mockVehicleRepo,
-				slotRepo:    mockSlotRepo,
-			},
-			args: args{
-				ctx:       userCtx,
-				vehicleId: vehicleId.String(),
-			},
-			mock: func() {
-				mockVehicleRepo.EXPECT().GetVehiclesByUserId(userId).Return([]models.Vehicle{vehicle}, nil)
-				mockVehicleRepo.EXPECT().GetVehicleById(vehicleId).Return(vehicle, nil)
-				mockSlotRepo.EXPECT().Save(gomock.Any()).Return(nil)
-				mockVehicleRepo.EXPECT().Save(gomock.Any()).Return(nil)
-			},
-			wantErr: false,
-		},
-		{
-			name: "success - unassign slot with multiple vehicles",
-			fields: fields{
-				vehicleRepo: mockVehicleRepo,
-			},
-			args: args{
-				ctx:       userCtx,
-				vehicleId: vehicleId.String(),
-			},
-			mock: func() {
-				// Two vehicles sharing the same slot
-				vehicle2 := models.Vehicle{
-					VehicleID:    uuid.New(),
-					UserID:       userId,
-					AssignedSlot: &slot,
-				}
-				mockVehicleRepo.EXPECT().GetVehiclesByUserId(userId).Return([]models.Vehicle{vehicle, vehicle2}, nil)
-				mockVehicleRepo.EXPECT().GetVehicleById(vehicleId).Return(vehicle, nil)
-				mockVehicleRepo.EXPECT().Save(gomock.Any()).Return(nil)
-			},
-			wantErr: false,
-		},
-		{
-			name: "failure - invalid vehicle id",
-			fields: fields{
-				vehicleRepo: mockVehicleRepo,
-			},
-			args: args{
-				ctx:       userCtx,
-				vehicleId: "invalid-uuid",
-			},
-			mock: func() {
-				mockVehicleRepo.EXPECT().GetVehiclesByUserId(userId).Return([]models.Vehicle{vehicle}, nil)
-			},
-			wantErr: true,
-		},
-		{
-			name: "failure - get user vehicles error",
-			fields: fields{
-				vehicleRepo: mockVehicleRepo,
-			},
-			args: args{
-				ctx:       userCtx,
-				vehicleId: vehicleId.String(),
-			},
-			mock: func() {
-				mockVehicleRepo.EXPECT().GetVehiclesByUserId(userId).Return(nil, errors.New("db error"))
-			},
-			wantErr: true,
-		},
-		{
-			name: "failure - invalid user id in context",
-			fields: fields{
-				vehicleRepo: mockVehicleRepo,
-			},
-			args: args{
-				ctx: context.WithValue(context.Background(), constants.User, models.UserJwt{
-					RegisteredClaims: jwt.RegisteredClaims{
-						ID: "invalid-uuid",
-					},
-					Office: "wg",
-				}),
-				vehicleId: vehicleId.String(),
-			},
-			mock:    func() {},
-			wantErr: true,
-		},
-		{
-			name: "failure - get vehicle by id error",
-			fields: fields{
-				vehicleRepo: mockVehicleRepo,
-			},
-			args: args{
-				ctx:       userCtx,
-				vehicleId: vehicleId.String(),
-			},
-			mock: func() {
-				mockVehicleRepo.EXPECT().GetVehiclesByUserId(userId).Return([]models.Vehicle{vehicle}, nil)
-				mockVehicleRepo.EXPECT().GetVehicleById(vehicleId).Return(models.Vehicle{}, errors.New("vehicle not found"))
-			},
-			wantErr: true,
-		},
-		{
-			name: "failure - slot save error when single vehicle",
-			fields: fields{
-				vehicleRepo: mockVehicleRepo,
-				slotRepo:    mockSlotRepo,
-			},
-			args: args{
-				ctx:       userCtx,
-				vehicleId: vehicleId.String(),
-			},
-			mock: func() {
-				mockVehicleRepo.EXPECT().GetVehiclesByUserId(userId).Return([]models.Vehicle{vehicle}, nil)
-				mockVehicleRepo.EXPECT().GetVehicleById(vehicleId).Return(vehicle, nil)
-				mockSlotRepo.EXPECT().Save(gomock.Any()).Return(errors.New("slot save failed"))
-			},
-			wantErr: true,
-		},
-		{
-			name: "failure - vehicle save error",
-			fields: fields{
-				vehicleRepo: mockVehicleRepo,
-				slotRepo:    mockSlotRepo,
-			},
-			args: args{
-				ctx:       userCtx,
-				vehicleId: vehicleId.String(),
-			},
-			mock: func() {
-				mockVehicleRepo.EXPECT().GetVehiclesByUserId(userId).Return([]models.Vehicle{vehicle}, nil)
-				mockVehicleRepo.EXPECT().GetVehicleById(vehicleId).Return(vehicle, nil)
-				mockSlotRepo.EXPECT().Save(gomock.Any()).Return(nil)
-				mockVehicleRepo.EXPECT().Save(gomock.Any()).Return(errors.New("vehicle save failed"))
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.mock()
-			sas := &SlotAssignmentService{
-				vehicleRepo:  tt.fields.vehicleRepo,
-				floorRepo:    tt.fields.floorRepo,
-				buildingRepo: tt.fields.buildingRepo,
-				slotRepo:     tt.fields.slotRepo,
-				officeRepo:   tt.fields.officeRepo,
-			}
-			if err := sas.UnassignSlot(tt.args.ctx, tt.args.vehicleId); (err != nil) != tt.wantErr {
-				t.Errorf("UnassignSlot() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

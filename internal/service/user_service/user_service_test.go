@@ -266,12 +266,12 @@ func TestUserService_GetRegisteredVehicles(t *testing.T) {
 		{
 			NumberPlate:  "asdf",
 			VehicleType:  vehicletypes.TwoWheeler,
-			AssignedSlot: nil,
+			AssignedSlot: models.Slot{},
 		},
 		{
 			NumberPlate:  "asde",
 			VehicleType:  vehicletypes.TwoWheeler,
-			AssignedSlot: &models.Slot{},
+			AssignedSlot: models.Slot{},
 		},
 	}
 
@@ -300,12 +300,12 @@ func TestUserService_GetRegisteredVehicles(t *testing.T) {
 			},
 			want: []models.VehicleDTO{
 				{
-					AssignedSlot: nil,
+					AssignedSlot: models.Slot{},
 					VehicleType:  vehicletypes.TwoWheeler.String(),
 					NumberPlate:  "asdf",
 				},
 				{
-					AssignedSlot: nil,
+					AssignedSlot: models.Slot{},
 					VehicleType:  vehicletypes.TwoWheeler.String(),
 					NumberPlate:  "asde",
 				},
@@ -749,7 +749,7 @@ func TestUserService_GetVehiclesByUserId(t *testing.T) {
 			NumberPlate: "TEST123456",
 			VehicleType: vehicletypes.FourWheeler,
 			IsActive:    true,
-			AssignedSlot: &models.Slot{
+			AssignedSlot: models.Slot{
 				BuildingID:  uuid.New(),
 				FloorNumber: 1,
 				SlotNumber:  1,
@@ -762,7 +762,7 @@ func TestUserService_GetVehiclesByUserId(t *testing.T) {
 			NumberPlate:  "TEST789012",
 			VehicleType:  vehicletypes.TwoWheeler,
 			IsActive:     true,
-			AssignedSlot: nil,
+			AssignedSlot: models.Slot{},
 		},
 	}
 
@@ -797,7 +797,7 @@ func TestUserService_GetVehiclesByUserId(t *testing.T) {
 				{
 					NumberPlate:  "TEST789012",
 					VehicleType:  vehicletypes.TwoWheeler.String(),
-					AssignedSlot: nil,
+					AssignedSlot: models.Slot{},
 				},
 			},
 			wantErr: false,

@@ -7,7 +7,7 @@ import (
 type VehicleDTO struct {
 	NumberPlate  string `json:"number_plate"`
 	VehicleType  string `json:"vehicle_type"`
-	AssignedSlot *Slot  `json:"assigned_slot"`
+	AssignedSlot Slot   `json:"assigned_slot"`
 }
 
 type AddVehicleDTO struct {

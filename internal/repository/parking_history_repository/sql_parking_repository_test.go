@@ -106,10 +106,10 @@ func TestSQLParkingRepository_AddParking(t *testing.T) {
 				NumberPlate:         "ABC123",
 				VehicleType:         vehicletypes.FourWheeler,
 				UserID:              uuid.New(),
-				AssignedBuildingID:  &buildingID,
-				AssignedFloorNumber: &floorNumber,
-				AssignedSlotNumber:  &slotNumber,
-				AssignedSlot: &models.Slot{
+				AssignedBuildingID:  buildingID,
+				AssignedFloorNumber: floorNumber,
+				AssignedSlotNumber:  slotNumber,
+				AssignedSlot: models.Slot{
 					BuildingID:  buildingID,
 					FloorNumber: floorNumber,
 					SlotNumber:  slotNumber,
@@ -141,10 +141,10 @@ func TestSQLParkingRepository_AddParking(t *testing.T) {
 				NumberPlate:         "ABC123",
 				VehicleType:         vehicletypes.FourWheeler,
 				UserID:              uuid.New(),
-				AssignedBuildingID:  &buildingID,
-				AssignedFloorNumber: &floorNumber,
-				AssignedSlotNumber:  &slotNumber,
-				AssignedSlot: &models.Slot{
+				AssignedBuildingID:  buildingID,
+				AssignedFloorNumber: floorNumber,
+				AssignedSlotNumber:  slotNumber,
+				AssignedSlot: models.Slot{
 					BuildingID:  buildingID,
 					FloorNumber: floorNumber,
 					SlotNumber:  slotNumber,
