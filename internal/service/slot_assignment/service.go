@@ -64,7 +64,6 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 	for _, val := range userVehicles {
 		// if found update and exit
 		if val.VehicleType == vehicle.VehicleType && val.AssignedBuildingID != nil {
-			// vehicle.AssignedSlot = val.AssignedSlot
 			vehicle.AssignedBuildingID = val.AssignedBuildingID
 			vehicle.AssignedFloorNumber = val.AssignedFloorNumber
 			vehicle.AssignedSlotNumber = val.AssignedSlotNumber
@@ -93,7 +92,6 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 
 	for _, val := range freeSlots {
 		if val.SlotType == vehicle.VehicleType {
-			// vehicle.AssignedSlot = &val
 			vehicle.AssignedBuildingID = &val.BuildingID
 			vehicle.AssignedFloorNumber = &val.FloorNumber
 			vehicle.AssignedSlotNumber = &val.SlotNumber
@@ -102,10 +100,6 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 				return err
 			}
 
-			// err = sas.slotRepo.Save(val)
-			// if err != nil {
-			// 	return err
-			// }
 			return nil
 		}
 	}

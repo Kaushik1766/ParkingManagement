@@ -1,6 +1,7 @@
 package userrepository
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
@@ -145,7 +146,7 @@ func (sqlur *SQLUserRepository) CreateUser(name string, email string, password s
 
 	err := sqlur.db.Where("office_name = ?", office).First(&officeStruct).Error
 	if err != nil {
-		return err
+		return errors.New("office not found")
 	}
 
 	user := models.User{
@@ -157,7 +158,10 @@ func (sqlur *SQLUserRepository) CreateUser(name string, email string, password s
 	}
 
 	err = sqlur.db.Create(&user).Error
-	return err
+	if err != nil {
+		return errors.New("user already exists")
+	}
+	return nil
 }
 
 func NewSQLUserRepository(db *gorm.DB) *SQLUserRepository {

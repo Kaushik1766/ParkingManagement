@@ -21,12 +21,8 @@ type SlotDTO struct {
 	FloorNumber int    `json:"floor_number"`
 	SlotNumber  int    `json:"slot_number"`
 	SlotType    string `json:"slot_type"`
-	IsOccupied  bool   `json:"is_occupied"`
+	IsOccupied  bool   `json:"is_occupied,omitempty"`
 }
-
-// func (s Slot) GetID() string {
-// 	return fmt.Sprintf("%v%v%v", s.BuildingID, s.FloorNumber, s.SlotNumber)
-// }
 
 func (s Slot) String() string {
 	if s.BuildingID == uuid.Nil {
@@ -35,26 +31,12 @@ func (s Slot) String() string {
 	return fmt.Sprintf("%v_%v_%v", s.BuildingID, s.FloorNumber, s.SlotNumber)
 }
 
-// func (s Slot) ToIdentifiableSlot(slotString string) (*Slot, error) {
-// 	parts := strings.Split(slotString, "_")
-// 	if len(parts) != 3 {
-// 		return nil, fmt.Errorf("invalid slot string format: %s", slotString)
-// 	}
-// 	buildingId, err := uuid.Parse(parts[0])
-// 	if err != nil {
-// 		return nil, fmt.Errorf("invalid building ID: %s", parts[0])
-// 	}
-// 	floorNumber, err := strconv.Atoi(parts[1])
-// 	if err != nil {
-// 		return nil, fmt.Errorf("invalid floor number: %s", parts[1])
-// 	}
-// 	slotNumber, err := strconv.Atoi(parts[2])
-// 	if err != nil {
-// 		return nil, fmt.Errorf("invalid slot number: %s", parts[2])
-// 	}
-// 	return &Slot{
-// 		BuildingID:  buildingId,
-// 		FloorNumber: floorNumber,
-// 		SlotNumber:  slotNumber,
-// 	}, nil
-// }
+func (s Slot) ToDTO() *SlotDTO {
+	return &SlotDTO{
+		BuildingID:  s.BuildingID.String(),
+		FloorNumber: s.FloorNumber,
+		SlotNumber:  s.SlotNumber,
+		SlotType:    s.SlotType.String(),
+		IsOccupied:  len(s.Vehicles) > 0,
+	}
+}

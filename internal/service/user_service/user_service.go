@@ -108,6 +108,7 @@ func (us *UserService) GetAllUsers(ctx context.Context) ([]models.UserDTO, error
 func (us *UserService) UnregisterVehicle(ctx context.Context, numberplate string) error {
 	currentUser := ctx.Value(constants.User).(models.UserJwt)
 	userVehicles, err := us.vehicleRepo.GetVehiclesByUserId(uuid.MustParse(currentUser.ID))
+
 	if err != nil {
 		return err
 	}
@@ -132,19 +133,25 @@ func (us *UserService) GetRegisteredVehicles(ctx context.Context) ([]models.Vehi
 		return []models.VehicleDTO{}, err
 	}
 
+	fmt.Printf("%+v\n", userVehicles)
 	var userVehicleDTO []models.VehicleDTO
 	for _, v := range userVehicles {
-		if v.AssignedSlot == nil {
+		if v.AssignedBuildingID == nil {
 			userVehicleDTO = append(userVehicleDTO, models.VehicleDTO{
 				NumberPlate:  v.NumberPlate,
 				VehicleType:  v.VehicleType.String(),
-				AssignedSlot: models.Slot{},
+				AssignedSlot: nil,
 			})
 		} else {
 			userVehicleDTO = append(userVehicleDTO, models.VehicleDTO{
-				NumberPlate:  v.NumberPlate,
-				VehicleType:  v.VehicleType.String(),
-				AssignedSlot: *v.AssignedSlot,
+				NumberPlate: v.NumberPlate,
+				VehicleType: v.VehicleType.String(),
+				AssignedSlot: &models.SlotDTO{
+					BuildingID:  v.AssignedBuildingID.String(),
+					FloorNumber: *v.AssignedFloorNumber,
+					SlotNumber:  *v.AssignedSlotNumber,
+					SlotType:    v.VehicleType.String(),
+				},
 			})
 		}
 	}
@@ -233,9 +240,9 @@ func (us *UserService) GetVehiclesByUserId(ctx context.Context, userId string) (
 			VehicleType: v.VehicleType.String(),
 		}
 		if v.AssignedSlot != nil {
-			vehicleDTO.AssignedSlot = *v.AssignedSlot
+			vehicleDTO.AssignedSlot = v.AssignedSlot.ToDTO()
 		} else {
-			vehicleDTO.AssignedSlot = models.Slot{}
+			vehicleDTO.AssignedSlot = nil
 		}
 		vehicleDTOs = append(vehicleDTOs, vehicleDTO)
 	}

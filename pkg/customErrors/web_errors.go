@@ -33,7 +33,7 @@ func SendError(w http.ResponseWriter, err error) {
 	if !ok {
 		log.Printf("cant type assert %v to weberr\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(err)
+		json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 	w.WriteHeader(webErr.statusCode)

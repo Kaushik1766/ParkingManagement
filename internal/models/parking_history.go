@@ -1,8 +1,10 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
+	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	"github.com/google/uuid"
 )
 
@@ -22,4 +24,19 @@ type ParkingHistory struct {
 	StartTime time.Time  `gorm:"not null;default:current_timestamp"`
 	EndTime   *time.Time `gorm:"default:null"`
 	// VehicleType vehicletypes.VehicleType `gorm:"not null"`
+}
+type ParkingHistoryDTO struct {
+	TicketId     string
+	NumberPlate  string
+	BuildingId   string
+	FLoorNumber  int
+	SlotNumber   int
+	StartTime    time.Time
+	EndTime      time.Time
+	VechicleType vehicletypes.VehicleType
+}
+
+func (phdto *ParkingHistoryDTO) String() string {
+	return fmt.Sprintf("TicketId: %s\nNumberPlate: %s\nBuildingId: %s\nFloorNumber: %d\nSlotNumber: %d\nStartTime: %s\nEndTime: %s",
+		phdto.TicketId, phdto.NumberPlate, phdto.BuildingId, phdto.FLoorNumber, phdto.SlotNumber, phdto.StartTime, phdto.EndTime)
 }

@@ -1,6 +1,7 @@
 package authservice
 
 import (
+	"errors"
 	"net/mail"
 	"time"
 
@@ -29,16 +30,16 @@ func NewAuthService(
 func (auth *AuthService) Signup(registerReq models.RegisterRequestDTO, role roles.Role) error {
 	_, err := mail.ParseAddress(registerReq.Email)
 	if err != nil {
-		return customerrors.NewWebError(err, errorcodes.InvalidInput)
+		return errors.New("invalid email")
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(registerReq.Password), 12)
 	if err != nil {
-		return customerrors.NewWebError(err, errorcodes.InternalServerError)
+		return errors.New("password too long")
 	}
 
 	err = auth.userDb.CreateUser(registerReq.Name, registerReq.Email, string(hashedPassword), registerReq.Office, role)
 	if err != nil {
-		return customerrors.NewWebError(err, errorcodes.UserAlreadyExists)
+		return err
 	}
 	return nil
 }

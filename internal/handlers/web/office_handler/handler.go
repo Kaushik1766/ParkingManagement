@@ -20,6 +20,7 @@ func NewWebOfficeHandler(officeService officeservice.OfficeMgr) *WebOfficeHandle
 	}
 }
 
+// TODO: respect query params
 func (handler *WebOfficeHandler) GetOffices(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 

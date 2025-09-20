@@ -47,6 +47,8 @@ func (vs *VehicleService) Park(ctx context.Context, numberplate string) (string,
 		return "", customerrors.Unauthorized{}
 	}
 
+	// if vehicle.assigne
+
 	return vs.parkingRepo.AddParking(vehicle)
 
 }

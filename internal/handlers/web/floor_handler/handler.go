@@ -50,6 +50,7 @@ func (handler *WebFloorHandler) GetFloors(ctx context.Context, w http.ResponseWr
 	json.NewEncoder(w).Encode(floors)
 }
 
+// TODO: respect query params
 func (handler *WebFloorHandler) AddFloor(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	userCtx := ctx.Value(constants.User).(models.UserJwt)
