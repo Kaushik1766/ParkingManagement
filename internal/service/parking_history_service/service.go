@@ -22,6 +22,7 @@ func (phs *ParkingHistoryService) GetParkingHistoryByUserId(userId string, start
 }
 
 func (phs *ParkingHistoryService) GetParkingHistory(ctx context.Context, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
+
 	userCtx := ctx.Value(constants.User).(models.UserJwt)
 
 	return phs.parkingRepo.GetParkingHistoryByUser(userCtx.ID, startTime, endTime)
