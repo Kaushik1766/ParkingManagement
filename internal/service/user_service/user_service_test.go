@@ -296,12 +296,12 @@ func TestUserService_GetRegisteredVehicles(t *testing.T) {
 			},
 			want: []models.VehicleDTO{
 				{
-					AssignedSlot: models.Slot{},
+					AssignedSlot: nil,
 					VehicleType:  vehicletypes.TwoWheeler.String(),
 					NumberPlate:  "asdf",
 				},
 				{
-					AssignedSlot: models.Slot{},
+					AssignedSlot: nil,
 					VehicleType:  vehicletypes.TwoWheeler.String(),
 					NumberPlate:  "asde",
 				},
@@ -785,14 +785,19 @@ func TestUserService_GetVehiclesByUserId(t *testing.T) {
 			},
 			want: []models.VehicleDTO{
 				{
-					NumberPlate:  "TEST123456",
-					VehicleType:  vehicletypes.FourWheeler.String(),
-					AssignedSlot: *vehicles[0].AssignedSlot,
+					NumberPlate: "TEST123456",
+					VehicleType: vehicletypes.FourWheeler.String(),
+					AssignedSlot: &models.SlotDTO{
+						BuildingID:  vehicles[0].AssignedSlot.BuildingID.String(),
+						FloorNumber: vehicles[0].AssignedSlot.FloorNumber,
+						SlotNumber:  vehicles[0].AssignedSlot.SlotNumber,
+						SlotType:    vehicles[0].AssignedSlot.SlotType.String(),
+					},
 				},
 				{
 					NumberPlate:  "TEST789012",
 					VehicleType:  vehicletypes.TwoWheeler.String(),
-					AssignedSlot: models.Slot{}, // Empty slot when no slot is assigned
+					AssignedSlot: nil, // Empty slot when no slot is assigned
 				},
 			},
 			wantErr: false,

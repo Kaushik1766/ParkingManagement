@@ -72,15 +72,17 @@ func TestWebVehicleHandler_GetVehicles(t *testing.T) {
 					{
 						NumberPlate: "ABC123",
 						VehicleType: "TwoWheeler",
-						AssignedSlot: models.Slot{
+						AssignedSlot: &models.SlotDTO{
 							SlotNumber: 1,
+							SlotType:   "TwoWheeler",
 						},
 					},
 					{
 						NumberPlate: "XYZ789",
 						VehicleType: "FourWheeler",
-						AssignedSlot: models.Slot{
+						AssignedSlot: &models.SlotDTO{
 							SlotNumber: 2,
+							SlotType:   "FourWheeler",
 						},
 					},
 				}, nil)
@@ -128,15 +130,17 @@ func TestWebVehicleHandler_GetVehicles(t *testing.T) {
 					{
 						NumberPlate: "DEF456",
 						VehicleType: "TwoWheeler",
-						AssignedSlot: models.Slot{
+						AssignedSlot: &models.SlotDTO{
 							SlotNumber: 3,
+							SlotType:   "TwoWheeler",
 						},
 					},
 					{
 						NumberPlate: "GHI789",
 						VehicleType: "FourWheeler",
-						AssignedSlot: models.Slot{
+						AssignedSlot: &models.SlotDTO{
 							SlotNumber: 4,
+							SlotType:   "FourWheeler",
 						},
 					},
 				}, nil)
@@ -176,7 +180,7 @@ func TestWebVehicleHandler_GetVehicles(t *testing.T) {
 				return req
 			},
 			expectedStatus:   http.StatusInternalServerError,
-			expectedBody:     "{}",
+			expectedBody:     `"user not found"`,
 			expectedVehicles: -1,
 		},
 		{

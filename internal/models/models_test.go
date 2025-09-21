@@ -156,7 +156,7 @@ func TestVehicleDTO_String(t *testing.T) {
 	type fields struct {
 		NumberPlate  string
 		VehicleType  string
-		AssignedSlot Slot
+		AssignedSlot *SlotDTO
 	}
 
 	buildingID := uuid.New()
@@ -171,11 +171,11 @@ func TestVehicleDTO_String(t *testing.T) {
 			fields: fields{
 				NumberPlate: "ka01hk1234",
 				VehicleType: "FourWheeler",
-				AssignedSlot: Slot{
-					BuildingID:  buildingID,
+				AssignedSlot: &SlotDTO{
+					BuildingID:  buildingID.String(),
 					FloorNumber: 1,
 					SlotNumber:  5,
-					SlotType:    vehicletypes.FourWheeler,
+					SlotType:    "FourWheeler",
 				},
 			},
 			want: "ka01hk1234 (FourWheeler)",
@@ -185,11 +185,11 @@ func TestVehicleDTO_String(t *testing.T) {
 			fields: fields{
 				NumberPlate: "ka02ad5678",
 				VehicleType: "TwoWheeler",
-				AssignedSlot: Slot{
-					BuildingID:  buildingID,
+				AssignedSlot: &SlotDTO{
+					BuildingID:  buildingID.String(),
 					FloorNumber: 2,
 					SlotNumber:  10,
-					SlotType:    vehicletypes.TwoWheeler,
+					SlotType:    "TwoWheeler",
 				},
 			},
 			want: "ka02ad5678 (TwoWheeler)",
@@ -199,11 +199,11 @@ func TestVehicleDTO_String(t *testing.T) {
 			fields: fields{
 				NumberPlate: "ka03uk9876",
 				VehicleType: "FourWheeler",
-				AssignedSlot: Slot{
-					BuildingID:  uuid.Nil,
+				AssignedSlot: &SlotDTO{
+					BuildingID:  uuid.Nil.String(),
 					FloorNumber: 0,
 					SlotNumber:  0,
-					SlotType:    vehicletypes.FourWheeler,
+					SlotType:    "FourWheeler",
 				},
 			},
 			want: "ka03uk9876 (FourWheeler)",
