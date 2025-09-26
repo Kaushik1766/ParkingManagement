@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -13,7 +14,6 @@ var routes map[string]func(w http.ResponseWriter, r *http.Request)
 var basePath = "/api/v1"
 
 func (app *App) registerRoutes() {
-
 	authMiddleware := authenticationmiddleware.AuthenticatedRoute
 	loggingMiddleware := loggingmiddleware.LoggingMiddleware
 
@@ -47,4 +47,21 @@ func (app *App) registerRoutes() {
 		path := basePath + pathArr[1]
 		app.apiMux.HandleFunc(method+" "+path, loggingMiddleware(handler))
 	}
+}
+
+func enableCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("enableCORS")
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")                                // Allow all origins
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS") // Allow common HTTP methods
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")     // Allow common headers
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }

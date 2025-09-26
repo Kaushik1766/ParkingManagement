@@ -127,5 +127,6 @@ func NewApp(db *gorm.DB) *App {
 
 func (app *App) Run() {
 	fmt.Println("Server started at localhost:3000")
-	http.ListenAndServe("localhost:3000", app.apiMux)
+
+	http.ListenAndServe("localhost:3000", enableCORS(app.apiMux))
 }
