@@ -60,7 +60,7 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 
 	for _, val := range userVehicles {
 		// if found update and exit
-		if val.VehicleType == vehicle.VehicleType {
+		if val.VehicleType == vehicle.VehicleType && val.AssignedSlot.BuildingID != uuid.Nil {
 			// vehicle.AssignedSlot = val.AssignedSlot
 			log.Println("slot repeating")
 			vehicle.AssignedBuildingID = val.AssignedBuildingID
