@@ -29,6 +29,7 @@ func (app *App) registerRoutes() {
 		"GET /buildings/{buildingId}/floors":                 authMiddleware(app.FloorHandler.GetFloors),
 		"POST /buildings/{buildingId}/floors":                authMiddleware(app.FloorHandler.AddFloor),
 		"GET /buildings/{buildingId}/offices":                authMiddleware(app.OfficeHandler.GetOffices),
+		"GET /offices":                                       app.OfficeHandler.GetAllOffices,
 		"POST /buildings/{buildingId}/offices":               authMiddleware(app.OfficeHandler.AddOffice),
 		"DELETE /buildings/{buildingId}/offices/{officeId}":  authMiddleware(app.OfficeHandler.DeleteOffice),
 		"DELETE /buildings/{buildingId}/floors/{floorId}":    authMiddleware(app.FloorHandler.DeleteFloor),

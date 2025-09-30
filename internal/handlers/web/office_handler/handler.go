@@ -20,6 +20,20 @@ func NewWebOfficeHandler(officeService officeservice.OfficeMgr) *WebOfficeHandle
 	}
 }
 
+func (handler *WebOfficeHandler) GetAllOffices(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	offices, err := handler.officeService.GetAllOfficeNames(context.Background())
+	if err != nil {
+		customerrors.InternalServerError(w, customerrors.WebError{
+			Message: "Failed to fetch offices",
+			Code:    http.StatusInternalServerError,
+		})
+		return
+	}
+	json.NewEncoder(w).Encode(offices)
+}
+
 func (handler *WebOfficeHandler) GetOffices(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
