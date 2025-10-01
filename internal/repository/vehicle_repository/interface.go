@@ -14,5 +14,6 @@ type VehicleStorage interface {
 	GetVehiclesByUserId(userId uuid.UUID) ([]models.Vehicle, error)
 	GetVehicleByNumberPlate(numberplate string) (models.Vehicle, error)
 	GetVehiclesWithUnassignedSlots() (vehicles []models.Vehicle, err error)
+	GetParkingStatus(numberplate string) (bool, error)
 	Save(vehicle models.Vehicle) error
 }

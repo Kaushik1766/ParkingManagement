@@ -71,6 +71,19 @@ func (sqlvr *SQLVehicleRepository) GetVehiclesWithUnassignedSlots() (vehicles []
 	return vehicles, nil
 }
 
+func (sqlvr *SQLVehicleRepository) GetParkingStatus(numberplate string) (bool, error) {
+	var cnt int64
+	err := sqlvr.db.Model(&models.Vehicle{}).
+		Joins("INNER JOIN parking_histories ON parking_histories.vehicle_id = vehicles.vehicle_id").
+		Where("vehicles.number_plate = ? AND parking_histories.end_time IS NULL", numberplate).
+		Count(&cnt).Error
+
+	if err != nil {
+		return false, err
+	}
+	return cnt > 0, nil
+}
+
 func (sqlvr *SQLVehicleRepository) Save(vehicle models.Vehicle) error {
 	err := sqlvr.db.Save(&vehicle).Error
 	if err != nil {
