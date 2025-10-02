@@ -14,11 +14,18 @@ type SQLParkingRepository struct {
 }
 
 func (sqlpr *SQLParkingRepository) UnparkByNumberPlate(numberplate string) error {
-	err := sqlpr.db.Model(&models.ParkingHistory{}).
-		Joins("left join vehicles on vehicles.vehicle_id = parking_histories.vehicle_id").
-		Where("vehicles.number_plate = ? AND end_time IS NULL", numberplate).
-		Update("end_time", time.Now()).Error
-	return err
+	var ph models.ParkingHistory
+	err := sqlpr.db.Joins("JOIN vehicles ON vehicles.vehicle_id = parking_histories.vehicle_id").
+		Where("vehicles.number_plate = ? AND parking_histories.end_time IS NULL", numberplate).
+		First(&ph).Error
+	if err != nil {
+		return err
+	}
+
+	now := time.Now()
+	ph.EndTime = &now
+
+	return sqlpr.db.Save(&ph).Error
 }
 
 func (sqlpr *SQLParkingRepository) AddParking(vehicle models.Vehicle) (string, error) {

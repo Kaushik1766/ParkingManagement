@@ -83,7 +83,7 @@ func NewApp(db *gorm.DB) *App {
 	parkingRepo = parkinghistoryrepository.NewSQLParkingRepository(db)
 
 	assignmentService = slotassignment.NewSlotAssignmentService(vehicleRepo, floorRepo, buildingRepo, slotRepo, officeRepo)
-	userService = userservice.NewUserService(userRepo, vehicleRepo, officeRepo, assignmentService)
+	userService = userservice.NewUserService(userRepo, vehicleRepo, officeRepo, assignmentService, buildingRepo)
 	authService = authservice.NewAuthService(userRepo)
 	buildingService = buildingservice.NewBuildingService(buildingRepo)
 	floorService = floorservice.NewFloorService(floorRepo)

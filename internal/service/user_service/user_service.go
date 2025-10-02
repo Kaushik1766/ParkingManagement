@@ -10,6 +10,7 @@ import (
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
+	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
 	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
@@ -24,6 +25,7 @@ type UserService struct {
 	vehicleRepo       vehiclerepository.VehicleStorage
 	officeRepo        officerepository.OfficeStorage
 	assignmentService slotassignment.SlotAssignmentMgr
+	buildingRepo      buildingrepository.BuildingStorage
 }
 
 func (us *UserService) GetUserProfile(ctx context.Context) (models.UserDTO, error) {
@@ -125,7 +127,6 @@ func (us *UserService) UnregisterVehicle(ctx context.Context, numberplate string
 
 func (us *UserService) GetRegisteredVehicles(ctx context.Context) ([]models.VehicleDTO, error) {
 	currentUser := ctx.Value(constants.User).(models.UserJwt)
-	// fmt.Println(currentUser.ID)
 	uid, _ := uuid.Parse(currentUser.ID)
 	userVehicles, err := us.vehicleRepo.GetVehiclesByUserId(uid)
 	if err != nil {
@@ -134,10 +135,23 @@ func (us *UserService) GetRegisteredVehicles(ctx context.Context) ([]models.Vehi
 
 	var userVehicleDTO []models.VehicleDTO
 	for _, v := range userVehicles {
+		building, err := us.buildingRepo.GetBuildingByID(v.AssignedBuildingID)
+		if err != nil {
+			return []models.VehicleDTO{}, err
+		}
+
+		isParked, err := us.vehicleRepo.GetParkingStatus(v.NumberPlate)
+		if err != nil {
+			return []models.VehicleDTO{}, err
+		}
 		userVehicleDTO = append(userVehicleDTO, models.VehicleDTO{
-			NumberPlate:  v.NumberPlate,
-			VehicleType:  v.VehicleType.String(),
-			AssignedSlot: v.AssignedSlot,
+			NumberPlate:          v.NumberPlate,
+			VehicleType:          v.VehicleType.String(),
+			AssignedBuildingID:   v.AssignedBuildingID.String(),
+			IsParked:             isParked,
+			AssignedFloorNumber:  v.AssignedFloorNumber,
+			AssignedSlotNumber:   v.AssignedSlotNumber,
+			AssignedBuildingName: building.BuildingName,
 		})
 	}
 	return userVehicleDTO, nil
@@ -148,12 +162,14 @@ func NewUserService(
 	vehicRepo vehiclerepository.VehicleStorage,
 	officeRepo officerepository.OfficeStorage,
 	assignmentService slotassignment.SlotAssignmentMgr,
+	buildingRepo buildingrepository.BuildingStorage,
 ) *UserService {
 	return &UserService{
 		userRepo:          repo,
 		vehicleRepo:       vehicRepo,
 		officeRepo:        officeRepo,
 		assignmentService: assignmentService,
+		buildingRepo:      buildingRepo,
 	}
 }
 
@@ -208,6 +224,7 @@ func (us *UserService) DeleteProfile(ctx context.Context, userId string) error {
 	return err
 }
 
+// TODO:FIX
 func (us *UserService) GetVehiclesByUserId(ctx context.Context, userId string) ([]models.VehicleDTO, error) {
 	uid, err := uuid.Parse(userId)
 	if err != nil {
@@ -220,10 +237,23 @@ func (us *UserService) GetVehiclesByUserId(ctx context.Context, userId string) (
 
 	var vehicleDTOs []models.VehicleDTO
 	for _, v := range userVehicles {
+		building, err := us.buildingRepo.GetBuildingByID(v.AssignedBuildingID)
+		if err != nil {
+			return []models.VehicleDTO{}, err
+		}
+
+		isParked, err := us.vehicleRepo.GetParkingStatus(v.NumberPlate)
+		if err != nil {
+			return []models.VehicleDTO{}, err
+		}
 		vehicleDTO := models.VehicleDTO{
-			NumberPlate:  v.NumberPlate,
-			VehicleType:  v.VehicleType.String(),
-			AssignedSlot: v.AssignedSlot,
+			NumberPlate:          v.NumberPlate,
+			VehicleType:          v.VehicleType.String(),
+			AssignedBuildingName: building.BuildingName,
+			IsParked:             isParked,
+			AssignedFloorNumber:  v.AssignedFloorNumber,
+			AssignedSlotNumber:   v.AssignedSlotNumber,
+			AssignedBuildingID:   v.AssignedBuildingID.String(),
 		}
 		vehicleDTOs = append(vehicleDTOs, vehicleDTO)
 	}
