@@ -52,16 +52,15 @@ func (app *App) registerRoutes() {
 
 func enableCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("enableCORS")
-
-		w.Header().Set("Access-Control-Allow-Origin", "*")                                // Allow all origins
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS") // Allow common HTTP methods
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")     // Allow common headers
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
 			return
 		}
+		fmt.Println("enableCORS")
 
 		next.ServeHTTP(w, r)
 	})
