@@ -3,7 +3,6 @@ package db
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -15,8 +14,9 @@ func InitDB() (*gorm.DB, error) {
 	// 	panic("Error loading .env file")
 	// }
 
-	dbURL := os.Getenv("DATABASE_URL")
-	log.Println(dbURL)
+	//dbURL := os.Getenv("DATABASE_URL")
+	//log.Println(dbURL)
+	dbURL := "postgresql://kaushik:123@localhost:5432/ParkingManagement"
 	return gorm.Open(postgres.Open(dbURL), &gorm.Config{})
 }
 

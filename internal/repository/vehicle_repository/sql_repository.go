@@ -1,6 +1,8 @@
 package vehiclerepository
 
 import (
+	"errors"
+
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	"github.com/google/uuid"
@@ -27,7 +29,16 @@ func (sqlvr *SQLVehicleRepository) AddVehicle(numberplate string, userid uuid.UU
 }
 
 func (sqlvr *SQLVehicleRepository) RemoveVehicle(numberplate string) error {
-	err := sqlvr.db.Where("number_plate = ?", numberplate).Delete(&models.Vehicle{}).Error
+	//err := sqlvr.db.Where("number_plate = ?", numberplate).Delete(&models.Vehicle{}).Error
+	isParked, err := sqlvr.GetParkingStatus(numberplate)
+	if err != nil {
+		return err
+	}
+
+	if isParked {
+		return errors.New("vehicle is parked please unpark it first")
+	}
+	err = sqlvr.db.Model(&models.Vehicle{}).Where("number_plate = ?", numberplate).Update("is_active", "false").Error
 	if err != nil {
 		return err
 	}
@@ -36,7 +47,7 @@ func (sqlvr *SQLVehicleRepository) RemoveVehicle(numberplate string) error {
 
 func (sqlvr *SQLVehicleRepository) GetVehicleById(vehicleId uuid.UUID) (models.Vehicle, error) {
 	var vehicle models.Vehicle
-	err := sqlvr.db.Where("vehicle_id = ?", vehicleId).First(&vehicle).Error
+	err := sqlvr.db.Where("vehicle_id = ? and is_active = true", vehicleId).First(&vehicle).Error
 	if err != nil {
 		return models.Vehicle{}, err
 	}
@@ -45,7 +56,7 @@ func (sqlvr *SQLVehicleRepository) GetVehicleById(vehicleId uuid.UUID) (models.V
 
 func (sqlvr *SQLVehicleRepository) GetVehiclesByUserId(userId uuid.UUID) ([]models.Vehicle, error) {
 	var vehicles []models.Vehicle
-	err := sqlvr.db.Where("user_id = ?", userId).Preload("AssignedSlot").Preload("User").Find(&vehicles).Error
+	err := sqlvr.db.Where("user_id = ? and is_active = true", userId).Preload("AssignedSlot").Preload("User").Find(&vehicles).Error
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +65,7 @@ func (sqlvr *SQLVehicleRepository) GetVehiclesByUserId(userId uuid.UUID) ([]mode
 
 func (sqlvr *SQLVehicleRepository) GetVehicleByNumberPlate(numberplate string) (models.Vehicle, error) {
 	var vehicle models.Vehicle
-	err := sqlvr.db.Where("number_plate = ?", numberplate).Preload("AssignedSlot").Preload("User").First(&vehicle).Error
+	err := sqlvr.db.Where("number_plate = ? and is_active = true", numberplate).Preload("AssignedSlot").Preload("User").First(&vehicle).Error
 	if err != nil {
 		return models.Vehicle{}, err
 	}

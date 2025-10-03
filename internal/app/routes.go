@@ -36,7 +36,7 @@ func (app *App) registerRoutes() {
 		"GET /buildings/{buildingId}/floors/{floorId}/slots": authMiddleware(app.SlotHandler.GetSlots),
 		"GET /vehicles":                                      authMiddleware(app.VehicleHandler.GetVehicles),
 		"POST /vehicles":                                     authMiddleware(app.VehicleHandler.RegisterVehicle),
-		"DELETE /vehicles/{vehicleId}":                       authMiddleware(app.VehicleHandler.RemoveVehicle),
+		"DELETE /vehicles/{numberplate}":                     authMiddleware(app.VehicleHandler.RemoveVehicle),
 		"POST /parkings":                                     authMiddleware(app.ParkingHandler.AddParking),
 		"GET /parkings":                                      authMiddleware(app.ParkingHandler.GetParkings),
 		"PATCH /parkings/{numberplate}/unpark":               authMiddleware(app.ParkingHandler.UnparkVehicle),
