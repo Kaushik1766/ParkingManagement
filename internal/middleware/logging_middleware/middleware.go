@@ -2,12 +2,11 @@ package loggingmiddleware
 
 import (
 	"net/http"
-	"time"
 )
 
 func LoggingMiddleware(next func(w http.ResponseWriter, r *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		<-time.After(2 * time.Second)
+		// <-time.After(2 * time.Second)
 		// start := time.Now()
 		// log.Printf("\n\nStarted %s %s\n", r.Method, r.URL.Path)
 		// log.Printf("Request Headers: %v\n", r.Header)

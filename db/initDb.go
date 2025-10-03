@@ -16,6 +16,7 @@ func InitDB() (*gorm.DB, error) {
 	// }
 
 	dbURL := os.Getenv("DATABASE_URL")
+	log.Println(dbURL)
 	return gorm.Open(postgres.Open(dbURL), &gorm.Config{})
 }
 
