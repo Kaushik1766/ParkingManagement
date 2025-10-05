@@ -21,6 +21,7 @@ func (phs *ParkingHistoryService) GetParkingHistoryByUserId(userId string, start
 	return phs.parkingRepo.GetParkingHistoryByUser(userId, startTime, endTime)
 }
 
+// GetParkingHistory retrieves parking history for the authenticated user within the specified time range.
 func (phs *ParkingHistoryService) GetParkingHistory(ctx context.Context, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
 	userCtx := ctx.Value(constants.User).(models.UserJwt)
 

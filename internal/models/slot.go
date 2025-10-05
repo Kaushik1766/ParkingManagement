@@ -11,9 +11,10 @@ import (
 type Slot struct {
 	BuildingID  uuid.UUID                `gorm:"primaryKey;type:uuid"`
 	FloorNumber int                      `gorm:"primaryKey;type:int"`
+	Floor       Floor                    `gorm:"-"`
 	SlotNumber  int                      `gorm:"primaryKey;type:int"`
 	SlotType    vehicletypes.VehicleType `gorm:"not null"`
-	Vehicles    []Vehicle                `json:"-"gorm:"foreignKey:AssignedBuildingID,AssignedFloorNumber,AssignedSlotNumber"`
+	Vehicles    []Vehicle                `json:"-" gorm:"foreignKey:AssignedBuildingID,AssignedFloorNumber,AssignedSlotNumber"`
 }
 
 type SlotDTO struct {

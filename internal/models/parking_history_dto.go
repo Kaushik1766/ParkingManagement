@@ -3,19 +3,18 @@ package models
 import (
 	"fmt"
 	"time"
-
-	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 )
 
 type ParkingHistoryDTO struct {
 	TicketId     string
 	NumberPlate  string
 	BuildingId   string
+	BuildingName string
 	FLoorNumber  int
 	SlotNumber   int
 	StartTime    time.Time
 	EndTime      time.Time
-	VechicleType vehicletypes.VehicleType
+	VechicleType string
 }
 
 func (phdto *ParkingHistoryDTO) String() string {

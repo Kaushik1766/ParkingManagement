@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
+	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -72,36 +73,74 @@ func (sqlpr *SQLParkingRepository) GetParkingHistoryByNumberPlate(numberplate st
 			SlotNumber:   parking.Vehicle.AssignedSlotNumber,
 			StartTime:    parking.StartTime.Local(),
 			EndTime:      parking.EndTime.Local(),
-			VechicleType: parking.Vehicle.VehicleType,
+			VechicleType: parking.Vehicle.VehicleType.String(),
 		})
 	}
 	return historyDTO, nil
 }
 
 func (sqlpr *SQLParkingRepository) GetParkingHistoryByUser(userId string, startTime time.Time, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
-	var history []models.ParkingHistory
-	err := sqlpr.db.
-		Joins("left join vehicles on vehicles.vehicle_id = parking_histories.vehicle_id").
-		Where("vehicles.user_id = ? AND start_time >= ? AND end_time <= ? AND end_time IS NOT NULL", uuid.MustParse(userId), startTime, endTime).
-		Preload("Vehicle.AssignedSlot").
-		Find(&history).
-		Error
+	type Result struct {
+		ParkingID    uuid.UUID `gorm:"column:parking_id"`
+		StartTime    time.Time `gorm:"column:start_time"`
+		EndTime      time.Time `gorm:"column:end_time"`
+		NumberPlate  string    `gorm:"column:number_plate"`
+		VehicleType  int       `gorm:"column:vehicle_type"`
+		SlotNumber   int       `gorm:"column:slot_number"`
+		FloorNumber  int       `gorm:"column:floor_number"`
+		BuildingID   uuid.UUID `gorm:"column:building_id"`
+		BuildingName string    `gorm:"column:building_name"`
+	}
+
+	var results []Result
+
+	rawSQL := `
+		SELECT
+			ph.parking_id,
+			ph.start_time,
+			ph.end_time,
+			v.number_plate,
+			v.vehicle_type,
+			s.slot_number,
+			s.floor_number,
+			b.building_id,
+			b.building_name
+		FROM parking_histories ph
+		JOIN vehicles v ON v.vehicle_id = ph.vehicle_id
+		JOIN slots s ON s.building_id = v.assigned_building_id
+		             AND s.floor_number = v.assigned_floor_number
+		             AND s.slot_number = v.assigned_slot_number
+		JOIN floors f ON f.building_id = s.building_id
+		             AND f.floor_number = s.floor_number
+		JOIN buildings b ON b.building_id = f.building_id
+		WHERE v.user_id = ? 
+		  AND ph.start_time >= ? 
+		  AND ph.end_time <= ? 
+		  AND ph.end_time IS NOT NULL
+		ORDER BY ph.start_time DESC
+	`
+
+	err := sqlpr.db.Raw(rawSQL, uuid.MustParse(userId), startTime, endTime).Scan(&results).Error
 	if err != nil {
 		return nil, err
 	}
-	var historyDTO []models.ParkingHistoryDTO
-	for _, parking := range history {
+
+	// Map results into DTO
+	historyDTO := make([]models.ParkingHistoryDTO, 0, len(results))
+	for _, r := range results {
 		historyDTO = append(historyDTO, models.ParkingHistoryDTO{
-			TicketId:     parking.ParkingID.String(),
-			NumberPlate:  parking.Vehicle.NumberPlate,
-			BuildingId:   parking.Vehicle.AssignedSlot.BuildingID.String(),
-			FLoorNumber:  parking.Vehicle.AssignedSlot.FloorNumber,
-			SlotNumber:   parking.Vehicle.AssignedSlot.SlotNumber,
-			StartTime:    parking.StartTime.Local(),
-			EndTime:      parking.EndTime.Local(),
-			VechicleType: parking.Vehicle.VehicleType,
+			TicketId:     r.ParkingID.String(),
+			NumberPlate:  r.NumberPlate,
+			BuildingId:   r.BuildingID.String(),
+			BuildingName: r.BuildingName,
+			FLoorNumber:  r.FloorNumber,
+			SlotNumber:   r.SlotNumber,
+			StartTime:    r.StartTime.Local(),
+			EndTime:      r.EndTime.Local(),
+			VechicleType: vehicletypes.VehicleType(r.VehicleType).String(),
 		})
 	}
+
 	return historyDTO, nil
 }
 
@@ -120,7 +159,7 @@ func (sqlpr *SQLParkingRepository) GetActiveUserParkings(userId string) ([]model
 			FLoorNumber:  parking.Vehicle.AssignedSlot.FloorNumber,
 			SlotNumber:   parking.Vehicle.AssignedSlot.SlotNumber,
 			StartTime:    parking.StartTime.Local(),
-			VechicleType: parking.Vehicle.VehicleType,
+			VechicleType: parking.Vehicle.VehicleType.String(),
 		})
 	}
 	return activeParkingsDTO, nil
