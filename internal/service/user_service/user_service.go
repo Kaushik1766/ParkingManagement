@@ -109,20 +109,35 @@ func (us *UserService) GetAllUsers(ctx context.Context) ([]models.UserDTO, error
 
 func (us *UserService) UnregisterVehicle(ctx context.Context, numberplate string) error {
 	currentUser := ctx.Value(constants.User).(models.UserJwt)
-	userVehicles, err := us.vehicleRepo.GetVehiclesByUserId(uuid.MustParse(currentUser.ID))
+
+	vehicle, err := us.vehicleRepo.GetVehicleByNumberPlate(numberplate)
 	if err != nil {
-		return err
+		return errors.New("error fetching vehicles")
 	}
-	for _, v := range userVehicles {
-		if v.NumberPlate == numberplate {
-			if v.IsActive {
-				return us.vehicleRepo.RemoveVehicle(numberplate)
-			} else {
-				return nil
-			}
-		}
+
+	if vehicle.UserID.String() != currentUser.ID {
+		return errors.New("vehicle not owned by user")
 	}
-	return errors.New("vehicle not found for the user")
+
+	if vehicle.IsActive {
+		return us.vehicleRepo.RemoveVehicle(numberplate)
+	} else {
+		return nil
+	}
+	//userVehicles, err := us.vehicleRepo.GetVehiclesByUserId(uuid.MustParse(currentUser.ID))
+	//if err != nil {
+	//	return err
+	//}
+	//for _, v := range userVehicles {
+	//	if v.NumberPlate == numberplate {
+	//		if v.IsActive {
+	//			return us.vehicleRepo.RemoveVehicle(numberplate)
+	//		} else {
+	//			return nil
+	//		}
+	//	}
+	//}
+	//return errors.New("vehicle not found for the user")
 }
 
 func (us *UserService) GetRegisteredVehicles(ctx context.Context) ([]models.VehicleDTO, error) {

@@ -15,6 +15,7 @@ func InitDB() (*gorm.DB, error) {
 	// }
 
 	//dbURL := os.Getenv("DATABASE_URL")
+	//log.Println(dbURL)
 	dbURL := "postgresql://kaushik:123@localhost:5432/ParkingManagement"
 	return gorm.Open(postgres.Open(dbURL), &gorm.Config{})
 }
