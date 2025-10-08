@@ -77,7 +77,7 @@ func (handler *WebBuildingHandler) AddBuilding(ctx context.Context, w http.Respo
 	}
 
 	var req struct {
-		Name string `json:"building_name"`
+		Name string `json:"buildingName"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&req)

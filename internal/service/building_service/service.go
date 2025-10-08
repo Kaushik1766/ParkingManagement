@@ -54,15 +54,18 @@ func (bs *BuildingService) GetAllBuildings(ctx context.Context) ([]models.Buildi
 	if ctxUser.Role != roles.Admin {
 		return nil, errors.New("unauthorized: only admin can view buildings")
 	}
-	buildings, err := bs.buildingRepo.GetAllBuildings()
+	buildings, err := bs.buildingRepo.GetAllBuildingSummary()
 	if err != nil {
 		return nil, err
 	}
 	var res []models.BuildingDTO
 	for _, building := range buildings {
 		res = append(res, models.BuildingDTO{
-			BuildingID: building.BuildingID.String(),
-			Name:       building.BuildingName,
+			BuildingID:     building.BuildingId.String(),
+			Name:           building.BuildingName,
+			AvailableSlots: building.AvailableSlots,
+			TotalSlots:     building.TotalSlots,
+			TotalFloors:    building.TotalFloors,
 		})
 	}
 	return res, nil

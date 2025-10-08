@@ -10,12 +10,18 @@ type Building struct {
 	Floors       []Floor   `gorm:"foreignKey:BuildingID;references:BuildingID"`
 }
 
-// func (b Building) GetID() string {
-// 	return b.BuildingID.String()
-// }
-//
-
 type BuildingDTO struct {
-	BuildingID string `json:"building_id"`
-	Name       string `json:"name"`
+	BuildingID     string `json:"buildingId"`
+	Name           string `json:"name"`
+	AvailableSlots int    `json:"availableSlots"`
+	TotalSlots     int    `json:"totalSlots"`
+	TotalFloors    int    `json:"totalFloors"`
+}
+
+type BuildingSummary struct {
+	BuildingId     uuid.UUID
+	BuildingName   string
+	AvailableSlots int
+	TotalSlots     int
+	TotalFloors    int
 }

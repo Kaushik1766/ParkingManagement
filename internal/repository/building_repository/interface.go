@@ -12,4 +12,5 @@ type BuildingStorage interface {
 	GetBuildingByName(buildingName string) (models.Building, error)
 	GetAllBuildings() ([]models.Building, error)
 	GetBuildingByID(buildingID uuid.UUID) (models.Building, error)
+	GetAllBuildingSummary() ([]models.BuildingSummary, error)
 }

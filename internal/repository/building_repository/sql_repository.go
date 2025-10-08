@@ -36,9 +36,36 @@ func (sqlbr *SQLBuildingRepository) GetBuildingByName(buildingName string) (mode
 	return building, err
 }
 
+func (sqlbr *SQLBuildingRepository) GetAllBuildingSummary() ([]models.BuildingSummary, error) {
+	var buildings []models.BuildingSummary
+	err := sqlbr.db.
+		Table("buildings").
+		Select(`
+			buildings.building_id as building_id,
+			buildings.building_name as building_name,
+			count(distinct case when floors.floor_number is not null then
+				(floors.building_id, floors.floor_number) end) as total_floors,
+			count(distinct case when slots.slot_number is not null then
+				(slots.building_id,slots.floor_number, slots.slot_number) end) as total_slots,
+			count(distinct case when vehicles.assigned_slot_number is null then
+				(slots.building_id,slots.floor_number, slots.slot_number) end) as available_slots
+		`).
+		Joins("left join floors on buildings.building_id = floors.building_id").
+		Joins("left join slots on floors.building_id = slots.building_id and floors.floor_number = slots.floor_number").
+		Joins("left join vehicles on slots.building_id = vehicles.assigned_building_id and slots.floor_number = vehicles.assigned_floor_number and slots.slot_number = vehicles.assigned_slot_number").
+		Group("buildings.building_id").
+		Where("buildings.building_name <> 'ADMIN_BUILDING'").
+		Find(&buildings).Error
+
+	return buildings, err
+}
+
 func (sqlbr *SQLBuildingRepository) GetAllBuildings() ([]models.Building, error) {
-	buildings := []models.Building{}
-	err := sqlbr.db.Where("building_name <> ?", constants.AdminBuilding).Find(&buildings).Error
+	var buildings []models.Building
+	err := sqlbr.db.
+		Where("building_name <> ?", constants.AdminBuilding).
+		Preload("Floors.Slots.Vehicles").
+		Find(&buildings).Error
 	return buildings, err
 }
 
