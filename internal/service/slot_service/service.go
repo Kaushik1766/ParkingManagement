@@ -3,6 +3,7 @@ package slotservice
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
@@ -34,13 +35,24 @@ func (ss *SlotService) GetSlotsByFloor(ctx context.Context, buildingId string, f
 
 	var slotsDTO []models.SlotDTO
 	for _, slot := range slots {
-		isOccupied := len(slot.Vehicles) > 0
+		isAssigned := len(slot.Vehicles) > 0
 		slotDTO := models.SlotDTO{
 			BuildingID:  slot.BuildingID.String(),
 			FloorNumber: slot.FloorNumber,
 			SlotNumber:  slot.SlotNumber,
 			SlotType:    slot.SlotType.String(),
-			IsOccupied:  isOccupied,
+			IsAssigned:  isAssigned,
+			ParkingStatus: func() *models.ParkingStatusDTO {
+				if !isAssigned || len(slot.Vehicles) == 0 {
+					return nil
+				}
+				return &models.ParkingStatusDTO{
+					NumberPlate: slot.Vehicles[0].NumberPlate,
+					ParkedAt:    slot.Vehicles[0].ParkingHistory[0].StartTime.Format(time.RFC3339),
+					UserName:    slot.Vehicles[0].User.Name,
+					UserEmail:   slot.Vehicles[0].User.Email,
+				}
+			}(),
 		}
 		slotsDTO = append(slotsDTO, slotDTO)
 	}

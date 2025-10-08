@@ -18,11 +18,19 @@ type Slot struct {
 }
 
 type SlotDTO struct {
-	BuildingID  string `json:"building_id"`
-	FloorNumber int    `json:"floor_number"`
-	SlotNumber  int    `json:"slot_number"`
-	SlotType    string `json:"slot_type"`
-	IsOccupied  bool   `json:"is_occupied"`
+	BuildingID    string            `json:"buildingId"`
+	FloorNumber   int               `json:"floorNumber"`
+	SlotNumber    int               `json:"slotNumber"`
+	SlotType      string            `json:"slotType"`
+	IsAssigned    bool              `json:"isAssigned"`
+	ParkingStatus *ParkingStatusDTO `json:"parkingStatus,omitempty"`
+}
+
+type ParkingStatusDTO struct {
+	NumberPlate string `json:"numberPlate,omitempty"`
+	ParkedAt    string `json:"parkedAt,omitempty"`
+	UserName    string `json:"userName,omitempty"`
+	UserEmail   string `json:"userEmail,omitempty"`
 }
 
 // func (s Slot) GetID() string {

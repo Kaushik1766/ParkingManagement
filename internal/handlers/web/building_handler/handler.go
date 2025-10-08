@@ -34,25 +34,26 @@ func (handler *WebBuildingHandler) GetBuildings(ctx context.Context, w http.Resp
 		return
 	}
 
-	query := r.URL.Query()
+	//query := r.URL.Query()
 
 	var buildings []models.BuildingDTO
 	var err error
 
-	if query.Get("buildingId") != "" {
-		building, err := handler.buildingService.GetBuildingByID(ctx, query.Get("buildingId"))
-		if err != nil {
-			customerrors.InternalServerError(w, customerrors.WebError{
-				Message: "Failed to fetch building",
-				Code:    http.StatusInternalServerError,
-			})
-			return
-		}
-		buildings = append(buildings, building)
-	} else {
-		buildings, err = handler.buildingService.GetAllBuildings(ctx)
-	}
-
+	//if query.Get("buildingId") != "" {
+	//	building, err := handler.buildingService.GetBuildingByID(ctx, query.Get("buildingId"))
+	//	if err != nil {
+	//		customerrors.InternalServerError(w, customerrors.WebError{
+	//			Message: "Failed to fetch building",
+	//			Code:    http.StatusInternalServerError,
+	//		})
+	//		return
+	//	}
+	//	buildings = append(buildings, building)
+	//} else {
+	//	buildings, err = handler.buildingService.GetAllBuildings(ctx)
+	//}
+	//
+	buildings, err = handler.buildingService.GetAllBuildings(ctx)
 	if err != nil {
 		customerrors.InternalServerError(w, customerrors.WebError{
 			Message: "Failed to fetch buildings",

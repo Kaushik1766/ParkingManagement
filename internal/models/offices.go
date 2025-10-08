@@ -7,8 +7,8 @@ import (
 type Office struct {
 	OfficeID    uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
 	OfficeName  string    `gorm:"not null;unique"`
-	BuildingID  uuid.UUID
-	FloorNumber int
+	BuildingID  uuid.UUID `gorm:"uniqueIndex:idx_building_floor_office"`
+	FloorNumber int       `gorm:"uniqueIndex:idx_building_floor_office"`
 }
 
 type OfficeDTO struct {

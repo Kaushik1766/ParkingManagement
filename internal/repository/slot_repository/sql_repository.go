@@ -33,6 +33,13 @@ func (sqlsr *SQLSlotRepository) GetSlotsByFloor(buildingId uuid.UUID, floorNumbe
 	var slots []slot.Slot
 	err := sqlsr.db.
 		Where("building_id = ? AND floor_number = ?", buildingId, floorNumber).
+		Preload("Vehicles", func(db *gorm.DB) *gorm.DB {
+			return db.
+				Joins("JOIN parking_histories ON parking_histories.vehicle_id = vehicles.vehicle_id").
+				Where("parking_histories.end_time IS NULL").
+				Preload("User").
+				Preload("ParkingHistory", "end_time IS NULL")
+		}).
 		Order("slot_number asc").
 		Find(&slots).Error
 	if err != nil {

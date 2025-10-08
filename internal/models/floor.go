@@ -18,7 +18,18 @@ type Floor struct {
 // }
 
 type FloorDTO struct {
-	BuildingID  string `json:"buildinId"`
-	FloorNumber int    `json:"floorNumber"`
-	Slots       []Slot `json:"Slots"`
+	BuildingID     string `json:"buildingId"`
+	FloorNumber    int    `json:"floorNumber"`
+	TotalSlots     int    `json:"totalSlots"`
+	AvailableSlots int    `json:"availableSlots"`
+	AssignedOffice string `json:"assignedOffice,omitempty"`
+	//Slots       []Slot `json:"Slots"`
+}
+
+type FloorSummary struct {
+	BuildingID     uuid.UUID
+	FloorNumber    int
+	TotalSlots     int
+	AvailableSlots int
+	AssignedOffice string
 }

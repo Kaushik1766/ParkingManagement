@@ -210,7 +210,7 @@ func TestSlotService_GetSlotsByFloor(t *testing.T) {
 					FloorNumber: 1,
 					SlotNumber:  1,
 					SlotType:    vehicletypes.TwoWheeler.String(),
-					IsOccupied:  false,
+					IsAssigned:  false,
 				},
 			},
 			wantErr: false,

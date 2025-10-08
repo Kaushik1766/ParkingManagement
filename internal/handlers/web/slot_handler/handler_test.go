@@ -70,14 +70,14 @@ func TestWebSlotHandler_GetSlots(t *testing.T) {
 						FloorNumber: 1,
 						SlotNumber:  1,
 						SlotType:    "car",
-						IsOccupied:  false,
+						IsAssigned:  false,
 					},
 					{
 						BuildingID:  "building-123",
 						FloorNumber: 1,
 						SlotNumber:  2,
 						SlotType:    "bike",
-						IsOccupied:  true,
+						IsAssigned:  true,
 					},
 				}, nil)
 			},

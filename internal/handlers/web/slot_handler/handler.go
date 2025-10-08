@@ -23,6 +23,7 @@ func NewWebSlotHandler(slotService slotservice.SlotMgr) *WebSlotHandler {
 	}
 }
 
+// GetSlots gets slots by floor number and building id
 func (handler *WebSlotHandler) GetSlots(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	ctxUser := ctx.Value(constants.User).(models.UserJwt)

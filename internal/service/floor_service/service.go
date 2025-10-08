@@ -43,8 +43,11 @@ func (fs *FloorService) GetFloorsByBuildingId(ctx context.Context, buildingId st
 	var floorsDTO []models.FloorDTO
 	for _, floor := range floors {
 		floorsDTO = append(floorsDTO, models.FloorDTO{
-			BuildingID:  floor.BuildingID.String(),
-			FloorNumber: floor.FloorNumber,
+			BuildingID:     floor.BuildingID.String(),
+			FloorNumber:    floor.FloorNumber,
+			TotalSlots:     floor.TotalSlots,
+			AvailableSlots: floor.AvailableSlots,
+			AssignedOffice: floor.AssignedOffice,
 		})
 	}
 
