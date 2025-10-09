@@ -32,15 +32,15 @@ func (fs *FloorService) AddFloorByBuildingId(ctx context.Context, buildingId str
 func (fs *FloorService) GetFloorsByBuildingId(ctx context.Context, buildingId string) ([]models.FloorDTO, error) {
 	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 	if ctxUser.Role != roles.Admin {
-		return nil, errors.New("unauthorized: only admin can view floors")
+		return []models.FloorDTO{}, errors.New("unauthorized: only admin can view floors")
 	}
 
 	floors, err := fs.floorRepo.GetFloorsByBuildingId(buildingId)
 	if err != nil {
-		return nil, err
+		return []models.FloorDTO{}, err
 	}
 
-	var floorsDTO []models.FloorDTO
+	floorsDTO := []models.FloorDTO{}
 	for _, floor := range floors {
 		floorsDTO = append(floorsDTO, models.FloorDTO{
 			BuildingID:     floor.BuildingID.String(),
