@@ -93,7 +93,7 @@ func (handler *WebBuildingHandler) AddBuilding(ctx context.Context, w http.Respo
 	err = handler.buildingService.AddBuilding(ctx, req.Name)
 	if err != nil {
 		customerrors.InternalServerError(w, customerrors.WebError{
-			Message: "Failed to add building",
+			Message: err.Error(),
 			Code:    http.StatusInternalServerError,
 		})
 		return

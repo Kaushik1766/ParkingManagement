@@ -1,6 +1,8 @@
 package floorrepository
 
 import (
+	"errors"
+
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
@@ -43,7 +45,11 @@ func (sqlfr *SQLFloorRepository) AddFloor(buildingId string, floorNumber int) er
 		FloorNumber: floorNumber,
 		Slots:       slots,
 	}
-	return sqlfr.db.Create(&floor).Error
+	err = sqlfr.db.Create(&floor).Error
+	if err != nil {
+		return errors.New("duplicate floor number not allowed")
+	}
+	return nil
 }
 
 func (sqlfr *SQLFloorRepository) DeleteFloor(buildingId string, floorNumber int) error {

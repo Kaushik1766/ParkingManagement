@@ -91,5 +91,9 @@ func (sqlbr *SQLBuildingRepository) AddBuilding(buildingName string) error {
 		BuildingName: buildingName,
 		Floors:       nil,
 	}
-	return sqlbr.db.Create(&building).Error
+	err := sqlbr.db.Create(&building).Error
+	if err != nil {
+		return errors.New("building name should be unique")
+	}
+	return nil
 }
