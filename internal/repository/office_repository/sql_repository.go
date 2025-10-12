@@ -1,6 +1,8 @@
 package officerepository
 
 import (
+	"errors"
+
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/google/uuid"
@@ -28,7 +30,12 @@ func (sqlor *SQLOfficeRepository) AddOffice(officeName string, buildingID string
 		OfficeName:  officeName,
 	}
 
-	return sqlor.db.Create(&office).Error
+	err = sqlor.db.Create(&office).Error
+	if err != nil {
+		return errors.New("office name should be unique")
+	}
+
+	return nil
 }
 
 func (sqlor *SQLOfficeRepository) DeleteOffice(officeId string) error {
