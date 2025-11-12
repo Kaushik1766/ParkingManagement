@@ -7,6 +7,7 @@ import (
 
 	"github.com/Kaushik1766/ParkingManagement/db"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
+	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	authservice "github.com/Kaushik1766/ParkingManagement/internal/service/auth_service"
 	"github.com/aws/aws-lambda-go/events"
@@ -30,7 +31,7 @@ func main() {
 }
 
 func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var req models.LoginRequestDTO
+	var req models.RegisterRequestDTO
 
 	if err := json.Unmarshal([]byte(event.Body), &req); err != nil {
 		body, _ := json.Marshal(map[string]string{"message": "invalid request body"})
@@ -40,18 +41,16 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 		}, nil
 	}
 
-	token, err := authService.Login(req)
+	err := authService.Signup(req, roles.Customer)
 	if err != nil {
 		body, _ := json.Marshal(map[string]string{"message": "Invalid credentials"})
 		return events.APIGatewayProxyResponse{
-			StatusCode: 401,
+			StatusCode: 409,
 			Body:       string(body),
 		}, nil
 	}
 
-	body, _ := json.Marshal(map[string]string{"jwt": token})
 	return events.APIGatewayProxyResponse{
-		StatusCode: 200,
-		Body:       string(body),
+		StatusCode: 201,
 	}, nil
 }

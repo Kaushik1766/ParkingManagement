@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/aws/serverless-application-model/main/samtranslator/schema/schema.json
 Transform: AWS::Serverless-2016-10-31
 Globals:
   Function:
@@ -25,4 +26,32 @@ Resources:
           Properties:
             Method: post
             Path: /auth/login
+            RestApiId: !Ref Api
+
+  Signup:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/auth/signup
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: post
+            Path: /auth/register
+            RestApiId: !Ref Api
+
+  GetBuildings:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/building/get_buildings
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: get
+            Path: /buildings
             RestApiId: !Ref Api

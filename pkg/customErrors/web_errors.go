@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	errorcodes "github.com/Kaushik1766/ParkingManagement/internal/constants/error_codes"
+	"github.com/aws/aws-lambda-go/events"
 )
 
 type WebError struct {
@@ -62,4 +63,14 @@ func InternalServerError(w http.ResponseWriter, err WebError) {
 	log.Println("Internal server error:", err.Message)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(err)
+}
+
+func LambdaError(code int, msg string) events.APIGatewayProxyResponse {
+	body, _ := json.Marshal(map[string]string{
+		"message": msg,
+	})
+	return events.APIGatewayProxyResponse{
+		StatusCode: code,
+		Body:       string(body),
+	}
 }
