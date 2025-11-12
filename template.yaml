@@ -1,0 +1,28 @@
+Transform: AWS::Serverless-2016-10-31
+Globals:
+  Function:
+    Architectures:
+      - x86_64
+    Timeout: 200
+    Handler: bootstrap
+    Runtime: provided.al2023
+
+Resources:
+  Api:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: v1
+
+  Login:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/auth/login
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: post
+            Path: /auth/login
+            RestApiId: !Ref Api

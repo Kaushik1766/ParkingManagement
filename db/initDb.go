@@ -16,7 +16,7 @@ func InitDB() (*gorm.DB, error) {
 
 	//dbURL := os.Getenv("DATABASE_URL")
 	//log.Println(dbURL)
-	dbURL := "postgresql://kaushik:123@localhost:5432/ParkingManagement"
+	dbURL := "postgresql://neondb_owner:npg_hoKMcqI8gYE1@ep-delicate-cloud-a14jasmx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 	return gorm.Open(postgres.Open(dbURL), &gorm.Config{})
 }
 
