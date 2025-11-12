@@ -1,0 +1,66 @@
+{
+    "Reasons": {
+        "vehicle": "keeping it separate, so i can query using numberplate, plus main reason is that updating/adding/removing any vehicle in vehicle array(if i had embedded, every add/remove/update to a vehicle rewrites the entire user profile",
+        "floors": "keeping separate because of 2 reasons 1. same as before adding/removing/updating slot status rewrites the whole building (if embedded), 2. querying for available slots becomes easier",
+        "buildingName": "keeping pk as building#buildingid instead of name coz name can change later, but id will remain same"
+    },
+    "User": {
+        "PK": "USER#kaushik@a.com",
+        "SK": "PROFILE#uuid", // come back to this later
+        "email": "kaushik@a.com",
+        "id": "uuid",
+        "username": "Kaushik Saha",
+        "passwordHash": "$2b$10$...",
+        "office": "Watchguard",
+        "role": "ADMIN"
+    },
+    "Vehicle": {
+        "PK": "USER#kaushik@a.com",
+        "SK": "VEHICLE#UP32KK2222",
+        "numberplate": "UP32KK2222",
+        "vehicleType": "TwoWheeler",
+        "isParked": true,
+        "assignedSlot": {
+            "buildingId": "BUILDING#B1",
+            "floorNumber": 1,
+            "slotId": "SLOT#S1"
+        }
+    },
+    "ParkingHistory": {
+        "PK": "USER#kaushik@a.com",
+        "SK": "PARKING#timestamp",
+        "numberplate": "UP32KK2222",
+        "buildingId": "BUILDING#B1",
+        "floorNumber": 1,
+        "slotId": "SLOT#S1",
+        "startTime": "2023-10-01T10:00:00Z",
+        "endTime": "2023-10-01T12:00:00Z"
+    },
+    "Building": {
+        "PK": "BUILDING#B1",
+        "SK": "DETAILS",
+        "buildingName": "Advant",
+        "totalFloors": 3,
+        "availableSlots": 50
+    },
+    "Floor": {
+        "PK": "BUILDING#B1",
+        "SK": "FLOOR#1",
+        "floorNumber": 1,
+        "totalSlots": 20,
+        "availableSlots": 15
+    },
+    "Slot": {
+        "PK": "BUILDING#B1",
+        "SK": "SLOT#F1#1",
+        "slotId": "1",
+        "slotType": "TwoWheeler",
+        "isOccupied": true,
+        // this can be null
+        "occupiedBy?": {
+            "username": "Kaushik Saha",
+            "numberplate": "UP32KK2222",
+            "email": "kaushik@a.com"
+        }
+    }
+}
