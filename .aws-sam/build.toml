@@ -36,4 +36,232 @@ functions = ["Signup"]
 [function_build_definitions.ee27a37e-e057-498a-8281-7318f7319380.metadata]
 BuildMethod = "go1.x"
 
+[function_build_definitions.e377de8a-f179-4fcc-8037-812b5b5e856a]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/building/add_building"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "bootstrap"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["AddBuilding"]
+
+[function_build_definitions.e377de8a-f179-4fcc-8037-812b5b5e856a.metadata]
+BuildMethod = "go1.x"
+
+[function_build_definitions.1cc6a2b7-3fe3-415a-9936-c62228c664de]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/building/delete_building"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "bootstrap"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["DeleteBuilding"]
+
+[function_build_definitions.1cc6a2b7-3fe3-415a-9936-c62228c664de.metadata]
+BuildMethod = "go1.x"
+
+[function_build_definitions.4f90c5d0-afeb-4dfd-8362-93aecfa82caa]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/floor/get_floors"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "bootstrap"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["GetFloors"]
+
+[function_build_definitions.4f90c5d0-afeb-4dfd-8362-93aecfa82caa.metadata]
+BuildMethod = "go1.x"
+
+[function_build_definitions.c22eb073-1143-4037-a7fc-ac5a7a2d0982]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/floor/add_floor"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "bootstrap"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["AddFloor"]
+
+[function_build_definitions.c22eb073-1143-4037-a7fc-ac5a7a2d0982.metadata]
+BuildMethod = "go1.x"
+
+[function_build_definitions.028c27e3-e118-4764-9c81-f7058433271c]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/floor/delete_floor"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "bootstrap"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["DeleteFloor"]
+
+[function_build_definitions.028c27e3-e118-4764-9c81-f7058433271c.metadata]
+BuildMethod = "go1.x"
+
+[function_build_definitions.10b211e4-3877-4f87-b6dc-c3b60405fb7a]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/office/get_offices"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "bootstrap"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["GetBuildingOffices"]
+
+[function_build_definitions.10b211e4-3877-4f87-b6dc-c3b60405fb7a.metadata]
+BuildMethod = "go1.x"
+
+[function_build_definitions.b50e1734-aaca-472e-81ed-3d4a1fbdf47f]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/office/get_all_offices"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "bootstrap"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["GetAllOffices"]
+
+[function_build_definitions.b50e1734-aaca-472e-81ed-3d4a1fbdf47f.metadata]
+BuildMethod = "go1.x"
+
+[function_build_definitions.bf9a348f-bd8c-470d-8a35-d8fe9779b8c1]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/office/add_office"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "bootstrap"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["AddOffice"]
+
+[function_build_definitions.bf9a348f-bd8c-470d-8a35-d8fe9779b8c1.metadata]
+BuildMethod = "go1.x"
+
+[function_build_definitions.0dd6c305-bf3f-40d8-a285-b3a7a12c3170]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/office/delete_office"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "bootstrap"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["DeleteOffice"]
+
+[function_build_definitions.0dd6c305-bf3f-40d8-a285-b3a7a12c3170.metadata]
+BuildMethod = "go1.x"
+
+[function_build_definitions.a121df1a-12e7-4792-bf69-1da7c8983ffc]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/slot/get_slots"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "bootstrap"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["GetSlots"]
+
+[function_build_definitions.a121df1a-12e7-4792-bf69-1da7c8983ffc.metadata]
+BuildMethod = "go1.x"
+
+[function_build_definitions.1d5b8217-4114-49b9-9acd-9bda51a7b2d9]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/user/get_users"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "bootstrap"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["GetUsers"]
+
+[function_build_definitions.1d5b8217-4114-49b9-9acd-9bda51a7b2d9.metadata]
+BuildMethod = "go1.x"
+
+[function_build_definitions.d74d8fb5-d1d2-4768-94f4-d44f8f89d15c]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/user/update_user"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "bootstrap"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["UpdateUser"]
+
+[function_build_definitions.d74d8fb5-d1d2-4768-94f4-d44f8f89d15c.metadata]
+BuildMethod = "go1.x"
+
+[function_build_definitions.728c2917-8b67-436c-bfca-f6a495ac02ab]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/user/delete_user"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "bootstrap"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["DeleteUser"]
+
+[function_build_definitions.728c2917-8b67-436c-bfca-f6a495ac02ab.metadata]
+BuildMethod = "go1.x"
+
+[function_build_definitions.b969f815-4efa-4dd1-9dec-5d6c41c63733]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/vehicle/get_vehicles"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "bootstrap"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["GetVehicles"]
+
+[function_build_definitions.b969f815-4efa-4dd1-9dec-5d6c41c63733.metadata]
+BuildMethod = "go1.x"
+
+[function_build_definitions.751bb9b6-3c4e-4d68-9158-6dc3dbf16598]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/vehicle/register_vehicle"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "bootstrap"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["RegisterVehicle"]
+
+[function_build_definitions.751bb9b6-3c4e-4d68-9158-6dc3dbf16598.metadata]
+BuildMethod = "go1.x"
+
+[function_build_definitions.0ccfc5ef-11a7-4d30-898e-5a104475ebd0]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/vehicle/remove_vehicle"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "bootstrap"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["RemoveVehicle"]
+
+[function_build_definitions.0ccfc5ef-11a7-4d30-898e-5a104475ebd0.metadata]
+BuildMethod = "go1.x"
+
+[function_build_definitions.77747cdd-9be4-4bdb-9aaf-c1691c3c0311]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/parking/add_parking"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "bootstrap"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["AddParking"]
+
+[function_build_definitions.77747cdd-9be4-4bdb-9aaf-c1691c3c0311.metadata]
+BuildMethod = "go1.x"
+
+[function_build_definitions.4707304f-509e-4cfa-90f2-59c293f81269]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/parking/get_parkings"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "bootstrap"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["GetParkings"]
+
+[function_build_definitions.4707304f-509e-4cfa-90f2-59c293f81269.metadata]
+BuildMethod = "go1.x"
+
+[function_build_definitions.5ce30ce3-5942-4bf7-a987-b32537273f7b]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/parking/unpark_vehicle"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "bootstrap"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["UnparkVehicle"]
+
+[function_build_definitions.5ce30ce3-5942-4bf7-a987-b32537273f7b.metadata]
+BuildMethod = "go1.x"
+
 [layer_build_definitions]

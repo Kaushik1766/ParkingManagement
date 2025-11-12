@@ -55,3 +55,269 @@ Resources:
             Method: get
             Path: /buildings
             RestApiId: !Ref Api
+
+  AddBuilding:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/building/add_building
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: post
+            Path: /buildings
+            RestApiId: !Ref Api
+
+  DeleteBuilding:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/building/delete_building
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: delete
+            Path: /buildings/{buildingId}
+            RestApiId: !Ref Api
+
+  GetFloors:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/floor/get_floors
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: get
+            Path: /buildings/{buildingId}/floors
+            RestApiId: !Ref Api
+
+  AddFloor:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/floor/add_floor
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: post
+            Path: /buildings/{buildingId}/floors
+            RestApiId: !Ref Api
+
+  DeleteFloor:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/floor/delete_floor
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: delete
+            Path: /buildings/{buildingId}/floors/{floorId}
+            RestApiId: !Ref Api
+
+  GetBuildingOffices:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/office/get_offices
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: get
+            Path: /buildings/{buildingId}/offices
+            RestApiId: !Ref Api
+
+  GetAllOffices:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/office/get_all_offices
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: get
+            Path: /offices
+            RestApiId: !Ref Api
+
+  AddOffice:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/office/add_office
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: post
+            Path: /buildings/{buildingId}/offices
+            RestApiId: !Ref Api
+
+  DeleteOffice:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/office/delete_office
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: delete
+            Path: /buildings/{buildingId}/offices/{officeId}
+            RestApiId: !Ref Api
+
+  GetSlots:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/slot/get_slots
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: get
+            Path: /buildings/{buildingId}/floors/{floorId}/slots
+            RestApiId: !Ref Api
+
+  GetUsers:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/user/get_users
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: get
+            Path: /users
+            RestApiId: !Ref Api
+
+  UpdateUser:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/user/update_user
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: patch
+            Path: /users/{userId}
+            RestApiId: !Ref Api
+
+  DeleteUser:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/user/delete_user
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: delete
+            Path: /users/{userId}
+            RestApiId: !Ref Api
+
+  GetVehicles:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/vehicle/get_vehicles
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: get
+            Path: /vehicles
+            RestApiId: !Ref Api
+
+  RegisterVehicle:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/vehicle/register_vehicle
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: post
+            Path: /vehicles
+            RestApiId: !Ref Api
+
+  RemoveVehicle:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/vehicle/remove_vehicle
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: delete
+            Path: /vehicles/{numberplate}
+            RestApiId: !Ref Api
+
+  AddParking:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/parking/add_parking
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: post
+            Path: /parkings
+            RestApiId: !Ref Api
+
+  GetParkings:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/parking/get_parkings
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: get
+            Path: /parkings
+            RestApiId: !Ref Api
+
+  UnparkVehicle:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: ./cmd/functions/parking/unpark_vehicle
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Method: patch
+            Path: /parkings/{numberplate}/unpark
+            RestApiId: !Ref Api

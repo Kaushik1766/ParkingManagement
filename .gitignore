@@ -6,3 +6,4 @@ main
 .env
 *.html
 .idea/**
+.aws-sam/**
