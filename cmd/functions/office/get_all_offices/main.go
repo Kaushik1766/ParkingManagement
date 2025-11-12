@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Kaushik1766/ParkingManagement/db"
+	corsmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/cors_middleware"
 	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
 	officeservice "github.com/Kaushik1766/ParkingManagement/internal/service/office_service"
 	customerrors "github.com/Kaushik1766/ParkingManagement/pkg/customErrors"
@@ -27,7 +28,7 @@ func init() {
 }
 
 func main() {
-	lambda.Start(handler)
+	lambda.Start(corsmiddleware.WithCORS(handler))
 }
 
 func handler(ctx context.Context, _ events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {

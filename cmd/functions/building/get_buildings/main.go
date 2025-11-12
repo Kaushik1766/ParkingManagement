@@ -7,6 +7,7 @@ import (
 
 	"github.com/Kaushik1766/ParkingManagement/db"
 	authenticationmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/authentication_middleware"
+	corsmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/cors_middleware"
 	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
 	buildingservice "github.com/Kaushik1766/ParkingManagement/internal/service/building_service"
 	customerrors "github.com/Kaushik1766/ParkingManagement/pkg/customErrors"
@@ -27,7 +28,7 @@ func init() {
 }
 
 func main() {
-	lambda.Start(authenticationmiddleware.AuthorizedInvoke(handler))
+	lambda.Start(corsmiddleware.WithCORS(authenticationmiddleware.AuthorizedInvoke(handler)))
 }
 
 func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
