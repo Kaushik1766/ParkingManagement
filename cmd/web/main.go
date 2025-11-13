@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 
 	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -28,7 +27,28 @@ func main() {
 
 	buildingRepo := buildingrepository.NewNOSQLBuidlingRepository(client)
 
-	fmt.Println(buildingRepo.DeleteBuildingByID("fadfasfa"))
+	// fmt.Println(buildingRepo.DeleteBuildingByID("fadfasfa"))
+
+	// fmt.Print(buildingRepo.AddBuilding("advant"))
+
+	// buildings, err := buildingRepo.GetAllBuildingSummary()
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// fmt.Println(buildings)
+
+	// building, err := buildingRepo.GetBuildingByID(uuid.MustParse("88898cb2-6534-4602-82a0-6c93a6efc095"))
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// fmt.Println(building)
+
+	err = buildingRepo.DeleteBuildingByID("88898cb2-6534-4602-82a0-6c93a6efc095")
+	if err != nil {
+		panic(err)
+	}
 
 	// gormDb, _ := db.InitDB()
 
