@@ -13,4 +13,5 @@ const (
 	SlotsPath          = "data/slots.json"
 	VehiclesPath       = "data/vehicles.json"
 	EnvPath            = "./.env"
+	DynamoDBTable      = "pm_nosql"
 )

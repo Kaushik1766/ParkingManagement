@@ -1,13 +1,37 @@
 package main
 
 import (
-	"github.com/Kaushik1766/ParkingManagement/db"
-	"github.com/Kaushik1766/ParkingManagement/internal/app"
+	"context"
+	"fmt"
+
+	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
+type User struct {
+	PK    string
+	SK    string
+	Name  string
+	Email string
+}
+
 func main() {
-	gormDb, _ := db.InitDB()
-	// err := db.MigrateModels(
+	ctx := context.Background()
+
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		panic("aws config not found")
+	}
+
+	client := dynamodb.NewFromConfig(cfg)
+
+	buildingRepo := buildingrepository.NewNOSQLBuidlingRepository(client)
+
+	fmt.Println(buildingRepo.DeleteBuildingByID("fadfasfa"))
+
+	// gormDb, _ := db.InitDB()
+
 	// 	gormDb,
 	// 	models.Building{},
 	// 	models.Floor{},
@@ -21,11 +45,11 @@ func main() {
 	// 	panic("error migrating models" + err.Error())
 	// }
 
-	app := app.NewApp(gormDb)
+	// app := app.NewApp(gormDb)
 	// logFile, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_RDWR|os.O_CREATE, 0644)
 	// if err != nil {
 	// 	log.Panic(err)
 	// }
 	// log.SetOutput(logFile)
-	app.Run()
+	// app.Run()
 }
