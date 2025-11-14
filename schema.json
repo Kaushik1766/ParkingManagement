@@ -49,7 +49,8 @@
     "SK": "FLOOR#1",
     "floorNumber": 1,
     "totalSlots": 20,
-    "availableSlots": 15
+    "availableSlots": 15,
+    "office": "Watchguard"
   },
   "Slot": {
     "PK": "BUILDING#B1",

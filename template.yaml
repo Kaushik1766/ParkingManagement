@@ -18,12 +18,33 @@ Resources:
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
         AllowOrigin: "'*'"
 
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaDynamoDBPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:*
+                Resource: arn:aws:dynamodb:ap-south-1:513758042129:table/pm_nosql
+
   Login:
     Type: AWS::Serverless::Function
     Metadata:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/auth/login
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -38,6 +59,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/auth/signup
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -52,6 +74,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/building/get_buildings
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -66,6 +89,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/building/add_building
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -80,6 +104,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/building/delete_building
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -94,6 +119,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/floor/get_floors
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -108,6 +134,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/floor/add_floor
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -122,6 +149,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/floor/delete_floor
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -136,6 +164,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/office/get_offices
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -150,6 +179,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/office/get_all_offices
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -164,6 +194,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/office/add_office
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -178,6 +209,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/office/delete_office
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -192,6 +224,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/slot/get_slots
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -206,6 +239,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/user/get_users
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -220,6 +254,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/user/update_user
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -234,6 +269,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/user/delete_user
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -248,6 +284,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/vehicle/get_vehicles
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -262,6 +299,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/vehicle/register_vehicle
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -276,6 +314,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/vehicle/remove_vehicle
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -290,6 +329,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/parking/add_parking
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -304,6 +344,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/parking/get_parkings
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
@@ -318,6 +359,7 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: ./cmd/functions/parking/unpark_vehicle
+      Role: !GetAtt LambdaRole.Arn
       Events:
         ApiEvent:
           Type: Api
