@@ -50,7 +50,7 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(buildingId string, floorNumber int
 				PutRequest: &types.PutRequest{
 					Item: map[string]types.AttributeValue{
 						"PK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId)},
-						"SK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%s#SLOT#%s", floorNumber, i)},
+						"SK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%d#SLOT#%d", floorNumber, i)},
 						"SlotNumber": &types.AttributeValueMemberN{Value: strconv.Itoa(i)},
 						"SlotType":   &types.AttributeValueMemberS{Value: vehicletypes.TwoWheeler.String()},
 					},
@@ -61,7 +61,7 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(buildingId string, floorNumber int
 				PutRequest: &types.PutRequest{
 					Item: map[string]types.AttributeValue{
 						"PK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId)},
-						"SK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%s#SLOT#%s", floorNumber, i)},
+						"SK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%d#SLOT#%d", floorNumber, i)},
 						"SlotNumber": &types.AttributeValueMemberN{Value: strconv.Itoa(i)},
 						"SlotType":   &types.AttributeValueMemberS{Value: vehicletypes.FourWheeler.String()},
 					},
@@ -106,42 +106,12 @@ func (nosqlfr *NOSQLFloorRepository) DeleteFloor(buildingId string, floorNumber 
 }
 
 func (nosqlfr *NOSQLFloorRepository) GetFloor(buildingId uuid.UUID, floorNumber int) (int, error) {
-	// var floor models.Floor
-	// err := nosqlfr.db.Where("building_id = ? and floor_number = ?", buildingId, floorNumber).First(&floor).Error
-	// if err != nil {
-	// 	return 0, err
-	// }
-	// return floor.FloorNumber, nil
 	panic("not implemented coz not used")
 }
 
 func (nosqlfr *NOSQLFloorRepository) GetFloorsByBuildingId(buildingId string) ([]models.FloorSummary, error) {
-	// buildingUUID, err := uuid.Parse(buildingId)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// var floors []models.FloorSummary
-	// //err = nosqlfr.db.Where("building_id = ?", buildingUUID).Find(&floors).Error
-	// err = nosqlfr.db.
-	// 	Table("floors").
-	// 	Select(`
-	// 		floors.building_id as building_id,
-	// 		floors.floor_number as floor_number,
-	// 		offices.office_name as assigned_office,
-	// 		count(distinct case when slots.slot_number is not null then
-	// 			(slots.building_id, slots.floor_number, slots.slot_number) end) as total_slots,
-	// 		count(distinct case when vehicles.assigned_slot_number is null then
-	// 			(slots.building_id,slots.floor_number, slots.slot_number) end) as available_slots
-	// 	`).
-	// 	Joins("left join slots on floors.building_id = slots.building_id and floors.floor_number = slots.floor_number").
-	// 	Joins("left join offices on offices.building_id = floors.building_id and offices.floor_number = floors.floor_number").
-	// 	Joins("left join vehicles on slots.building_id = vehicles.assigned_building_id and slots.floor_number = vehicles.assigned_floor_number and slots.slot_number = vehicles.assigned_slot_number").
-	// 	Where("floors.building_id = ?", buildingUUID).
-	// 	Group("floors.building_id, floors.floor_number, offices.office_id").
-	// 	Find(&floors).Error
-	// return floors, err
 
-	floors = make([]models.FloorSummary, 0)
+	floors := make([]models.FloorSummary, 0)
 
 	res, err := nosqlfr.client.
 		Query(context.Background(), &dynamodb.QueryInput{
@@ -156,6 +126,21 @@ func (nosqlfr *NOSQLFloorRepository) GetFloorsByBuildingId(buildingId string) ([
 		log.Println(err.Error())
 		return nil, errors.New("error fetching floors")
 	}
+
+	for _, item := range res.Items {
+		var floor models.FloorSummary
+		floor.BuildingID = uuid.MustParse(buildingId)
+		floor.FloorNumber, _ = strconv.Atoi(item["FloorNumber"].(*types.AttributeValueMemberN).Value)
+		floor.TotalSlots, _ = strconv.Atoi(item["TotalSlots"].(*types.AttributeValueMemberN).Value)
+		floor.AvailableSlots, _ = strconv.Atoi(item["AvailableSlots"].(*types.AttributeValueMemberN).Value)
+		if item["Office"] != nil {
+			floor.AssignedOffice = item["Office"].(*types.AttributeValueMemberS).Value
+		} else {
+			floor.AssignedOffice = "unassigned"
+		}
+		floors = append(floors, floor)
+	}
+	return floors, nil
 }
 
 func NewNOSQLFloorRepository(client *dynamodb.Client) *NOSQLFloorRepository {
