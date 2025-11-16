@@ -46,7 +46,7 @@
   },
   "Floor": {
     "PK": "BUILDING#B1",
-    "SK": "FLOOR#1",
+    "SK": "FLOORINFO#1",
     "floorNumber": 1,
     "totalSlots": 20,
     "availableSlots": 15,

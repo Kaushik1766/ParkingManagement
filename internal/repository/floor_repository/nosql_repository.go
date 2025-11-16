@@ -25,7 +25,7 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(buildingId string, floorNumber int
 	item := map[string]types.AttributeValue{}
 
 	item["PK"] = &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId)}
-	item["SK"] = &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%s", strconv.Itoa(floorNumber))}
+	item["SK"] = &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOORINFO#%s", strconv.Itoa(floorNumber))}
 	item["FloorNumber"] = &types.AttributeValueMemberN{Value: strconv.Itoa(floorNumber)}
 	item["TotalSlots"] = &types.AttributeValueMemberN{Value: strconv.Itoa(len(constants.SlotLayout))}
 	item["AvailableSlots"] = &types.AttributeValueMemberN{Value: strconv.Itoa(len(constants.SlotLayout))}
@@ -94,7 +94,7 @@ func (nosqlfr *NOSQLFloorRepository) DeleteFloor(buildingId string, floorNumber 
 			TableName: aws.String(config.DynamoDBTable),
 			Key: map[string]types.AttributeValue{
 				"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId)},
-				"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%s", floorNumber)},
+				"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOORINFO#%d", floorNumber)},
 			},
 		})
 	if err != nil {
@@ -119,11 +119,11 @@ func (nosqlfr *NOSQLFloorRepository) GetFloorsByBuildingId(buildingId string) ([
 			KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 			ExpressionAttributeValues: map[string]types.AttributeValue{
 				":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId)},
-				":sk": &types.AttributeValueMemberS{Value: "FLOOR"},
+				":sk": &types.AttributeValueMemberS{Value: "FLOORINFO#"},
 			},
 		})
 	if err != nil {
-		log.Println(err.Error())
+		log.Println("Error details:", err.Error())
 		return nil, errors.New("error fetching floors")
 	}
 
@@ -133,6 +133,7 @@ func (nosqlfr *NOSQLFloorRepository) GetFloorsByBuildingId(buildingId string) ([
 		floor.FloorNumber, _ = strconv.Atoi(item["FloorNumber"].(*types.AttributeValueMemberN).Value)
 		floor.TotalSlots, _ = strconv.Atoi(item["TotalSlots"].(*types.AttributeValueMemberN).Value)
 		floor.AvailableSlots, _ = strconv.Atoi(item["AvailableSlots"].(*types.AttributeValueMemberN).Value)
+		log.Println(item["Office"])
 		if item["Office"] != nil {
 			floor.AssignedOffice = item["Office"].(*types.AttributeValueMemberS).Value
 		} else {
