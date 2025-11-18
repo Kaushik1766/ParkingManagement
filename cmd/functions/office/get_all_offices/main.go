@@ -3,27 +3,31 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strings"
 
-	"github.com/Kaushik1766/ParkingManagement/db"
 	corsmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/cors_middleware"
 	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
 	officeservice "github.com/Kaushik1766/ParkingManagement/internal/service/office_service"
 	customerrors "github.com/Kaushik1766/ParkingManagement/pkg/customErrors"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
 var officeService officeservice.OfficeMgr
 
 func init() {
-	gormDb, err := db.InitDB()
+	ctx := context.Background()
+
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to initialize DB: %v", err))
+		panic("aws config not found")
 	}
 
-	officeRepo := officerepository.NewSQLOfficeRepository(gormDb)
+	client := dynamodb.NewFromConfig(cfg)
+
+	officeRepo := officerepository.NewNOSQLOfficeRepository(client)
 	officeService = officeservice.NewOfficeService(officeRepo)
 }
 

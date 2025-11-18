@@ -43,9 +43,10 @@ func (nosqlor *NOSQLOfficeRepository) AddOffice(officeName string, buildingID st
 			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
 			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOORINFO#%d", floorNumber)},
 		},
-		UpdateExpression: aws.String("ADD Office :val"),
+		UpdateExpression: aws.String("SET Office = :val, OfficeId = :id"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":val": &types.AttributeValueMemberSS{Value: []string{officeName}},
+			":val": &types.AttributeValueMemberS{Value: officeName},
+			":id":  &types.AttributeValueMemberS{Value: uuid.NewString()},
 		},
 	})
 	if err != nil {
@@ -57,15 +58,7 @@ func (nosqlor *NOSQLOfficeRepository) AddOffice(officeName string, buildingID st
 }
 
 func (nosqlor *NOSQLOfficeRepository) DeleteOffice(officeId string) error {
-	officeUUID, err := uuid.Parse(officeId)
-	if err != nil {
-		return err
-	}
-
-	// if officeName == constants.AdminOffice {
-	// 	return errors.New("officerepo: cannot delete admin office")
-	// }
-	return nosqlor.db.Where("office_id = ?", officeUUID).Delete(&models.Office{}).Error
+	panic("pending implementation")
 }
 
 func (nosqlor *NOSQLOfficeRepository) GetBuildingAndFloorByOffice(officeName string) (uuid.UUID, int, error) {
@@ -97,7 +90,14 @@ func (nosqlor *NOSQLOfficeRepository) GetOfficesByBuilding(buildingID string) ([
 		var office models.Office
 		office.BuildingID = uuid.MustParse(buildingID)
 		office.FloorNumber, _ = strconv.Atoi(item["FloorNumber"].(*types.AttributeValueMemberN).Value)
+		if item["Office"] == nil {
+			continue
+		}
 		office.OfficeName = item["Office"].(*types.AttributeValueMemberS).Value
+		if item["OfficeId"] == nil {
+			continue
+		}
+		office.OfficeID = uuid.MustParse(item["OfficeId"].(*types.AttributeValueMemberS).Value)
 		offices = append(offices, office)
 	}
 	return offices, nil
@@ -107,50 +107,81 @@ func (nosqlor *NOSQLOfficeRepository) GetAllOffices() ([]models.Office, error) {
 	var offices []models.Office
 
 	buildings, err := nosqlor.client.Query(context.Background(), &dynamodb.QueryInput{
-		TableName:        aws.String(config.DynamoDBTable),
-		FilterExpression: aws.String("PK = :pk"),
+		TableName:              aws.String(config.DynamoDBTable),
+		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk": &types.AttributeValueMemberS{Value: "BUILDING"},
+			":sk": &types.AttributeValueMemberS{Value: "BUILDING#"},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return nil, err
+		return nil, errors.New("failed to fetch buildings")
 	}
 
 	for _, building := range buildings.Items {
-		buildingID := building["BuildingID"].(*types.AttributeValueMemberS).Value
+		buildingID := building["BuildingId"].(*types.AttributeValueMemberS).Value
+		fmt.Println(buildingID)
+		res, err := nosqlor.client.Query(context.Background(), &dynamodb.QueryInput{
+			TableName:              aws.String(config.DynamoDBTable),
+			KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :prefix)"),
+			ExpressionAttributeValues: map[string]types.AttributeValue{
+				":pk":     &types.AttributeValueMemberS{Value: "BUILDING#" + buildingID},
+				":prefix": &types.AttributeValueMemberS{Value: "FLOORINFO#"},
+			},
+			ProjectionExpression: aws.String("FloorNumber, Office, OfficeId"),
+		})
+		if err != nil {
+			return nil, err
+		}
 
+		for _, item := range res.Items {
+			var office models.Office
+			office.BuildingID = uuid.MustParse(buildingID)
+			office.FloorNumber, _ = strconv.Atoi(item["FloorNumber"].(*types.AttributeValueMemberN).Value)
+
+			if item["Office"] == nil {
+				continue
+			}
+			office.OfficeName = item["Office"].(*types.AttributeValueMemberS).Value
+
+			if item["OfficeId"] == nil {
+				continue
+			}
+			office.OfficeID = uuid.MustParse(item["OfficeId"].(*types.AttributeValueMemberS).Value)
+
+			offices = append(offices, office)
+		}
 	}
 
-	// err = nosqlor.db.Where("building_id = ? AND office_name <> ?", buildingUUID, constants.AdminOffice).Find(&offices).Error
-	items, err := nosqlor.client.Query(context.Background(), &dynamodb.QueryInput{
-		TableName:              aws.String(config.DynamoDBTable),
-		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :prefix)"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk":     &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
-			":prefix": &types.AttributeValueMemberS{Value: "FLOORINFO#"},
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	for _, item := range items.Items {
-		var office models.Office
-		office.BuildingID = uuid.MustParse(buildingID)
-		office.FloorNumber, _ = strconv.Atoi(item["FloorNumber"].(*types.AttributeValueMemberN).Value)
-		office.OfficeName = item["Office"].(*types.AttributeValueMemberS).Value
-		offices = append(offices, office)
-	}
 	return offices, nil
 }
 
 func (nosqlor *NOSQLOfficeRepository) GetOfficeByName(officeName string) (models.Office, error) {
-	// if officeName == constants.AdminOffice {
-	// 	return models.Office{}, errors.New("officerepo: cannot get admin office by name")
-	// }
 	var office models.Office
-	err := nosqlor.db.Where("office_name = ?", officeName).First(&office).Error
+
+	buildings, err := nosqlor.client.Query(context.Background(), &dynamodb.QueryInput{
+		TableName:              aws.String(config.DynamoDBTable),
+		KeyConditionExpression: aws.String("PK = :pk begins_with(SK, :sk)"),
+		FilterExpression:       aws.String("contains(Office, :officeName)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":officeName": &types.AttributeValueMemberS{Value: officeName},
+			":pk":         &types.AttributeValueMemberS{Value: "BUILDING"},
+			":sk":         &types.AttributeValueMemberS{Value: "FLOORINFO#"},
+		},
+	})
+	if err != nil {
+		log.Println(err.Error())
+		return models.Office{}, err
+	}
+
+	for _, item := range buildings.Items {
+		office.BuildingID = uuid.MustParse(item["BuildingId"].(*types.AttributeValueMemberS).Value)
+		office.FloorNumber, _ = strconv.Atoi(item["FloorNumber"].(*types.AttributeValueMemberN).Value)
+		office.OfficeName = item["Office"].(*types.AttributeValueMemberS).Value
+		office.OfficeID = uuid.MustParse(item["OfficeId"].(*types.AttributeValueMemberS).Value)
+		break
+	}
+
 	return office, err
 }

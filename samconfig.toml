@@ -5,7 +5,7 @@ stack_name = "parking-management-backend"
 resolve_s3 = true
 s3_prefix = "parking-management-backend"
 region = "ap-south-1"
-confirm_changeset = true
+confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
 image_repositories = []
 

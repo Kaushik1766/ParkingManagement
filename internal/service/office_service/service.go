@@ -3,6 +3,7 @@ package officeservice
 import (
 	"context"
 	"errors"
+	"log"
 
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
@@ -54,6 +55,7 @@ func (officeServ *OfficeService) ListOfficesByBuilding(ctx context.Context, buil
 func (officeServ *OfficeService) GetAllOfficeNames(ctx context.Context) ([]string, error) {
 	offices, err := officeServ.officeRepo.GetAllOffices()
 	if err != nil {
+		log.Println(err.Error())
 		return nil, errors.New("no offices found")
 	}
 

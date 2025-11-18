@@ -84,6 +84,25 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(buildingId string, floorNumber int
 		}
 	}
 
+	// update building details
+	_, err = nosqlfr.client.UpdateItem(context.Background(), &dynamodb.UpdateItemInput{
+		TableName: aws.String(config.DynamoDBTable),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: "BUILDING"},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId)},
+		},
+		UpdateExpression: aws.String("SET TotalFloors = TotalFloors + :inc, TotalSlots = TotalSlots + :slots, AvailableSlots = AvailableSlots + :avail"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":inc":   &types.AttributeValueMemberN{Value: "1"},
+			":slots": &types.AttributeValueMemberN{Value: strconv.Itoa(len(constants.SlotLayout))},
+			":avail": &types.AttributeValueMemberN{Value: strconv.Itoa(len(constants.SlotLayout))},
+		},
+	})
+	if err != nil {
+		log.Println(err.Error())
+		return errors.New("error updating building details")
+	}
+
 	return nil
 }
 

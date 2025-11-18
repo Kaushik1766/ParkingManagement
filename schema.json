@@ -7,62 +7,62 @@
   "User": {
     "PK": "USER#kaushik@a.com",
     "SK": "PROFILE#uuid", // come back to this later
-    "email": "kaushik@a.com",
-    "id": "uuid",
-    "username": "Kaushik Saha",
-    "passwordHash": "$2b$10$...",
-    "office": "Watchguard",
-    "role": "ADMIN"
+    "Email": "kaushik@a.com",
+    "Id": "uuid",
+    "Username": "Kaushik Saha",
+    "PasswordHash": "$2b$10$...",
+    "Office": "Watchguard",
+    "Role": "ADMIN"
   },
   "Vehicle": {
     "PK": "USER#kaushik@a.com",
     "SK": "VEHICLE#UP32KK2222",
-    "numberplate": "UP32KK2222",
-    "vehicleType": "TwoWheeler",
-    "isParked": true,
-    "assignedSlot": {
-      "buildingId": "BUILDING#B1",
-      "floorNumber": 1,
-      "slotId": "SLOT#S1"
+    "Numberplate": "UP32KK2222",
+    "VehicleType": "TwoWheeler",
+    "IsParked": true,
+    "AssignedSlot": {
+      "BuildingId": "BUILDING#B1",
+      "FloorNumber": 1,
+      "SlotId": "SLOT#S1"
     }
   },
   "ParkingHistory": {
     "PK": "USER#kaushik@a.com",
     "SK": "PARKING#timestamp",
-    "numberplate": "UP32KK2222",
-    "buildingId": "BUILDING#B1",
-    "floorNumber": 1,
-    "slotId": "SLOT#S1",
-    "startTime": "2023-10-01T10:00:00Z",
-    "endTime": "2023-10-01T12:00:00Z"
+    "Numberplate": "UP32KK2222",
+    "BuildingId": "BUILDING#B1",
+    "FloorNumber": 1,
+    "SlotId": "SLOT#S1",
+    "StartTime": "2023-10-01T10:00:00Z",
+    "EndTime": "2023-10-01T12:00:00Z"
   },
   "Building": {
     "PK": "BUILDING",
-    "SK": "DETAILS#B1",
-    "buildingId": "B1",
-    "buildingName": "Advant",
-    "totalFloors": 3,
-    "availableSlots": 50
+    "SK": "BUILDING#B1",
+    "BuildingId": "B1",
+    "BuildingName": "Advant",
+    "TotalFloors": 3,
+    "AvailableSlots": 50
   },
   "Floor": {
     "PK": "BUILDING#B1",
     "SK": "FLOORINFO#1",
-    "floorNumber": 1,
-    "totalSlots": 20,
-    "availableSlots": 15,
-    "office": "Watchguard"
+    "FloorNumber": 1,
+    "TotalSlots": 20,
+    "AvailableSlots": 15,
+    "Office": "Watchguard"
   },
   "Slot": {
     "PK": "BUILDING#B1",
     "SK": "SLOT#F1#1",
-    "slotId": "1",
-    "slotType": "TwoWheeler",
-    "isOccupied": true,
+    "SlotId": "1",
+    "SlotType": "TwoWheeler",
+    "IsOccupied": true,
     // this can be null
-    "occupiedBy?": {
-      "username": "Kaushik Saha",
-      "numberplate": "UP32KK2222",
-      "email": "kaushik@a.com"
+    "OccupiedBy?": {
+      "Username": "Kaushik Saha",
+      "Numberplate": "UP32KK2222",
+      "Email": "kaushik@a.com"
     }
   }
 }
