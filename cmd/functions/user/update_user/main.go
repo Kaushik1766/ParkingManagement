@@ -3,10 +3,8 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strings"
 
-	"github.com/Kaushik1766/ParkingManagement/db"
 	authenticationmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/authentication_middleware"
 	corsmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/cors_middleware"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
@@ -21,22 +19,28 @@ import (
 	customerrors "github.com/Kaushik1766/ParkingManagement/pkg/customErrors"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
 var userService userservice.UserManager
 
 func init() {
-	gormDb, err := db.InitDB()
+	ctx := context.Background()
+
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to initialize DB: %v", err))
+		panic("aws config not found")
 	}
 
-	userRepo := userrepository.NewSQLUserRepository(gormDb)
-	vehicleRepo := vehiclerepository.NewSQLVehicleRepository(gormDb)
-	officeRepo := officerepository.NewSQLOfficeRepository(gormDb)
-	buildingRepo := buildingrepository.NewSQLBuildingRepository(gormDb)
-	floorRepo := floorrepository.NewSQLFloorRepository(gormDb)
-	slotRepo := slotrepository.NewSQLSlotRepository(gormDb)
+	client := dynamodb.NewFromConfig(cfg)
+
+	userRepo := userrepository.NewNOSQLUserRepository(client)
+	vehicleRepo := vehiclerepository.NewNOSQLVehicleRepository(client)
+	officeRepo := officerepository.NewNOSQLOfficeRepository(client)
+	buildingRepo := buildingrepository.NewNOSQLBuidlingRepository(client)
+	floorRepo := floorrepository.NewNOSQLFloorRepository(client)
+	slotRepo := slotrepository.NewNOSQLSlotRepository(client)
 	assignmentService := slotassignment.NewSlotAssignmentService(vehicleRepo, floorRepo, buildingRepo, slotRepo, officeRepo)
 
 	userService = userservice.NewUserService(userRepo, vehicleRepo, officeRepo, assignmentService, buildingRepo)

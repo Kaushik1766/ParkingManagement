@@ -3,11 +3,9 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/Kaushik1766/ParkingManagement/db"
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	authenticationmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/authentication_middleware"
 	corsmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/cors_middleware"
@@ -18,17 +16,23 @@ import (
 	customerrors "github.com/Kaushik1766/ParkingManagement/pkg/customErrors"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
 var slotService slotservice.SlotMgr
 
 func init() {
-	gormDb, err := db.InitDB()
+	ctx := context.Background()
+
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to initialize DB: %v", err))
+		panic("aws config not found")
 	}
 
-	slotRepo := slotrepository.NewSQLSlotRepository(gormDb)
+	client := dynamodb.NewFromConfig(cfg)
+
+	slotRepo := slotrepository.NewNOSQLSlotRepository(client)
 	slotService = slotservice.NewSlotService(slotRepo)
 }
 

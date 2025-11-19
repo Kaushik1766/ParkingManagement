@@ -62,7 +62,7 @@ func (bs *BillingService) GenerateMonthlyInvoice() {
 			}
 
 			totalTime := ph.EndTime.Sub(ph.StartTime).Hours()
-			if ph.VechicleType == vehicletypes.TwoWheeler {
+			if ph.VechicleType == vehicletypes.TwoWheeler.String() {
 				totalAmount += totalTime * billingrates.TwoWheeler
 			} else {
 				totalAmount += totalTime * billingrates.FourWheeler

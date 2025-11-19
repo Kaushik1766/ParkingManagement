@@ -3,26 +3,30 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
-	"github.com/Kaushik1766/ParkingManagement/db"
 	corsmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/cors_middleware"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	authservice "github.com/Kaushik1766/ParkingManagement/internal/service/auth_service"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
 var authService authservice.AuthenticationManager
 
 func init() {
-	gormDb, err := db.InitDB()
+	ctx := context.Background()
+
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to initialize DB: %v", err))
+		panic("aws config not found")
 	}
 
-	userRepo := userrepository.NewSQLUserRepository(gormDb)
+	client := dynamodb.NewFromConfig(cfg)
+
+	userRepo := userrepository.NewNOSQLUserRepository(client)
 	authService = authservice.NewAuthService(userRepo)
 }
 
