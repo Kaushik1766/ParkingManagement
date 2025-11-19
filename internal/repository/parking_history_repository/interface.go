@@ -1,6 +1,7 @@
 package parkinghistoryrepository
 
 import (
+	"context"
 	"time"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
@@ -8,10 +9,10 @@ import (
 
 //go:generate mockgen -source=interface.go -destination=../../../mocks/parking_history_storage_mock.go -package=mocks
 type ParkingHistoryStorage interface {
-	AddParking(vehicle models.Vehicle) (string, error)
-	Unpark(id string) error
-	GetParkingHistoryByNumberPlate(numberplate string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error)
-	GetParkingHistoryByUser(userId string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error)
-	GetActiveUserParkings(userId string) ([]models.ParkingHistoryDTO, error)
-	UnparkByNumberPlate(numberplate string) error
+	AddParking(ctx context.Context, vehicle models.Vehicle) (string, error)
+	Unpark(ctx context.Context, id string) error
+	GetParkingHistoryByNumberPlate(ctx context.Context, numberplate string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error)
+	GetParkingHistoryByUser(ctx context.Context, userId string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error)
+	GetActiveUserParkings(ctx context.Context, userId string) ([]models.ParkingHistoryDTO, error)
+	UnparkByNumberPlate(ctx context.Context, numberplate string) error
 }

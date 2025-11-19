@@ -46,7 +46,7 @@ func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.A
 		}, nil
 	}
 
-	err := authService.Signup(req, roles.Customer)
+	err := authService.Signup(ctx, req, roles.Customer)
 	if err != nil {
 		body, _ := json.Marshal(map[string]string{"message": "Invalid credentials"})
 		return events.APIGatewayProxyResponse{

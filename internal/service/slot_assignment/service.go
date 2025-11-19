@@ -44,7 +44,7 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 
 	uid := uuid.MustParse(ctxUser.ID)
-	userVehicles, err := sas.vehicleRepo.GetVehiclesByUserId(uid)
+	userVehicles, err := sas.vehicleRepo.GetVehiclesByUserId(ctx, uid)
 	if err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 	if err != nil {
 		return err
 	}
-	vehicle, err := sas.vehicleRepo.GetVehicleById(vehicleUuid)
+	vehicle, err := sas.vehicleRepo.GetVehicleById(ctx, vehicleUuid)
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 			vehicle.AssignedBuildingID = val.AssignedBuildingID
 			vehicle.AssignedFloorNumber = val.AssignedFloorNumber
 			vehicle.AssignedSlotNumber = val.AssignedSlotNumber
-			err = sas.vehicleRepo.Save(vehicle)
+			err = sas.vehicleRepo.Save(ctx, vehicle)
 			if err != nil {
 				return err
 			}
@@ -75,12 +75,12 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 	}
 
 	// if first vehicle of type
-	userOffice, err := sas.officeRepo.GetOfficeByName(ctxUser.Office)
+	userOffice, err := sas.officeRepo.GetOfficeByName(ctx, ctxUser.Office)
 	if err != nil {
 		return err
 	}
 
-	freeSlots, err := sas.slotRepo.GetFreeSlotsByFloor(userOffice.BuildingID, userOffice.FloorNumber)
+	freeSlots, err := sas.slotRepo.GetFreeSlotsByFloor(ctx, userOffice.BuildingID, userOffice.FloorNumber)
 	if err != nil {
 		return err
 	}
@@ -97,7 +97,7 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 			vehicle.AssignedFloorNumber = val.FloorNumber
 			vehicle.AssignedSlotNumber = val.SlotNumber
 			log.Println("free slot found, assigning it")
-			err := sas.vehicleRepo.Save(vehicle)
+			err := sas.vehicleRepo.Save(ctx, vehicle)
 			if err != nil {
 				return err
 			}
@@ -112,12 +112,12 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 func (sas *SlotAssignmentService) AssignSlot(ctx context.Context, vehicleId string, slot models.Slot) error {
 	// ctxUser := ctx.Value(constants.User).(models.UserJwt)
 
-	vehicle, err := sas.vehicleRepo.GetVehicleById(uuid.MustParse(vehicleId))
+	vehicle, err := sas.vehicleRepo.GetVehicleById(ctx, uuid.MustParse(vehicleId))
 	if err != nil {
 		return err
 	}
 
-	userVehicles, err := sas.vehicleRepo.GetVehiclesByUserId(vehicle.UserID)
+	userVehicles, err := sas.vehicleRepo.GetVehiclesByUserId(ctx, vehicle.UserID)
 	if err != nil {
 		return err
 	}
@@ -125,8 +125,8 @@ func (sas *SlotAssignmentService) AssignSlot(ctx context.Context, vehicleId stri
 	for i, val := range userVehicles {
 		if val.VehicleType == vehicle.VehicleType {
 			userVehicles[i].AssignedSlot = slot
-			sas.vehicleRepo.Save(userVehicles[i])
+			sas.vehicleRepo.Save(ctx, userVehicles[i])
 		}
 	}
-	return sas.slotRepo.Save(slot)
+	return sas.slotRepo.Save(ctx, slot)
 }

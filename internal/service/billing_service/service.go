@@ -1,6 +1,7 @@
 package billingservice
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -34,10 +35,10 @@ func NewBillingService(userRepo userrepository.UserStorage, parkingRepo parkingh
 	}
 }
 
-func (bs *BillingService) GenerateMonthlyInvoice() {
+func (bs *BillingService) GenerateMonthlyInvoice(ctx context.Context) {
 	// time.Sleep(config.BillingDuration)
 	// log.Println("billingservice: Generating monthly invoice...")
-	users, err := bs.userRepository.GetAllUsers()
+	users, err := bs.userRepository.GetAllUsers(ctx)
 	if err != nil {
 		log.Println("billingservice: Error fetching users:", err)
 		return
@@ -48,7 +49,7 @@ func (bs *BillingService) GenerateMonthlyInvoice() {
 	endTime := time.Now()
 
 	for _, user := range users {
-		parkingHistory, err := bs.parkingRepository.GetParkingHistoryByUser(user.UserID.String(), startTime, endTime)
+		parkingHistory, err := bs.parkingRepository.GetParkingHistoryByUser(ctx, user.UserID.String(), startTime, endTime)
 		if err != nil {
 			log.Printf("billingservice: Error fetching parking history for user %s: %v\n", user.UserID, err)
 			return

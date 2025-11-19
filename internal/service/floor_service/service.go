@@ -26,7 +26,7 @@ func (fs *FloorService) AddFloorByBuildingId(ctx context.Context, buildingId str
 		return errors.New("unauthorized: only admin can add floors")
 	}
 
-	return fs.floorRepo.AddFloor(buildingId, floorNumber)
+	return fs.floorRepo.AddFloor(ctx, buildingId, floorNumber)
 }
 
 func (fs *FloorService) GetFloorsByBuildingId(ctx context.Context, buildingId string) ([]models.FloorDTO, error) {
@@ -35,7 +35,7 @@ func (fs *FloorService) GetFloorsByBuildingId(ctx context.Context, buildingId st
 		return []models.FloorDTO{}, errors.New("unauthorized: only admin can view floors")
 	}
 
-	floors, err := fs.floorRepo.GetFloorsByBuildingId(buildingId)
+	floors, err := fs.floorRepo.GetFloorsByBuildingId(ctx, buildingId)
 	if err != nil {
 		return []models.FloorDTO{}, err
 	}
@@ -59,7 +59,7 @@ func (fs *FloorService) AddFloor(ctx context.Context, buildingId string, floorNu
 	if ctxUser.Role != roles.Admin {
 		return errors.New("unauthorized: only admin can add floors")
 	}
-	return fs.floorRepo.AddFloor(buildingId, floorNumber)
+	return fs.floorRepo.AddFloor(ctx, buildingId, floorNumber)
 }
 
 func (fs *FloorService) DeleteFloor(ctx context.Context, buildingId string, floorNumber int) error {
@@ -68,5 +68,5 @@ func (fs *FloorService) DeleteFloor(ctx context.Context, buildingId string, floo
 		return errors.New("unauthorized: only admin can delete floors")
 	}
 
-	return fs.floorRepo.DeleteFloor(buildingId, floorNumber)
+	return fs.floorRepo.DeleteFloor(ctx, buildingId, floorNumber)
 }

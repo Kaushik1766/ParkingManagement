@@ -27,10 +27,10 @@ func NewNOSQLBuidlingRepository(client *dynamodb.Client) *NOSQLBuidlingRepositor
 	}
 }
 
-func (nosqlbr *NOSQLBuidlingRepository) DeleteBuildingByID(buildingID string) error {
+func (nosqlbr *NOSQLBuidlingRepository) DeleteBuildingByID(ctx context.Context, buildingID string) error {
 
 	out, err := nosqlbr.
-		client.DeleteItem(context.Background(), &dynamodb.DeleteItemInput{
+		client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
 			"PK": &types.AttributeValueMemberS{
@@ -57,10 +57,10 @@ func (nosqlbr *NOSQLBuidlingRepository) DeleteBuildingByID(buildingID string) er
 // 	panic("not implemented")
 // }
 
-func (nosqlbr *NOSQLBuidlingRepository) GetAllBuildingSummary() ([]models.BuildingSummary, error) {
+func (nosqlbr *NOSQLBuidlingRepository) GetAllBuildingSummary(ctx context.Context) ([]models.BuildingSummary, error) {
 	var buildings []models.BuildingSummary
 
-	res, err := nosqlbr.client.ExecuteStatement(context.Background(), &dynamodb.ExecuteStatementInput{
+	res, err := nosqlbr.client.ExecuteStatement(ctx, &dynamodb.ExecuteStatementInput{
 		Statement: aws.String(`SELECT * FROM "` + config.DynamoDBTable + `" WHERE PK = 'BUILDING'`),
 	})
 	if err != nil {
@@ -93,7 +93,7 @@ func (nosqlbr *NOSQLBuidlingRepository) GetAllBuildingSummary() ([]models.Buildi
 }
 
 // unused in project
-func (nosqlbr *NOSQLBuidlingRepository) GetAllBuildings() ([]models.Building, error) {
+func (nosqlbr *NOSQLBuidlingRepository) GetAllBuildings(ctx context.Context) ([]models.Building, error) {
 	// var buildings []models.Building
 	// err := nosqlbr.db.
 	// 	Where("building_name <> ?", constants.AdminBuilding).
@@ -103,11 +103,11 @@ func (nosqlbr *NOSQLBuidlingRepository) GetAllBuildings() ([]models.Building, er
 	panic("not implemented")
 }
 
-func (nosqlbr *NOSQLBuidlingRepository) GetBuildingByID(buildingID uuid.UUID) (models.Building, error) {
+func (nosqlbr *NOSQLBuidlingRepository) GetBuildingByID(ctx context.Context, buildingID uuid.UUID) (models.Building, error) {
 	building := models.Building{}
 
 	res, err := nosqlbr.client.
-		GetItem(context.Background(), &dynamodb.GetItemInput{
+		GetItem(ctx, &dynamodb.GetItemInput{
 			TableName: aws.String(config.DynamoDBTable),
 			Key: map[string]types.AttributeValue{
 				"PK": &types.AttributeValueMemberS{
@@ -137,7 +137,7 @@ func (nosqlbr *NOSQLBuidlingRepository) GetBuildingByID(buildingID uuid.UUID) (m
 	return building, nil
 }
 
-func (nosqlbr *NOSQLBuidlingRepository) AddBuilding(buildingName string) error {
+func (nosqlbr *NOSQLBuidlingRepository) AddBuilding(ctx context.Context, buildingName string) error {
 	if buildingName == constants.AdminBuilding {
 		return errors.New("buildingrepo: cannot add admin building")
 	}
@@ -159,7 +159,7 @@ func (nosqlbr *NOSQLBuidlingRepository) AddBuilding(buildingName string) error {
 	item["BuildingId"] = &types.AttributeValueMemberS{Value: building.BuildingId.String()}
 
 	_, err = nosqlbr.client.
-		PutItem(context.Background(), &dynamodb.PutItemInput{
+		PutItem(ctx, &dynamodb.PutItemInput{
 			TableName: aws.String(config.DynamoDBTable),
 			Item:      item,
 		})

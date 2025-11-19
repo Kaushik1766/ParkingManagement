@@ -21,7 +21,7 @@ type NOSQLFloorRepository struct {
 	client *dynamodb.Client
 }
 
-func (nosqlfr *NOSQLFloorRepository) AddFloor(buildingId string, floorNumber int) error {
+func (nosqlfr *NOSQLFloorRepository) AddFloor(ctx context.Context, buildingId string, floorNumber int) error {
 	item := map[string]types.AttributeValue{}
 
 	item["PK"] = &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId)}
@@ -31,7 +31,7 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(buildingId string, floorNumber int
 	item["AvailableSlots"] = &types.AttributeValueMemberN{Value: strconv.Itoa(len(constants.SlotLayout))}
 
 	_, err := nosqlfr.client.
-		PutItem(context.Background(), &dynamodb.PutItemInput{
+		PutItem(ctx, &dynamodb.PutItemInput{
 			TableName: aws.String(config.DynamoDBTable),
 			Item:      item,
 		})
@@ -71,7 +71,7 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(buildingId string, floorNumber int
 
 		if len(slots) == 25 {
 			_, err := nosqlfr.client.
-				BatchWriteItem(context.Background(), &dynamodb.BatchWriteItemInput{
+				BatchWriteItem(ctx, &dynamodb.BatchWriteItemInput{
 					RequestItems: map[string][]types.WriteRequest{
 						"pm_nosql": slots,
 					},
@@ -85,7 +85,7 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(buildingId string, floorNumber int
 	}
 
 	// update building details
-	_, err = nosqlfr.client.UpdateItem(context.Background(), &dynamodb.UpdateItemInput{
+	_, err = nosqlfr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
 			"PK": &types.AttributeValueMemberS{Value: "BUILDING"},
@@ -106,10 +106,10 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(buildingId string, floorNumber int
 	return nil
 }
 
-func (nosqlfr *NOSQLFloorRepository) DeleteFloor(buildingId string, floorNumber int) error {
+func (nosqlfr *NOSQLFloorRepository) DeleteFloor(ctx context.Context, buildingId string, floorNumber int) error {
 	// use of this function will be avoided coz need to delete the slots in the floors for consistency
 	_, err := nosqlfr.client.
-		DeleteItem(context.Background(), &dynamodb.DeleteItemInput{
+		DeleteItem(ctx, &dynamodb.DeleteItemInput{
 			TableName: aws.String(config.DynamoDBTable),
 			Key: map[string]types.AttributeValue{
 				"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId)},
@@ -124,16 +124,16 @@ func (nosqlfr *NOSQLFloorRepository) DeleteFloor(buildingId string, floorNumber 
 	return nil
 }
 
-func (nosqlfr *NOSQLFloorRepository) GetFloor(buildingId uuid.UUID, floorNumber int) (int, error) {
+func (nosqlfr *NOSQLFloorRepository) GetFloor(ctx context.Context, buildingId uuid.UUID, floorNumber int) (int, error) {
 	panic("not implemented coz not used")
 }
 
-func (nosqlfr *NOSQLFloorRepository) GetFloorsByBuildingId(buildingId string) ([]models.FloorSummary, error) {
+func (nosqlfr *NOSQLFloorRepository) GetFloorsByBuildingId(ctx context.Context, buildingId string) ([]models.FloorSummary, error) {
 
 	floors := make([]models.FloorSummary, 0)
 
 	res, err := nosqlfr.client.
-		Query(context.Background(), &dynamodb.QueryInput{
+		Query(ctx, &dynamodb.QueryInput{
 			TableName:              aws.String(config.DynamoDBTable),
 			KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 			ExpressionAttributeValues: map[string]types.AttributeValue{

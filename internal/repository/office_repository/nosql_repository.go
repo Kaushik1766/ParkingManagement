@@ -25,7 +25,7 @@ func NewNOSQLOfficeRepository(client *dynamodb.Client) *NOSQLOfficeRepository {
 	}
 }
 
-func (nosqlor *NOSQLOfficeRepository) AddOffice(officeName string, buildingID string, floorNumber int) error {
+func (nosqlor *NOSQLOfficeRepository) AddOffice(ctx context.Context, officeName string, buildingID string, floorNumber int) error {
 	_, err := uuid.Parse(buildingID)
 	if err != nil {
 		log.Println(err.Error())
@@ -37,7 +37,7 @@ func (nosqlor *NOSQLOfficeRepository) AddOffice(officeName string, buildingID st
 	// 	OfficeName:  officeName,
 	// }
 
-	_, err = nosqlor.client.UpdateItem(context.Background(), &dynamodb.UpdateItemInput{
+	_, err = nosqlor.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
 			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
@@ -57,15 +57,15 @@ func (nosqlor *NOSQLOfficeRepository) AddOffice(officeName string, buildingID st
 	return nil
 }
 
-func (nosqlor *NOSQLOfficeRepository) DeleteOffice(officeId string) error {
+func (nosqlor *NOSQLOfficeRepository) DeleteOffice(ctx context.Context, officeId string) error {
 	panic("pending implementation")
 }
 
-func (nosqlor *NOSQLOfficeRepository) GetBuildingAndFloorByOffice(officeName string) (uuid.UUID, int, error) {
+func (nosqlor *NOSQLOfficeRepository) GetBuildingAndFloorByOffice(ctx context.Context, officeName string) (uuid.UUID, int, error) {
 	panic("not implemented coz not used")
 }
 
-func (nosqlor *NOSQLOfficeRepository) GetOfficesByBuilding(buildingID string) ([]models.Office, error) {
+func (nosqlor *NOSQLOfficeRepository) GetOfficesByBuilding(ctx context.Context, buildingID string) ([]models.Office, error) {
 	var offices []models.Office
 	_, err := uuid.Parse(buildingID)
 	if err != nil {
@@ -74,7 +74,7 @@ func (nosqlor *NOSQLOfficeRepository) GetOfficesByBuilding(buildingID string) ([
 	}
 
 	// err = nosqlor.db.Where("building_id = ? AND office_name <> ?", buildingUUID, constants.AdminOffice).Find(&offices).Error
-	items, err := nosqlor.client.Query(context.Background(), &dynamodb.QueryInput{
+	items, err := nosqlor.client.Query(ctx, &dynamodb.QueryInput{
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :prefix)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -103,10 +103,10 @@ func (nosqlor *NOSQLOfficeRepository) GetOfficesByBuilding(buildingID string) ([
 	return offices, nil
 }
 
-func (nosqlor *NOSQLOfficeRepository) GetAllOffices() ([]models.Office, error) {
+func (nosqlor *NOSQLOfficeRepository) GetAllOffices(ctx context.Context) ([]models.Office, error) {
 	var offices []models.Office
 
-	buildings, err := nosqlor.client.Query(context.Background(), &dynamodb.QueryInput{
+	buildings, err := nosqlor.client.Query(ctx, &dynamodb.QueryInput{
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -122,7 +122,7 @@ func (nosqlor *NOSQLOfficeRepository) GetAllOffices() ([]models.Office, error) {
 	for _, building := range buildings.Items {
 		buildingID := building["BuildingId"].(*types.AttributeValueMemberS).Value
 		fmt.Println(buildingID)
-		res, err := nosqlor.client.Query(context.Background(), &dynamodb.QueryInput{
+		res, err := nosqlor.client.Query(ctx, &dynamodb.QueryInput{
 			TableName:              aws.String(config.DynamoDBTable),
 			KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :prefix)"),
 			ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -157,10 +157,10 @@ func (nosqlor *NOSQLOfficeRepository) GetAllOffices() ([]models.Office, error) {
 	return offices, nil
 }
 
-func (nosqlor *NOSQLOfficeRepository) GetOfficeByName(officeName string) (models.Office, error) {
+func (nosqlor *NOSQLOfficeRepository) GetOfficeByName(ctx context.Context, officeName string) (models.Office, error) {
 	var office models.Office
 
-	buildings, err := nosqlor.client.Query(context.Background(), &dynamodb.QueryInput{
+	buildings, err := nosqlor.client.Query(ctx, &dynamodb.QueryInput{
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk begins_with(SK, :sk)"),
 		FilterExpression:       aws.String("contains(Office, :officeName)"),

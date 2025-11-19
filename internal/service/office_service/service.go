@@ -25,15 +25,15 @@ func (officeServ *OfficeService) AddOffice(ctx context.Context, officeName strin
 		return errors.New("invalid input parameters")
 	}
 
-	return officeServ.officeRepo.AddOffice(officeName, buildingId, floorNumber)
+	return officeServ.officeRepo.AddOffice(ctx, officeName, buildingId, floorNumber)
 }
 
 func (officeServ *OfficeService) RemoveOffice(ctx context.Context, officeId string) error {
-	return officeServ.officeRepo.DeleteOffice(officeId)
+	return officeServ.officeRepo.DeleteOffice(ctx, officeId)
 }
 
 func (officeServ *OfficeService) ListOfficesByBuilding(ctx context.Context, buildingId string) ([]models.OfficeDTO, error) {
-	offices, err := officeServ.officeRepo.GetOfficesByBuilding(buildingId)
+	offices, err := officeServ.officeRepo.GetOfficesByBuilding(ctx, buildingId)
 	if err != nil {
 		return nil, errors.New("no offices in building")
 	}
@@ -53,7 +53,7 @@ func (officeServ *OfficeService) ListOfficesByBuilding(ctx context.Context, buil
 }
 
 func (officeServ *OfficeService) GetAllOfficeNames(ctx context.Context) ([]string, error) {
-	offices, err := officeServ.officeRepo.GetAllOffices()
+	offices, err := officeServ.officeRepo.GetAllOffices(ctx)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, errors.New("no offices found")
@@ -71,7 +71,7 @@ func (officeServ *OfficeService) GetOfficeByName(ctx context.Context, officeName
 		return models.Office{}, errors.New("office name cannot be empty")
 	}
 
-	officeStruct, err := officeServ.officeRepo.GetOfficeByName(officeName)
+	officeStruct, err := officeServ.officeRepo.GetOfficeByName(ctx, officeName)
 	if err != nil {
 		return models.Office{}, errors.New("office does not exist")
 	}

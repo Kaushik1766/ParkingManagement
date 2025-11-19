@@ -17,21 +17,21 @@ type ParkingHistoryService struct {
 	vehicleRepo vehiclerepository.VehicleStorage
 }
 
-func (phs *ParkingHistoryService) GetParkingHistoryByUserId(userId string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
-	return phs.parkingRepo.GetParkingHistoryByUser(userId, startTime, endTime)
+func (phs *ParkingHistoryService) GetParkingHistoryByUserId(ctx context.Context, userId string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
+	return phs.parkingRepo.GetParkingHistoryByUser(ctx, userId, startTime, endTime)
 }
 
 // GetParkingHistory retrieves parking history for the authenticated user within the specified time range.
 func (phs *ParkingHistoryService) GetParkingHistory(ctx context.Context, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
 	userCtx := ctx.Value(constants.User).(models.UserJwt)
 
-	return phs.parkingRepo.GetParkingHistoryByUser(userCtx.ID, startTime, endTime)
+	return phs.parkingRepo.GetParkingHistoryByUser(ctx, userCtx.ID, startTime, endTime)
 }
 
 func (phs *ParkingHistoryService) GetParkingHistoryByNumberPlate(ctx context.Context, numberplate string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
 	userCtx := ctx.Value(constants.User).(models.UserJwt)
 
-	vehicle, err := phs.vehicleRepo.GetVehicleByNumberPlate(numberplate)
+	vehicle, err := phs.vehicleRepo.GetVehicleByNumberPlate(ctx, numberplate)
 	if err != nil {
 		return nil, err
 	}
@@ -40,13 +40,13 @@ func (phs *ParkingHistoryService) GetParkingHistoryByNumberPlate(ctx context.Con
 		return nil, customerrors.Unauthorized{}
 	}
 
-	return phs.parkingRepo.GetParkingHistoryByNumberPlate(numberplate, startTime, endTime)
+	return phs.parkingRepo.GetParkingHistoryByNumberPlate(ctx, numberplate, startTime, endTime)
 }
 
 func (phs *ParkingHistoryService) GetActiveUserParkings(ctx context.Context) ([]models.ParkingHistoryDTO, error) {
 	userCtx := ctx.Value(constants.User).(models.UserJwt)
 
-	return phs.parkingRepo.GetActiveUserParkings(userCtx.ID)
+	return phs.parkingRepo.GetActiveUserParkings(ctx, userCtx.ID)
 }
 
 func NewParkingHistoryService(parkingRepo parkinghistoryrepository.ParkingHistoryStorage, vehicleRepo vehiclerepository.VehicleStorage) *ParkingHistoryService {

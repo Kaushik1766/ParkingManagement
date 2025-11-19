@@ -28,7 +28,7 @@ func (ss *SlotService) GetSlotsByFloor(ctx context.Context, buildingId string, f
 		return nil, err
 	}
 
-	slots, err := ss.slotRepo.GetSlotsByFloor(buildingUUID, floorNumber)
+	slots, err := ss.slotRepo.GetSlotsByFloor(ctx, buildingUUID, floorNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (ss *SlotService) GetFreeSlotsByBuilding(ctx context.Context, buildingID uu
 	if userCtx.Role != roles.Admin {
 		return nil, errors.New("unauthorized: only admin or user can view slots")
 	}
-	freeSlots, err := ss.slotRepo.GetFreeSlotsByBuilding(buildingID)
+	freeSlots, err := ss.slotRepo.GetFreeSlotsByBuilding(ctx, buildingID)
 	if err != nil {
 		return nil, err
 	}

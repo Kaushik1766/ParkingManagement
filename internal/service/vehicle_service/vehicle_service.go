@@ -18,7 +18,7 @@ type VehicleService struct {
 func (vs *VehicleService) UnparkByNumberPlate(ctx context.Context, numberplate string) error {
 	userCtx := ctx.Value(constants.User).(models.UserJwt)
 
-	vehicle, err := vs.vehicleRepo.GetVehicleByNumberPlate(numberplate)
+	vehicle, err := vs.vehicleRepo.GetVehicleByNumberPlate(ctx, numberplate)
 	if err != nil {
 		return err
 	}
@@ -27,7 +27,7 @@ func (vs *VehicleService) UnparkByNumberPlate(ctx context.Context, numberplate s
 		return customerrors.Unauthorized{}
 	}
 
-	err = vs.parkingRepo.UnparkByNumberPlate(numberplate)
+	err = vs.parkingRepo.UnparkByNumberPlate(ctx, numberplate)
 	if err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func (vs *VehicleService) UnparkByNumberPlate(ctx context.Context, numberplate s
 func (vs *VehicleService) Park(ctx context.Context, numberplate string) (string, error) {
 	userCtx := ctx.Value(constants.User).(models.UserJwt)
 
-	vehicle, err := vs.vehicleRepo.GetVehicleByNumberPlate(numberplate)
+	vehicle, err := vs.vehicleRepo.GetVehicleByNumberPlate(ctx, numberplate)
 	if err != nil {
 		return "", err
 	}
@@ -47,7 +47,7 @@ func (vs *VehicleService) Park(ctx context.Context, numberplate string) (string,
 		return "", customerrors.Unauthorized{}
 	}
 
-	return vs.parkingRepo.AddParking(vehicle)
+	return vs.parkingRepo.AddParking(ctx, vehicle)
 
 }
 
@@ -64,7 +64,7 @@ func (vs *VehicleService) Unpark(ctx context.Context, ticketId string) error {
 	// 	return customerrors.Unauthorized{}
 	// }
 
-	return vs.parkingRepo.Unpark(ticketId)
+	return vs.parkingRepo.Unpark(ctx, ticketId)
 }
 
 func NewVehicleService(vehicleRepo vehiclerepository.VehicleStorage, parkingRepo parkinghistoryrepository.ParkingHistoryStorage) *VehicleService {

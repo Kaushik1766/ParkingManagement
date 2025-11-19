@@ -21,7 +21,7 @@ func (bs *BuildingService) DeleteBuildingByID(ctx context.Context, buildingID st
 		return errors.New("unauthorized: only admin can delete buildings")
 	}
 
-	err := bs.buildingRepo.DeleteBuildingByID(buildingID)
+	err := bs.buildingRepo.DeleteBuildingByID(ctx, buildingID)
 	if err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func (bs *BuildingService) GetBuildingByID(ctx context.Context, buildingID strin
 		return models.BuildingDTO{}, err
 	}
 
-	building, err := bs.buildingRepo.GetBuildingByID(buildingUUID)
+	building, err := bs.buildingRepo.GetBuildingByID(ctx, buildingUUID)
 	if err != nil {
 		return models.BuildingDTO{}, err
 	}
@@ -54,7 +54,7 @@ func (bs *BuildingService) GetAllBuildings(ctx context.Context) ([]models.Buildi
 	if ctxUser.Role != roles.Admin {
 		return nil, errors.New("unauthorized: only admin can view buildings")
 	}
-	buildings, err := bs.buildingRepo.GetAllBuildingSummary()
+	buildings, err := bs.buildingRepo.GetAllBuildingSummary(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -82,5 +82,5 @@ func (bs *BuildingService) AddBuilding(ctx context.Context, buildingName string)
 	if ctxUser.Role != roles.Admin {
 		return errors.New("unauthorized: only admin can add buildings")
 	}
-	return bs.buildingRepo.AddBuilding(buildingName)
+	return bs.buildingRepo.AddBuilding(ctx, buildingName)
 }

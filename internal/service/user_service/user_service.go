@@ -30,7 +30,7 @@ type UserService struct {
 
 func (us *UserService) GetUserProfile(ctx context.Context) (models.UserDTO, error) {
 	ctxUser := ctx.Value(constants.User).(models.UserJwt)
-	currentUser, err := us.userRepo.GetUserById(ctxUser.ID)
+	currentUser, err := us.userRepo.GetUserById(ctx, ctxUser.ID)
 	if err != nil {
 		return models.UserDTO{}, err
 	}
@@ -46,7 +46,7 @@ func (us *UserService) GetUserProfile(ctx context.Context) (models.UserDTO, erro
 }
 
 func (us *UserService) GetUserById(ctx context.Context, userId string) (models.UserDTO, error) {
-	userStruct, err := us.userRepo.GetUserById(userId)
+	userStruct, err := us.userRepo.GetUserById(ctx, userId)
 	if err != nil {
 		return models.UserDTO{}, err
 	}
@@ -69,7 +69,7 @@ func (us *UserService) RegisterVehicle(ctx context.Context, numberplate string, 
 		return errors.New("numberplate must be 10 characters long")
 	}
 	ctxUser := ctx.Value(constants.User).(models.UserJwt)
-	newVehicle, err := us.vehicleRepo.AddVehicle(numberplate, uuid.MustParse(ctxUser.ID), vehicleType)
+	newVehicle, err := us.vehicleRepo.AddVehicle(ctx, numberplate, uuid.MustParse(ctxUser.ID), vehicleType)
 	if err != nil {
 		return err
 	}
@@ -83,7 +83,7 @@ func (us *UserService) RegisterVehicle(ctx context.Context, numberplate string, 
 }
 
 func (us *UserService) GetAllUsers(ctx context.Context) ([]models.UserDTO, error) {
-	allUsers, err := us.userRepo.GetAllUsers()
+	allUsers, err := us.userRepo.GetAllUsers(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (us *UserService) GetAllUsers(ctx context.Context) ([]models.UserDTO, error
 func (us *UserService) UnregisterVehicle(ctx context.Context, numberplate string) error {
 	currentUser := ctx.Value(constants.User).(models.UserJwt)
 
-	vehicle, err := us.vehicleRepo.GetVehicleByNumberPlate(numberplate)
+	vehicle, err := us.vehicleRepo.GetVehicleByNumberPlate(ctx, numberplate)
 	if err != nil {
 		return errors.New("error fetching vehicles")
 	}
@@ -120,7 +120,7 @@ func (us *UserService) UnregisterVehicle(ctx context.Context, numberplate string
 	}
 
 	if vehicle.IsActive {
-		return us.vehicleRepo.RemoveVehicle(numberplate)
+		return us.vehicleRepo.RemoveVehicle(ctx, numberplate)
 	} else {
 		return nil
 	}
@@ -143,19 +143,19 @@ func (us *UserService) UnregisterVehicle(ctx context.Context, numberplate string
 func (us *UserService) GetRegisteredVehicles(ctx context.Context) ([]models.VehicleDTO, error) {
 	currentUser := ctx.Value(constants.User).(models.UserJwt)
 	uid, _ := uuid.Parse(currentUser.ID)
-	userVehicles, err := us.vehicleRepo.GetVehiclesByUserId(uid)
+	userVehicles, err := us.vehicleRepo.GetVehiclesByUserId(ctx, uid)
 	if err != nil {
 		return []models.VehicleDTO{}, err
 	}
 
 	var userVehicleDTO []models.VehicleDTO
 	for _, v := range userVehicles {
-		building, err := us.buildingRepo.GetBuildingByID(v.AssignedBuildingID)
+		building, err := us.buildingRepo.GetBuildingByID(ctx, v.AssignedBuildingID)
 		if err != nil {
 			return []models.VehicleDTO{}, err
 		}
 
-		isParked, err := us.vehicleRepo.GetParkingStatus(v.NumberPlate)
+		isParked, err := us.vehicleRepo.GetParkingStatus(ctx, v.NumberPlate)
 		if err != nil {
 			return []models.VehicleDTO{}, err
 		}
@@ -195,7 +195,7 @@ func (us *UserService) UpdateProfile(ctx context.Context, userId string, updateR
 		return errors.New("unauthorized to update other user's profile")
 	}
 
-	updatedUser, err := us.userRepo.GetUserById(userId)
+	updatedUser, err := us.userRepo.GetUserById(ctx, userId)
 	if err != nil {
 		return err
 	}
@@ -207,7 +207,7 @@ func (us *UserService) UpdateProfile(ctx context.Context, userId string, updateR
 		updatedUser.Email = updateReq.Email
 	}
 	if updateReq.Office != "" {
-		_, err = us.officeRepo.GetOfficeByName(updateReq.Office)
+		_, err = us.officeRepo.GetOfficeByName(ctx, updateReq.Office)
 		if err != nil {
 			return errors.New("office does not exist")
 		}
@@ -220,7 +220,7 @@ func (us *UserService) UpdateProfile(ctx context.Context, userId string, updateR
 		}
 		updatedUser.Password = string(hashedPassword)
 	}
-	return us.userRepo.Save(updatedUser)
+	return us.userRepo.Save(ctx, updatedUser)
 }
 
 func (us *UserService) DeleteProfile(ctx context.Context, userId string) error {
@@ -229,13 +229,13 @@ func (us *UserService) DeleteProfile(ctx context.Context, userId string) error {
 		return errors.New("unauthorized to delete other user's profile")
 	}
 
-	user, err := us.userRepo.GetUserById(userId)
+	user, err := us.userRepo.GetUserById(ctx, userId)
 	if err != nil {
 		return err
 	}
 
 	user.IsActive = false
-	err = us.userRepo.Save(user)
+	err = us.userRepo.Save(ctx, user)
 	return err
 }
 
@@ -245,19 +245,19 @@ func (us *UserService) GetVehiclesByUserId(ctx context.Context, userId string) (
 	if err != nil {
 		return nil, customerrors.NewWebError(err, errorcodes.InvalidInput)
 	}
-	userVehicles, err := us.vehicleRepo.GetVehiclesByUserId(uid)
+	userVehicles, err := us.vehicleRepo.GetVehiclesByUserId(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
 
 	var vehicleDTOs []models.VehicleDTO
 	for _, v := range userVehicles {
-		building, err := us.buildingRepo.GetBuildingByID(v.AssignedBuildingID)
+		building, err := us.buildingRepo.GetBuildingByID(ctx, v.AssignedBuildingID)
 		if err != nil {
 			return []models.VehicleDTO{}, err
 		}
 
-		isParked, err := us.vehicleRepo.GetParkingStatus(v.NumberPlate)
+		isParked, err := us.vehicleRepo.GetParkingStatus(ctx, v.NumberPlate)
 		if err != nil {
 			return []models.VehicleDTO{}, err
 		}

@@ -45,7 +45,7 @@ func main() {
 
 	// fmt.Println(building)
 
-	err = buildingRepo.DeleteBuildingByID("88898cb2-6534-4602-82a0-6c93a6efc095")
+	err = buildingRepo.DeleteBuildingByID(ctx, "88898cb2-6534-4602-82a0-6c93a6efc095")
 	if err != nil {
 		panic(err)
 	}

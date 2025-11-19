@@ -25,10 +25,10 @@ func NewNOSQLUserRepository(client *dynamodb.Client) *NOSQLUserRepository {
 	}
 }
 
-func (nosqlur *NOSQLUserRepository) GetUserByEmail(email string) (models.User, error) {
+func (nosqlur *NOSQLUserRepository) GetUserByEmail(ctx context.Context, email string) (models.User, error) {
 	var user models.User
 
-	queryRes, err := nosqlur.client.Query(context.Background(), &dynamodb.QueryInput{
+	queryRes, err := nosqlur.client.Query(ctx, &dynamodb.QueryInput{
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		FilterExpression:       aws.String("IsActive = :active"),
@@ -53,11 +53,11 @@ func (nosqlur *NOSQLUserRepository) GetUserByEmail(email string) (models.User, e
 	return user, nil
 }
 
-func (nosqlur *NOSQLUserRepository) GetUserById(id string) (models.User, error) {
+func (nosqlur *NOSQLUserRepository) GetUserById(ctx context.Context, id string) (models.User, error) {
 	var user models.User
 
 	// Scan to find user by ID
-	scanRes, err := nosqlur.client.Scan(context.Background(), &dynamodb.ScanInput{
+	scanRes, err := nosqlur.client.Scan(ctx, &dynamodb.ScanInput{
 		TableName:        aws.String(config.DynamoDBTable),
 		FilterExpression: aws.String("Id = :id AND begins_with(SK, :sk) AND IsActive = :active"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -81,10 +81,10 @@ func (nosqlur *NOSQLUserRepository) GetUserById(id string) (models.User, error) 
 	return user, nil
 }
 
-func (nosqlur *NOSQLUserRepository) GetAllUsers() ([]models.User, error) {
+func (nosqlur *NOSQLUserRepository) GetAllUsers(ctx context.Context) ([]models.User, error) {
 	var users []models.User
 
-	scanRes, err := nosqlur.client.Scan(context.Background(), &dynamodb.ScanInput{
+	scanRes, err := nosqlur.client.Scan(ctx, &dynamodb.ScanInput{
 		TableName:        aws.String(config.DynamoDBTable),
 		FilterExpression: aws.String("begins_with(SK, :sk) AND IsActive = :active"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -105,7 +105,7 @@ func (nosqlur *NOSQLUserRepository) GetAllUsers() ([]models.User, error) {
 	return users, nil
 }
 
-func (nosqlur *NOSQLUserRepository) Save(user models.User) error {
+func (nosqlur *NOSQLUserRepository) Save(ctx context.Context, user models.User) error {
 	updateExpression := "SET Username = :username, #role = :role, IsActive = :active"
 	expressionValues := map[string]types.AttributeValue{
 		":username": &types.AttributeValueMemberS{Value: user.Name},
@@ -129,7 +129,7 @@ func (nosqlur *NOSQLUserRepository) Save(user models.User) error {
 		expressionValues[":password"] = &types.AttributeValueMemberS{Value: user.Password}
 	}
 
-	_, err := nosqlur.client.UpdateItem(context.Background(), &dynamodb.UpdateItemInput{
+	_, err := nosqlur.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
 			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", user.Email)},
@@ -147,12 +147,12 @@ func (nosqlur *NOSQLUserRepository) Save(user models.User) error {
 	return nil
 }
 
-func (nosqlur *NOSQLUserRepository) CreateUser(name, email, password, officeName string, role roles.Role) error {
+func (nosqlur *NOSQLUserRepository) CreateUser(ctx context.Context, name, email, password, officeName string, role roles.Role) error {
 	// Get office details
 	var officeId uuid.UUID
 
 	if officeName != "" {
-		scanRes, err := nosqlur.client.Scan(context.Background(), &dynamodb.ScanInput{
+		scanRes, err := nosqlur.client.Scan(ctx, &dynamodb.ScanInput{
 			TableName:        aws.String(config.DynamoDBTable),
 			FilterExpression: aws.String("Office = :office AND begins_with(SK, :sk)"),
 			ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -190,7 +190,7 @@ func (nosqlur *NOSQLUserRepository) CreateUser(name, email, password, officeName
 		item["OfficeId"] = &types.AttributeValueMemberS{Value: officeId.String()}
 	}
 
-	_, err := nosqlur.client.PutItem(context.Background(), &dynamodb.PutItemInput{
+	_, err := nosqlur.client.PutItem(ctx, &dynamodb.PutItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Item:      item,
 	})

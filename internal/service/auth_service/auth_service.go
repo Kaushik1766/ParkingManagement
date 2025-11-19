@@ -1,6 +1,7 @@
 package authservice
 
 import (
+	"context"
 	"net/mail"
 	"time"
 
@@ -26,7 +27,7 @@ func NewAuthService(
 	}
 }
 
-func (auth *AuthService) Signup(registerReq models.RegisterRequestDTO, role roles.Role) error {
+func (auth *AuthService) Signup(ctx context.Context, registerReq models.RegisterRequestDTO, role roles.Role) error {
 	_, err := mail.ParseAddress(registerReq.Email)
 	if err != nil {
 		return customerrors.NewWebError(err, errorcodes.InvalidInput)
@@ -36,19 +37,19 @@ func (auth *AuthService) Signup(registerReq models.RegisterRequestDTO, role role
 		return customerrors.NewWebError(err, errorcodes.InternalServerError)
 	}
 
-	err = auth.userDb.CreateUser(registerReq.Name, registerReq.Email, string(hashedPassword), registerReq.Office, role)
+	err = auth.userDb.CreateUser(ctx, registerReq.Name, registerReq.Email, string(hashedPassword), registerReq.Office, role)
 	if err != nil {
 		return customerrors.NewWebError(err, errorcodes.UserAlreadyExists)
 	}
 	return nil
 }
 
-func (auth *AuthService) Login(loginReq models.LoginRequestDTO) (string, error) {
+func (auth *AuthService) Login(ctx context.Context, loginReq models.LoginRequestDTO) (string, error) {
 	_, err := mail.ParseAddress(loginReq.Email)
 	if err != nil {
 		return "", customerrors.NewWebError(err, errorcodes.InvalidInput)
 	}
-	user, err := auth.userDb.GetUserByEmail(loginReq.Email)
+	user, err := auth.userDb.GetUserByEmail(ctx, loginReq.Email)
 	if err != nil {
 		return "", customerrors.NewWebError(err, errorcodes.InvalidCredentials)
 	}

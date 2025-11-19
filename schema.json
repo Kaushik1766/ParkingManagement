@@ -17,6 +17,7 @@
   "Vehicle": {
     "PK": "USER#kaushik@a.com",
     "SK": "VEHICLE#UP32KK2222",
+    "VehicleId": "uuid",
     "Numberplate": "UP32KK2222",
     "VehicleType": "TwoWheeler",
     "IsParked": true,

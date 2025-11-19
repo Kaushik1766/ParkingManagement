@@ -34,7 +34,7 @@ func (handler WebAuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = handler.authServ.Signup(req, roles.Customer)
+	err = handler.authServ.Signup(r.Context(), req, roles.Customer)
 	if err != nil {
 		customerrors.SendError(w, err)
 		return
@@ -55,7 +55,7 @@ func (handler WebAuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := handler.authServ.Login(req)
+	token, err := handler.authServ.Login(r.Context(), req)
 	if err != nil {
 		customerrors.SendError(w, err)
 		return

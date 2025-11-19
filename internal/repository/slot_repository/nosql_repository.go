@@ -27,7 +27,7 @@ func NewNOSQLSlotRepository(client *dynamodb.Client) *NOSQLSlotRepository {
 	}
 }
 
-func (nosqlsr *NOSQLSlotRepository) AddSlot(buildingId uuid.UUID, floorNumber, slotNumber int, slotType vehicletypes.VehicleType) error {
+func (nosqlsr *NOSQLSlotRepository) AddSlot(ctx context.Context, buildingId uuid.UUID, floorNumber, slotNumber int, slotType vehicletypes.VehicleType) error {
 	item := map[string]types.AttributeValue{
 		"PK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId.String())},
 		"SK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%d#SLOT#%d", floorNumber, slotNumber)},
@@ -35,7 +35,7 @@ func (nosqlsr *NOSQLSlotRepository) AddSlot(buildingId uuid.UUID, floorNumber, s
 		"SlotType":   &types.AttributeValueMemberS{Value: slotType.String()},
 	}
 
-	_, err := nosqlsr.client.PutItem(context.Background(), &dynamodb.PutItemInput{
+	_, err := nosqlsr.client.PutItem(ctx, &dynamodb.PutItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Item:      item,
 	})
@@ -47,8 +47,8 @@ func (nosqlsr *NOSQLSlotRepository) AddSlot(buildingId uuid.UUID, floorNumber, s
 	return nil
 }
 
-func (nosqlsr *NOSQLSlotRepository) DeleteSlot(buildingId uuid.UUID, floorNumber, slotNumber int) error {
-	_, err := nosqlsr.client.DeleteItem(context.Background(), &dynamodb.DeleteItemInput{
+func (nosqlsr *NOSQLSlotRepository) DeleteSlot(ctx context.Context, buildingId uuid.UUID, floorNumber, slotNumber int) error {
+	_, err := nosqlsr.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
 			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId.String())},
@@ -63,10 +63,10 @@ func (nosqlsr *NOSQLSlotRepository) DeleteSlot(buildingId uuid.UUID, floorNumber
 	return nil
 }
 
-func (nosqlsr *NOSQLSlotRepository) GetSlotsByFloor(buildingId uuid.UUID, floorNumber int) ([]models.Slot, error) {
+func (nosqlsr *NOSQLSlotRepository) GetSlotsByFloor(ctx context.Context, buildingId uuid.UUID, floorNumber int) ([]models.Slot, error) {
 	var slots []models.Slot
 
-	queryRes, err := nosqlsr.client.Query(context.Background(), &dynamodb.QueryInput{
+	queryRes, err := nosqlsr.client.Query(ctx, &dynamodb.QueryInput{
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -82,7 +82,7 @@ func (nosqlsr *NOSQLSlotRepository) GetSlotsByFloor(buildingId uuid.UUID, floorN
 	// Get all active parkings to determine which slots have parked vehicles
 	activeParkings := make(map[string]models.Vehicle)
 
-	scanRes, err := nosqlsr.client.Scan(context.Background(), &dynamodb.ScanInput{
+	scanRes, err := nosqlsr.client.Scan(ctx, &dynamodb.ScanInput{
 		TableName:        aws.String(config.DynamoDBTable),
 		FilterExpression: aws.String("attribute_not_exists(EndTime) AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -107,7 +107,7 @@ func (nosqlsr *NOSQLSlotRepository) GetSlotsByFloor(buildingId uuid.UUID, floorN
 					vehicle.UserEmail = userPK[5:] // Remove "USER#" prefix
 
 					// Fetch user details
-					userRes, err := nosqlsr.client.Query(context.Background(), &dynamodb.QueryInput{
+					userRes, err := nosqlsr.client.Query(ctx, &dynamodb.QueryInput{
 						TableName:              aws.String(config.DynamoDBTable),
 						KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 						ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -163,8 +163,8 @@ func (nosqlsr *NOSQLSlotRepository) GetSlotsByFloor(buildingId uuid.UUID, floorN
 	return slots, nil
 }
 
-func (nosqlsr *NOSQLSlotRepository) GetFreeSlotsByFloor(buildingId uuid.UUID, floorNumber int) ([]models.Slot, error) {
-	allSlots, err := nosqlsr.GetSlotsByFloor(buildingId, floorNumber)
+func (nosqlsr *NOSQLSlotRepository) GetFreeSlotsByFloor(ctx context.Context, buildingId uuid.UUID, floorNumber int) ([]models.Slot, error) {
+	allSlots, err := nosqlsr.GetSlotsByFloor(ctx, buildingId, floorNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -179,11 +179,11 @@ func (nosqlsr *NOSQLSlotRepository) GetFreeSlotsByFloor(buildingId uuid.UUID, fl
 	return freeSlots, nil
 }
 
-func (nosqlsr *NOSQLSlotRepository) GetFreeSlotsByBuilding(buildingId uuid.UUID) ([]models.Slot, error) {
+func (nosqlsr *NOSQLSlotRepository) GetFreeSlotsByBuilding(ctx context.Context, buildingId uuid.UUID) ([]models.Slot, error) {
 	var freeSlots []models.Slot
 
 	// Get all floors for this building
-	floorsRes, err := nosqlsr.client.Query(context.Background(), &dynamodb.QueryInput{
+	floorsRes, err := nosqlsr.client.Query(ctx, &dynamodb.QueryInput{
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -199,7 +199,7 @@ func (nosqlsr *NOSQLSlotRepository) GetFreeSlotsByBuilding(buildingId uuid.UUID)
 	// For each floor, get free slots
 	for _, floorItem := range floorsRes.Items {
 		floorNum, _ := strconv.Atoi(floorItem["FloorNumber"].(*types.AttributeValueMemberN).Value)
-		floorFreeSlots, err := nosqlsr.GetFreeSlotsByFloor(buildingId, floorNum)
+		floorFreeSlots, err := nosqlsr.GetFreeSlotsByFloor(ctx, buildingId, floorNum)
 		if err == nil {
 			freeSlots = append(freeSlots, floorFreeSlots...)
 		}
@@ -208,7 +208,7 @@ func (nosqlsr *NOSQLSlotRepository) GetFreeSlotsByBuilding(buildingId uuid.UUID)
 	return freeSlots, nil
 }
 
-func (nosqlsr *NOSQLSlotRepository) Save(slot models.Slot) error {
+func (nosqlsr *NOSQLSlotRepository) Save(ctx context.Context, slot models.Slot) error {
 	updateExpression := "SET SlotType = :slotType"
 	expressionValues := map[string]types.AttributeValue{
 		":slotType": &types.AttributeValueMemberS{Value: slot.SlotType.String()},
@@ -231,7 +231,7 @@ func (nosqlsr *NOSQLSlotRepository) Save(slot models.Slot) error {
 		updateExpression += " REMOVE OccupiedBy"
 	}
 
-	_, err := nosqlsr.client.UpdateItem(context.Background(), &dynamodb.UpdateItemInput{
+	_, err := nosqlsr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
 			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", slot.BuildingID.String())},
