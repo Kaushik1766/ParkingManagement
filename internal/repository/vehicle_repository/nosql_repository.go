@@ -28,26 +28,8 @@ func NewNOSQLVehicleRepository(client *dynamodb.Client) *NOSQLVehicleRepository 
 }
 
 func (nosqlvr *NOSQLVehicleRepository) AddVehicle(ctx context.Context, numberplate string, userid uuid.UUID, vehicleType vehicletypes.VehicleType) (models.Vehicle, error) {
-	// First get user email from userid
-	userRes, err := nosqlvr.client.Query(ctx, &dynamodb.QueryInput{
-		TableName:              aws.String(config.DynamoDBTable),
-		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userid.String())},
-			":sk": &types.AttributeValueMemberS{Value: "PROFILE#"},
-		},
-	})
-	if err != nil {
-		log.Println(err.Error())
-		return models.Vehicle{}, errors.New("error fetching user")
-	}
-
-	if len(userRes.Items) == 0 {
-		return models.Vehicle{}, errors.New("user not found")
-	}
-
-	userEmail := userRes.Items[0]["Email"].(*types.AttributeValueMemberS).Value
-	userName := userRes.Items[0]["Username"].(*types.AttributeValueMemberS).Value
+	userCtx := ctx.Value(constants.User).(models.UserJwt)
+	userEmail := userCtx.Email
 
 	vehicle := models.Vehicle{
 		VehicleID:   uuid.New(),
@@ -58,15 +40,56 @@ func (nosqlvr *NOSQLVehicleRepository) AddVehicle(ctx context.Context, numberpla
 		UserEmail:   userEmail,
 	}
 
+	// Check if user has other vehicles of the same type to reuse their slot assignment
+	vehiclesRes, err := nosqlvr.client.Query(ctx, &dynamodb.QueryInput{
+		TableName:              aws.String(config.DynamoDBTable),
+		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userEmail)},
+			":sk": &types.AttributeValueMemberS{Value: "VEHICLE#"},
+		},
+	})
+	if err != nil {
+		log.Println("Error fetching user vehicles:", err.Error())
+	} else {
+		// Look for an existing vehicle of the same type with an assigned slot
+		for _, item := range vehiclesRes.Items {
+			existingVehicleType := item["VehicleType"].(*types.AttributeValueMemberS).Value
+			if existingVehicleType == vehicleType.String() && item["AssignedSlot"] != nil {
+				// Reuse the slot assignment
+				assignedSlotMap := item["AssignedSlot"].(*types.AttributeValueMemberM).Value
+				if buildingId, ok := assignedSlotMap["BuildingId"]; ok {
+					vehicle.AssignedBuildingID = uuid.MustParse(buildingId.(*types.AttributeValueMemberS).Value)
+				}
+				if floorNumber, ok := assignedSlotMap["FloorNumber"]; ok {
+					vehicle.AssignedFloorNumber, _ = strconv.Atoi(floorNumber.(*types.AttributeValueMemberN).Value)
+				}
+				if slotId, ok := assignedSlotMap["SlotId"]; ok {
+					vehicle.AssignedSlotNumber, _ = strconv.Atoi(slotId.(*types.AttributeValueMemberN).Value)
+				}
+				log.Println("Reusing slot assignment from existing vehicle of same type")
+				break
+			}
+		}
+	}
+
 	item := map[string]types.AttributeValue{
 		"PK":          &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userEmail)},
 		"SK":          &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", numberplate)},
 		"VehicleId":   &types.AttributeValueMemberS{Value: vehicle.VehicleID.String()},
 		"Numberplate": &types.AttributeValueMemberS{Value: numberplate},
 		"VehicleType": &types.AttributeValueMemberS{Value: vehicleType.String()},
-		"IsActive":    &types.AttributeValueMemberBOOL{Value: true},
-		"UserId":      &types.AttributeValueMemberS{Value: userid.String()},
-		"Username":    &types.AttributeValueMemberS{Value: userName},
+		"IsParked":    &types.AttributeValueMemberBOOL{Value: false},
+	}
+
+	// Add AssignedSlot if it was set from reusing another vehicle's slot
+	if vehicle.AssignedBuildingID != uuid.Nil {
+		assignedSlot := map[string]types.AttributeValue{
+			"BuildingId":  &types.AttributeValueMemberS{Value: vehicle.AssignedBuildingID.String()},
+			"FloorNumber": &types.AttributeValueMemberN{Value: strconv.Itoa(vehicle.AssignedFloorNumber)},
+			"SlotId":      &types.AttributeValueMemberN{Value: strconv.Itoa(vehicle.AssignedSlotNumber)},
+		}
+		item["AssignedSlot"] = &types.AttributeValueMemberM{Value: assignedSlot}
 	}
 
 	_, err = nosqlvr.client.PutItem(ctx, &dynamodb.PutItemInput{
@@ -89,6 +112,7 @@ func (nosqlvr *NOSQLVehicleRepository) RemoveVehicle(ctx context.Context, number
 	}
 
 	if isParked {
+		log.Println("vehicle is parked")
 		return errors.New("vehicle is parked please unpark it first")
 	}
 
@@ -107,6 +131,7 @@ func (nosqlvr *NOSQLVehicleRepository) RemoveVehicle(ctx context.Context, number
 	}
 
 	if len(scanRes.Items) == 0 {
+		log.Println("vehicle not found in RemoveVehicle")
 		return errors.New("vehicle not found")
 	}
 
@@ -114,16 +139,12 @@ func (nosqlvr *NOSQLVehicleRepository) RemoveVehicle(ctx context.Context, number
 	userEmail := item["PK"].(*types.AttributeValueMemberS).Value
 	vehicleSK := item["SK"].(*types.AttributeValueMemberS).Value
 
-	// Mark as inactive instead of deleting
-	_, err = nosqlvr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+	// Delete the vehicle item
+	_, err = nosqlvr.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
 			"PK": &types.AttributeValueMemberS{Value: userEmail},
 			"SK": &types.AttributeValueMemberS{Value: vehicleSK},
-		},
-		UpdateExpression: aws.String("SET IsActive = :val"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":val": &types.AttributeValueMemberBOOL{Value: false},
 		},
 	})
 	if err != nil {
@@ -139,10 +160,10 @@ func (nosqlvr *NOSQLVehicleRepository) GetVehicleById(ctx context.Context, vehic
 
 	scanRes, err := nosqlvr.client.Scan(ctx, &dynamodb.ScanInput{
 		TableName:        aws.String(config.DynamoDBTable),
-		FilterExpression: aws.String("VehicleId = :vehicleId AND IsActive = :active"),
+		FilterExpression: aws.String("VehicleId = :vehicleId AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":vehicleId": &types.AttributeValueMemberS{Value: vehicleId.String()},
-			":active":    &types.AttributeValueMemberBOOL{Value: true},
+			":sk":        &types.AttributeValueMemberS{Value: "VEHICLE#"},
 		},
 	})
 	if err != nil {
@@ -156,6 +177,14 @@ func (nosqlvr *NOSQLVehicleRepository) GetVehicleById(ctx context.Context, vehic
 
 	item := scanRes.Items[0]
 	vehicle = nosqlvr.itemToVehicle(item)
+
+	// Fetch UserID from email
+	userID, err := nosqlvr.getUserIDFromEmail(ctx, vehicle.UserEmail)
+	if err != nil {
+		log.Println("Warning: could not fetch UserID:", err.Error())
+	} else {
+		vehicle.UserID = userID
+	}
 
 	return vehicle, nil
 }
@@ -180,6 +209,7 @@ func (nosqlvr *NOSQLVehicleRepository) GetVehiclesByUserId(ctx context.Context, 
 	}
 
 	if len(userRes.Items) == 0 {
+		log.Println("user not found in GetVehiclesByUserId")
 		return nil, errors.New("user not found")
 	}
 
@@ -189,11 +219,9 @@ func (nosqlvr *NOSQLVehicleRepository) GetVehiclesByUserId(ctx context.Context, 
 	vehiclesRes, err := nosqlvr.client.Query(ctx, &dynamodb.QueryInput{
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
-		FilterExpression:       aws.String("IsActive = :active"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk":     &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userEmail)},
-			":sk":     &types.AttributeValueMemberS{Value: "VEHICLE#"},
-			":active": &types.AttributeValueMemberBOOL{Value: true},
+			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userEmail)},
+			":sk": &types.AttributeValueMemberS{Value: "VEHICLE#"},
 		},
 	})
 	if err != nil {
@@ -203,6 +231,8 @@ func (nosqlvr *NOSQLVehicleRepository) GetVehiclesByUserId(ctx context.Context, 
 
 	for _, item := range vehiclesRes.Items {
 		vehicle := nosqlvr.itemToVehicle(item)
+		// UserID is already set from userId parameter passed to this method
+		vehicle.UserID = userId
 		vehicles = append(vehicles, vehicle)
 	}
 
@@ -214,10 +244,9 @@ func (nosqlvr *NOSQLVehicleRepository) GetVehicleByNumberPlate(ctx context.Conte
 
 	scanRes, err := nosqlvr.client.Scan(ctx, &dynamodb.ScanInput{
 		TableName:        aws.String(config.DynamoDBTable),
-		FilterExpression: aws.String("Numberplate = :numberplate AND IsActive = :active AND begins_with(SK, :sk)"),
+		FilterExpression: aws.String("Numberplate = :numberplate AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":numberplate": &types.AttributeValueMemberS{Value: numberplate},
-			":active":      &types.AttributeValueMemberBOOL{Value: true},
 			":sk":          &types.AttributeValueMemberS{Value: "VEHICLE#"},
 		},
 	})
@@ -233,16 +262,23 @@ func (nosqlvr *NOSQLVehicleRepository) GetVehicleByNumberPlate(ctx context.Conte
 	item := scanRes.Items[0]
 	vehicle = nosqlvr.itemToVehicle(item)
 
+	// Fetch UserID from email
+	userID, err := nosqlvr.getUserIDFromEmail(ctx, vehicle.UserEmail)
+	if err != nil {
+		log.Println("Warning: could not fetch UserID:", err.Error())
+	} else {
+		vehicle.UserID = userID
+	}
+
 	return vehicle, nil
 }
 
 func (nosqlvr *NOSQLVehicleRepository) GetVehiclesWithUnassignedSlots(ctx context.Context) (vehicles []models.Vehicle, err error) {
 	scanRes, err := nosqlvr.client.Scan(ctx, &dynamodb.ScanInput{
 		TableName:        aws.String(config.DynamoDBTable),
-		FilterExpression: aws.String("attribute_not_exists(AssignedSlot) AND begins_with(SK, :sk) AND IsActive = :active"),
+		FilterExpression: aws.String("attribute_not_exists(AssignedSlot) AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":sk":     &types.AttributeValueMemberS{Value: "VEHICLE#"},
-			":active": &types.AttributeValueMemberBOOL{Value: true},
+			":sk": &types.AttributeValueMemberS{Value: "VEHICLE#"},
 		},
 	})
 	if err != nil {
@@ -252,6 +288,13 @@ func (nosqlvr *NOSQLVehicleRepository) GetVehiclesWithUnassignedSlots(ctx contex
 
 	for _, item := range scanRes.Items {
 		vehicle := nosqlvr.itemToVehicle(item)
+		// Fetch UserID from email
+		userID, err := nosqlvr.getUserIDFromEmail(ctx, vehicle.UserEmail)
+		if err != nil {
+			log.Println("Warning: could not fetch UserID:", err.Error())
+		} else {
+			vehicle.UserID = userID
+		}
 		vehicles = append(vehicles, vehicle)
 	}
 
@@ -295,16 +338,16 @@ func (nosqlvr *NOSQLVehicleRepository) Save(ctx context.Context, vehicle models.
 		}
 
 		if len(userRes.Items) == 0 {
+			log.Println("user not found in Save")
 			return errors.New("user not found")
 		}
 
 		userEmail = userRes.Items[0]["Email"].(*types.AttributeValueMemberS).Value
 	}
 
-	updateExpression := "SET VehicleType = :vehicleType, IsActive = :isActive"
+	updateExpression := "SET VehicleType = :vehicleType"
 	expressionValues := map[string]types.AttributeValue{
 		":vehicleType": &types.AttributeValueMemberS{Value: vehicle.VehicleType.String()},
-		":isActive":    &types.AttributeValueMemberBOOL{Value: vehicle.IsActive},
 	}
 
 	// Add assigned slot info if present
@@ -335,13 +378,36 @@ func (nosqlvr *NOSQLVehicleRepository) Save(ctx context.Context, vehicle models.
 	return nil
 }
 
+// Helper function to get UserID from email
+func (nosqlvr *NOSQLVehicleRepository) getUserIDFromEmail(ctx context.Context, email string) (uuid.UUID, error) {
+	userRes, err := nosqlvr.client.Query(ctx, &dynamodb.QueryInput{
+		TableName:              aws.String(config.DynamoDBTable),
+		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", email)},
+			":sk": &types.AttributeValueMemberS{Value: "PROFILE#"},
+		},
+	})
+	if err != nil {
+		log.Println(err.Error())
+		return uuid.Nil, errors.New("error fetching user")
+	}
+
+	if len(userRes.Items) == 0 {
+		log.Println("user not found in getUserIDFromEmail")
+		return uuid.Nil, errors.New("user not found")
+	}
+
+	userID := uuid.MustParse(userRes.Items[0]["Id"].(*types.AttributeValueMemberS).Value)
+	return userID, nil
+}
+
 // Helper function to convert DynamoDB item to Vehicle model
 func (nosqlvr *NOSQLVehicleRepository) itemToVehicle(item map[string]types.AttributeValue) models.Vehicle {
 	var vehicle models.Vehicle
 
 	vehicle.VehicleID = uuid.MustParse(item["VehicleId"].(*types.AttributeValueMemberS).Value)
 	vehicle.NumberPlate = item["Numberplate"].(*types.AttributeValueMemberS).Value
-	vehicle.UserID = uuid.MustParse(item["UserId"].(*types.AttributeValueMemberS).Value)
 
 	vehicleTypeStr := item["VehicleType"].(*types.AttributeValueMemberS).Value
 	if vehicleTypeStr == "TwoWheeler" {
@@ -350,16 +416,16 @@ func (nosqlvr *NOSQLVehicleRepository) itemToVehicle(item map[string]types.Attri
 		vehicle.VehicleType = vehicletypes.FourWheeler
 	}
 
-	vehicle.IsActive = item["IsActive"].(*types.AttributeValueMemberBOOL).Value
+	// Set IsActive to true since only active vehicles exist (no soft delete)
+	vehicle.IsActive = true
 
 	// Extract user email from PK
 	pkValue := item["PK"].(*types.AttributeValueMemberS).Value
 	vehicle.UserEmail = pkValue[5:] // Remove "USER#" prefix
 
-	// Get username if available
-	if item["Username"] != nil {
-		vehicle.User.Name = item["Username"].(*types.AttributeValueMemberS).Value
-	}
+	// Note: UserID is not stored in DynamoDB
+	// It needs to be fetched from user profile if required
+	// For now, we'll need to fetch it in methods that need it
 
 	// Handle AssignedSlot if present
 	if item["AssignedSlot"] != nil {

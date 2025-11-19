@@ -64,6 +64,7 @@ func (nosqlbr *NOSQLBuidlingRepository) GetAllBuildingSummary(ctx context.Contex
 		Statement: aws.String(`SELECT * FROM "` + config.DynamoDBTable + `" WHERE PK = 'BUILDING'`),
 	})
 	if err != nil {
+		log.Println(err.Error())
 		return buildings, err
 	}
 
@@ -73,17 +74,20 @@ func (nosqlbr *NOSQLBuidlingRepository) GetAllBuildingSummary(ctx context.Contex
 		building.BuildingName = item["BuildingName"].(*types.AttributeValueMemberS).Value
 		n, err := strconv.Atoi(item["TotalFloors"].(*types.AttributeValueMemberN).Value)
 		if err != nil {
+			log.Println(err.Error())
 			return buildings, err
 		}
 		building.TotalFloors = n
 		n, err = strconv.Atoi(item["TotalSlots"].(*types.AttributeValueMemberN).Value)
 		if err != nil {
+			log.Println(err.Error())
 			return buildings, err
 		}
 		building.TotalSlots = n
 
 		n, err = strconv.Atoi(item["AvailableSlots"].(*types.AttributeValueMemberN).Value)
 		if err != nil {
+			log.Println(err.Error())
 			return buildings, err
 		}
 		building.AvailableSlots = n
@@ -119,10 +123,12 @@ func (nosqlbr *NOSQLBuidlingRepository) GetBuildingByID(ctx context.Context, bui
 			},
 		})
 	if err != nil {
+		log.Println(err.Error())
 		return building, err
 	}
 
 	if res.Item == nil {
+		log.Println("building not found")
 		return building, errors.New("building not found")
 	}
 
@@ -139,6 +145,7 @@ func (nosqlbr *NOSQLBuidlingRepository) GetBuildingByID(ctx context.Context, bui
 
 func (nosqlbr *NOSQLBuidlingRepository) AddBuilding(ctx context.Context, buildingName string) error {
 	if buildingName == constants.AdminBuilding {
+		log.Println("cannot add admin building")
 		return errors.New("buildingrepo: cannot add admin building")
 	}
 	building := models.BuildingSummary{
@@ -151,6 +158,7 @@ func (nosqlbr *NOSQLBuidlingRepository) AddBuilding(ctx context.Context, buildin
 
 	item, err := attributevalue.MarshalMap(building)
 	if err != nil {
+		log.Println(err.Error())
 		return err
 	}
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"strings"
 
 	authenticationmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/authentication_middleware"
@@ -24,6 +25,8 @@ import (
 var userService userservice.UserManager
 
 func init() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
 	ctx := context.Background()
 
 	cfg, err := config.LoadDefaultConfig(ctx)

@@ -44,6 +44,7 @@ func (nosqlur *NOSQLUserRepository) GetUserByEmail(ctx context.Context, email st
 	}
 
 	if len(queryRes.Items) == 0 {
+		log.Println("user not found in GetUserByEmail")
 		return user, errors.New("user not found")
 	}
 
@@ -72,6 +73,7 @@ func (nosqlur *NOSQLUserRepository) GetUserById(ctx context.Context, id string) 
 	}
 
 	if len(scanRes.Items) == 0 {
+		log.Println("user not found in GetUserById")
 		return user, errors.New("user not found")
 	}
 

@@ -43,6 +43,7 @@ func (nosqlpr *NOSQLParkingRepository) AddParking(ctx context.Context, vehicle m
 
 	if slotRes.Item != nil && slotRes.Item["IsOccupied"] != nil {
 		if slotRes.Item["IsOccupied"].(*types.AttributeValueMemberBOOL).Value {
+			log.Println("slot is already occupied")
 			return "", errors.New("parkingrepo: vehicle is already parked")
 		}
 	}
@@ -71,6 +72,22 @@ func (nosqlpr *NOSQLParkingRepository) AddParking(ctx context.Context, vehicle m
 		return "", errors.New("error adding parking history")
 	}
 
+	// Update IsParked status in vehicle entity
+	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		TableName: aws.String(config.DynamoDBTable),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", vehicle.User.Email)},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", vehicle.NumberPlate)},
+		},
+		UpdateExpression: aws.String("SET IsParked = :isParked"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":isParked": &types.AttributeValueMemberBOOL{Value: true},
+		},
+	})
+	if err != nil {
+		log.Println("Warning: could not update IsParked status:", err.Error())
+	}
+
 	return parkingID.String(), nil
 }
 
@@ -91,6 +108,7 @@ func (nosqlpr *NOSQLParkingRepository) Unpark(ctx context.Context, id string) er
 	}
 
 	if len(scanRes.Items) == 0 {
+		log.Println("parking record not found or already unparked in Unpark")
 		return errors.New("parking record not found or already unparked")
 	}
 
@@ -113,6 +131,23 @@ func (nosqlpr *NOSQLParkingRepository) Unpark(ctx context.Context, id string) er
 	if err != nil {
 		log.Println(err.Error())
 		return errors.New("error updating parking record")
+	}
+
+	// Update IsParked status in vehicle entity
+	numberplate := item["Numberplate"].(*types.AttributeValueMemberS).Value
+	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		TableName: aws.String(config.DynamoDBTable),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: userEmail},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", numberplate)},
+		},
+		UpdateExpression: aws.String("SET IsParked = :isParked"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":isParked": &types.AttributeValueMemberBOOL{Value: false},
+		},
+	})
+	if err != nil {
+		log.Println("Warning: could not update IsParked status:", err.Error())
 	}
 
 	return nil
@@ -179,6 +214,7 @@ func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByUser(ctx context.Conte
 	}
 
 	if len(userRes.Items) == 0 {
+		log.Println("user not found in GetParkingHistoryByUser")
 		return nil, errors.New("user not found")
 	}
 
@@ -256,6 +292,7 @@ func (nosqlpr *NOSQLParkingRepository) GetActiveUserParkings(ctx context.Context
 	}
 
 	if len(userRes.Items) == 0 {
+		log.Println("user not found in GetActiveUserParkings")
 		return nil, errors.New("user not found")
 	}
 
@@ -309,6 +346,7 @@ func (nosqlpr *NOSQLParkingRepository) UnparkByNumberPlate(ctx context.Context, 
 	}
 
 	if len(scanRes.Items) == 0 {
+		log.Println("no active parking found for numberplate:", numberplate)
 		return errors.New("no active parking found for this numberplate")
 	}
 
@@ -332,6 +370,22 @@ func (nosqlpr *NOSQLParkingRepository) UnparkByNumberPlate(ctx context.Context, 
 	if err != nil {
 		log.Println(err.Error())
 		return errors.New("error updating parking record")
+	}
+
+	// Update IsParked status in vehicle entity
+	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		TableName: aws.String(config.DynamoDBTable),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: userEmail},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", numberplate)},
+		},
+		UpdateExpression: aws.String("SET IsParked = :isParked"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":isParked": &types.AttributeValueMemberBOOL{Value: false},
+		},
+	})
+	if err != nil {
+		log.Println("Warning: could not update IsParked status:", err.Error())
 	}
 
 	return nil

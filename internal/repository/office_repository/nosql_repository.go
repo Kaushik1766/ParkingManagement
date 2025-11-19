@@ -28,7 +28,7 @@ func NewNOSQLOfficeRepository(client *dynamodb.Client) *NOSQLOfficeRepository {
 func (nosqlor *NOSQLOfficeRepository) AddOffice(ctx context.Context, officeName string, buildingID string, floorNumber int) error {
 	_, err := uuid.Parse(buildingID)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println("invalid building ID:", err.Error())
 		return errors.New("invalid building ID")
 	}
 	// office := models.Office{
@@ -69,7 +69,7 @@ func (nosqlor *NOSQLOfficeRepository) GetOfficesByBuilding(ctx context.Context, 
 	var offices []models.Office
 	_, err := uuid.Parse(buildingID)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println("invalid building id:", err.Error())
 		return nil, errors.New("invalid building id")
 	}
 
@@ -162,7 +162,7 @@ func (nosqlor *NOSQLOfficeRepository) GetOfficeByName(ctx context.Context, offic
 
 	buildings, err := nosqlor.client.Query(ctx, &dynamodb.QueryInput{
 		TableName:              aws.String(config.DynamoDBTable),
-		KeyConditionExpression: aws.String("PK = :pk begins_with(SK, :sk)"),
+		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		FilterExpression:       aws.String("contains(Office, :officeName)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":officeName": &types.AttributeValueMemberS{Value: officeName},
@@ -171,7 +171,7 @@ func (nosqlor *NOSQLOfficeRepository) GetOfficeByName(ctx context.Context, offic
 		},
 	})
 	if err != nil {
-		log.Println(err.Error())
+		log.Println("error in GetOfficeByName:", err.Error())
 		return models.Office{}, err
 	}
 

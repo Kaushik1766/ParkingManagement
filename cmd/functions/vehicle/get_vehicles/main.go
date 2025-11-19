@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"strings"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
@@ -28,6 +29,8 @@ import (
 var userService userservice.UserManager
 
 func init() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
 	ctx := context.Background()
 
 	cfg, err := config.LoadDefaultConfig(ctx)
