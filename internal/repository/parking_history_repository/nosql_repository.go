@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
+	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -33,7 +34,7 @@ func (nosqlpr *NOSQLParkingRepository) AddParking(ctx context.Context, vehicle m
 		userEmail = vehicle.User.Email
 	}
 	if userEmail == "" {
-		if ctxUser, ok := ctx.Value("user").(models.UserJwt); ok {
+		if ctxUser, ok := ctx.Value(constants.User).(models.UserJwt); ok {
 			userEmail = ctxUser.Email
 		}
 	}
@@ -216,7 +217,7 @@ func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByUser(ctx context.Conte
 
 	// Get user email from context (userId parameter is deprecated)
 	userEmail := userId
-	if ctxUser, ok := ctx.Value("user").(models.UserJwt); ok {
+	if ctxUser, ok := ctx.Value(constants.User).(models.UserJwt); ok {
 		userEmail = ctxUser.Email
 	}
 
@@ -290,7 +291,7 @@ func (nosqlpr *NOSQLParkingRepository) GetActiveUserParkings(ctx context.Context
 
 	// Get user email from context (userId parameter is deprecated)
 	userEmail := userId
-	if ctxUser, ok := ctx.Value("user").(models.UserJwt); ok {
+	if ctxUser, ok := ctx.Value(constants.User).(models.UserJwt); ok {
 		userEmail = ctxUser.Email
 	}
 

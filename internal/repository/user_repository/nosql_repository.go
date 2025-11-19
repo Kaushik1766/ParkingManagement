@@ -204,7 +204,7 @@ func (nosqlur *NOSQLUserRepository) CreateUser(ctx context.Context, name, email,
 	return nil
 }
 
-// Helper function to convert DynamoDB item to User model
+// helper for dynamo to user
 func (nosqlur *NOSQLUserRepository) itemToUser(item map[string]types.AttributeValue) models.User {
 	var user models.User
 
@@ -218,9 +218,9 @@ func (nosqlur *NOSQLUserRepository) itemToUser(item map[string]types.AttributeVa
 
 	roleStr := item["Role"].(*types.AttributeValueMemberS).Value
 	switch roleStr {
-	case "ADMIN":
+	case "Admin":
 		user.Role = roles.Admin
-	case "USER":
+	case "Customer":
 		user.Role = roles.Customer
 	default:
 		user.Role = roles.Customer
