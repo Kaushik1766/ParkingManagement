@@ -160,28 +160,37 @@ func (nosqlor *NOSQLOfficeRepository) GetAllOffices(ctx context.Context) ([]mode
 func (nosqlor *NOSQLOfficeRepository) GetOfficeByName(ctx context.Context, officeName string) (models.Office, error) {
 	var office models.Office
 
-	buildings, err := nosqlor.client.Query(ctx, &dynamodb.QueryInput{
-		TableName:              aws.String(config.DynamoDBTable),
-		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
-		FilterExpression:       aws.String("contains(Office, :officeName)"),
+	// Need to scan since offices are stored with PK=BUILDING#{id}, not PK=BUILDING
+	scanRes, err := nosqlor.client.Scan(ctx, &dynamodb.ScanInput{
+		TableName:        aws.String(config.DynamoDBTable),
+		FilterExpression: aws.String("begins_with(SK, :sk) AND Office = :officeName"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":officeName": &types.AttributeValueMemberS{Value: officeName},
-			":pk":         &types.AttributeValueMemberS{Value: "BUILDING"},
 			":sk":         &types.AttributeValueMemberS{Value: "FLOORINFO#"},
 		},
 	})
 	if err != nil {
-		log.Println("error in GetOfficeByName:", err.Error())
+		log.Println("error in GetOfficeByName scan:", err.Error())
 		return models.Office{}, err
 	}
 
-	for _, item := range buildings.Items {
-		office.BuildingID = uuid.MustParse(item["BuildingId"].(*types.AttributeValueMemberS).Value)
-		office.FloorNumber, _ = strconv.Atoi(item["FloorNumber"].(*types.AttributeValueMemberN).Value)
-		office.OfficeName = item["Office"].(*types.AttributeValueMemberS).Value
-		office.OfficeID = uuid.MustParse(item["OfficeId"].(*types.AttributeValueMemberS).Value)
-		break
+	if len(scanRes.Items) == 0 {
+		log.Printf("No office found with name: %s", officeName)
+		return models.Office{}, errors.New("office not found")
 	}
 
-	return office, err
+	item := scanRes.Items[0]
+
+	// Extract BuildingID from PK (format: BUILDING#{uuid})
+	pkValue := item["PK"].(*types.AttributeValueMemberS).Value
+	buildingIdStr := pkValue[9:] // Remove "BUILDING#" prefix
+	office.BuildingID = uuid.MustParse(buildingIdStr)
+
+	office.FloorNumber, _ = strconv.Atoi(item["FloorNumber"].(*types.AttributeValueMemberN).Value)
+	office.OfficeName = item["Office"].(*types.AttributeValueMemberS).Value
+	office.OfficeID = uuid.MustParse(item["OfficeId"].(*types.AttributeValueMemberS).Value)
+
+	log.Printf("Found office: %s, BuildingID: %s, Floor: %d", office.OfficeName, office.BuildingID, office.FloorNumber)
+
+	return office, nil
 }

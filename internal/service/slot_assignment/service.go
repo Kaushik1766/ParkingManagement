@@ -3,7 +3,6 @@ package slotassignment
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
@@ -68,24 +67,28 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 
 	freeSlots, err := sas.slotRepo.GetFreeSlotsByFloor(ctx, userOffice.BuildingID, userOffice.FloorNumber)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println("Error getting free slots:", err.Error())
 		return err
 	}
+
+	log.Printf("Found %d free slots for building %s, floor %d", len(freeSlots), userOffice.BuildingID, userOffice.FloorNumber)
 
 	if len(freeSlots) == 0 {
 		return errors.New("no free slots available please contact admin")
 	}
 
-	fmt.Println(freeSlots)
+	log.Printf("Vehicle type: %s, Free slots: %+v", vehicle.VehicleType, freeSlots)
 
 	for _, val := range freeSlots {
+		log.Printf("Checking slot %d with type %s against vehicle type %s", val.SlotNumber, val.SlotType, vehicle.VehicleType)
 		if val.SlotType == vehicle.VehicleType {
 			vehicle.AssignedBuildingID = val.BuildingID
 			vehicle.AssignedFloorNumber = val.FloorNumber
 			vehicle.AssignedSlotNumber = val.SlotNumber
-			log.Println("free slot found, assigning it")
+			log.Printf("Free slot found! Assigning slot %d to vehicle", val.SlotNumber)
 			err := sas.vehicleRepo.Save(ctx, vehicle)
 			if err != nil {
+				log.Println("Error saving vehicle with assigned slot:", err.Error())
 				return err
 			}
 
@@ -93,6 +96,7 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 		}
 	}
 
+	log.Printf("No free slot of type %s found among %d free slots", vehicle.VehicleType, len(freeSlots))
 	return errors.New("no free slot available please contact the admin")
 }
 

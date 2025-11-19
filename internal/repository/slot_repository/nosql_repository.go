@@ -169,9 +169,37 @@ func (nosqlsr *NOSQLSlotRepository) GetFreeSlotsByFloor(ctx context.Context, bui
 		return nil, err
 	}
 
+	// Get all vehicles that have this slot assigned (regardless of parking status)
+	assignedSlots := make(map[string]bool)
+
+	scanRes, err := nosqlsr.client.Scan(ctx, &dynamodb.ScanInput{
+		TableName:        aws.String(config.DynamoDBTable),
+		FilterExpression: aws.String("begins_with(SK, :sk) AND attribute_exists(AssignedSlot)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":sk": &types.AttributeValueMemberS{Value: "VEHICLE#"},
+		},
+	})
+	if err == nil {
+		for _, item := range scanRes.Items {
+			if assignedSlot, ok := item["AssignedSlot"]; ok {
+				assignedSlotMap := assignedSlot.(*types.AttributeValueMemberM).Value
+				bId := assignedSlotMap["BuildingId"].(*types.AttributeValueMemberS).Value
+				fNum, _ := strconv.Atoi(assignedSlotMap["FloorNumber"].(*types.AttributeValueMemberN).Value)
+				sNum, _ := strconv.Atoi(assignedSlotMap["SlotId"].(*types.AttributeValueMemberN).Value)
+
+				if bId == buildingId.String() && fNum == floorNumber {
+					slotKey := fmt.Sprintf("%s_%d_%d", bId, fNum, sNum)
+					assignedSlots[slotKey] = true
+				}
+			}
+		}
+	}
+
 	var freeSlots []models.Slot
 	for _, slot := range allSlots {
-		if len(slot.Vehicles) == 0 {
+		slotKey := fmt.Sprintf("%s_%d_%d", buildingId.String(), floorNumber, slot.SlotNumber)
+		// Slot is free if it's not currently parked AND not assigned to any vehicle
+		if len(slot.Vehicles) == 0 && !assignedSlots[slotKey] {
 			freeSlots = append(freeSlots, slot)
 		}
 	}
