@@ -3,11 +3,9 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 
-	"github.com/Kaushik1766/ParkingManagement/db"
 	authenticationmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/authentication_middleware"
 	corsmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/cors_middleware"
 	parkinghistoryrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/parking_history_repository"
@@ -16,18 +14,24 @@ import (
 	customerrors "github.com/Kaushik1766/ParkingManagement/pkg/customErrors"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
 var parkingService parkinghistoryservice.ParkingHistoryMgr
 
 func init() {
-	gormDb, err := db.InitDB()
+	ctx := context.Background()
+
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to initialize DB: %v", err))
+		panic("aws config not found")
 	}
 
-	parkingRepo := parkinghistoryrepository.NewSQLParkingRepository(gormDb)
-	vehicleRepo := vehiclerepository.NewSQLVehicleRepository(gormDb)
+	client := dynamodb.NewFromConfig(cfg)
+
+	parkingRepo := parkinghistoryrepository.NewNOSQLParkingRepository(client)
+	vehicleRepo := vehiclerepository.NewNOSQLVehicleRepository(client)
 
 	parkingService = parkinghistoryservice.NewParkingHistoryService(parkingRepo, vehicleRepo)
 }

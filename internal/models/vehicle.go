@@ -11,6 +11,7 @@ type Vehicle struct {
 	VehicleType        vehicletypes.VehicleType `gorm:"not null"`
 	UserID             uuid.UUID
 	User               User
+	UserEmail          string    `gorm:"-"` // Not stored in SQL, used for NoSQL operations
 	AssignedBuildingID uuid.UUID `gorm:"type:uuid;default:null"`
 	// AssignedBuilding    *Building `gorm:"foreignKey:AssignedBuildingID;references:BuildingID"`
 	AssignedFloorNumber int `gorm:"default:null;type:int"`
