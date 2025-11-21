@@ -152,11 +152,8 @@ func (nosqlfr *NOSQLFloorRepository) GetFloorsByBuildingId(ctx context.Context, 
 		floor.FloorNumber, _ = strconv.Atoi(item["FloorNumber"].(*types.AttributeValueMemberN).Value)
 		floor.TotalSlots, _ = strconv.Atoi(item["TotalSlots"].(*types.AttributeValueMemberN).Value)
 		floor.AvailableSlots, _ = strconv.Atoi(item["AvailableSlots"].(*types.AttributeValueMemberN).Value)
-		log.Println(item["Office"])
 		if item["Office"] != nil {
 			floor.AssignedOffice = item["Office"].(*types.AttributeValueMemberS).Value
-		} else {
-			floor.AssignedOffice = "unassigned"
 		}
 		floors = append(floors, floor)
 	}
