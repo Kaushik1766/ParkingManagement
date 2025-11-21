@@ -53,7 +53,7 @@ func TestOfficeService_AddOffice(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockOfficeRepo := mocks.NewMockOfficeStorage(ctrl)
-	mockOfficeRepo.EXPECT().AddOffice(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+	mockOfficeRepo.EXPECT().AddOffice(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 	type fields struct {
 		officeRepo officerepository.OfficeStorage
@@ -115,7 +115,7 @@ func TestOfficeService_GetAllOfficeNames(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockOfficeRepo := mocks.NewMockOfficeStorage(ctrl)
-	mockOfficeRepo.EXPECT().GetAllOffices().Return([]models.Office{
+	mockOfficeRepo.EXPECT().GetAllOffices(gomock.Any()).Return([]models.Office{
 		{
 			OfficeID:    uuid.Nil,
 			OfficeName:  "wg",
@@ -123,7 +123,7 @@ func TestOfficeService_GetAllOfficeNames(t *testing.T) {
 			FloorNumber: 1,
 		},
 	}, nil)
-	mockOfficeRepo.EXPECT().GetAllOffices().Return(nil, errors.New("repo error"))
+	mockOfficeRepo.EXPECT().GetAllOffices(gomock.Any()).Return(nil, errors.New("repo error"))
 
 	type fields struct {
 		officeRepo officerepository.OfficeStorage
@@ -184,13 +184,13 @@ func TestOfficeService_GetOfficeByName(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockOfficeRepo := mocks.NewMockOfficeStorage(ctrl)
-	mockOfficeRepo.EXPECT().GetOfficeByName(gomock.Any()).Return(models.Office{
+	mockOfficeRepo.EXPECT().GetOfficeByName(gomock.Any(), gomock.Any()).Return(models.Office{
 		OfficeID:    uuid.Nil,
 		OfficeName:  "wg",
 		BuildingID:  uuid.Nil,
 		FloorNumber: 1,
 	}, nil)
-	mockOfficeRepo.EXPECT().GetOfficeByName(gomock.Any()).Return(models.Office{}, errors.New("repo error"))
+	mockOfficeRepo.EXPECT().GetOfficeByName(gomock.Any(), gomock.Any()).Return(models.Office{}, errors.New("repo error"))
 	type fields struct {
 		officeRepo officerepository.OfficeStorage
 	}
@@ -270,7 +270,7 @@ func TestOfficeService_ListOfficesByBuilding(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockOfficeRepo := mocks.NewMockOfficeStorage(ctrl)
-	mockOfficeRepo.EXPECT().GetOfficesByBuilding(gomock.Any()).Return([]models.Office{
+	mockOfficeRepo.EXPECT().GetOfficesByBuilding(gomock.Any(), gomock.Any()).Return([]models.Office{
 		{
 			OfficeID:    uuid.Nil,
 			OfficeName:  "wg",
@@ -278,7 +278,7 @@ func TestOfficeService_ListOfficesByBuilding(t *testing.T) {
 			FloorNumber: 1,
 		},
 	}, nil)
-	mockOfficeRepo.EXPECT().GetOfficesByBuilding(gomock.Any()).Return(nil, errors.New("repo error"))
+	mockOfficeRepo.EXPECT().GetOfficesByBuilding(gomock.Any(), gomock.Any()).Return(nil, errors.New("repo error"))
 
 	type fields struct {
 		officeRepo officerepository.OfficeStorage
@@ -349,7 +349,7 @@ func TestOfficeService_RemoveOffice(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockOfficeRepo := mocks.NewMockOfficeStorage(ctrl)
-	mockOfficeRepo.EXPECT().DeleteOffice(gomock.Any()).Return(nil)
+	mockOfficeRepo.EXPECT().DeleteOffice(gomock.Any(), gomock.Any()).Return(nil)
 
 	type fields struct {
 		officeRepo officerepository.OfficeStorage

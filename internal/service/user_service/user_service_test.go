@@ -10,6 +10,7 @@ import (
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
+	buildingrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/building_repository"
 	officerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/office_repository"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
@@ -60,12 +61,14 @@ func TestNewUserService(t *testing.T) {
 	mockVehicleRepo := mocks.NewMockVehicleStorage(ctrl)
 	mockOfficeRepo := mocks.NewMockOfficeStorage(ctrl)
 	mockAssignmentService := mocks.NewMockSlotAssignmentMgr(ctrl)
+	mockBuildingRepo := mocks.NewMockBuildingStorage(ctrl)
 
 	type args struct {
 		repo              userrepository.UserStorage
 		vehicRepo         vehiclerepository.VehicleStorage
 		officeRepo        officerepository.OfficeStorage
 		assignmentService slotassignment.SlotAssignmentMgr
+		buildingRepo      buildingrepository.BuildingStorage
 	}
 	tests := []struct {
 		name string
@@ -79,18 +82,20 @@ func TestNewUserService(t *testing.T) {
 				vehicRepo:         mockVehicleRepo,
 				officeRepo:        mockOfficeRepo,
 				assignmentService: mockAssignmentService,
+				buildingRepo:      mockBuildingRepo,
 			},
 			want: &UserService{
 				userRepo:          mockUserRepo,
 				vehicleRepo:       mockVehicleRepo,
 				officeRepo:        mockOfficeRepo,
 				assignmentService: mockAssignmentService,
+				buildingRepo:      mockBuildingRepo,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewUserService(tt.args.repo, tt.args.vehicRepo, tt.args.officeRepo, tt.args.assignmentService); !reflect.DeepEqual(got, tt.want) {
+			if got := NewUserService(tt.args.repo, tt.args.vehicRepo, tt.args.officeRepo, tt.args.assignmentService, mockBuildingRepo); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewUserService() = %v, want %v", got, tt.want)
 			}
 		})
@@ -125,10 +130,10 @@ func TestUserService_DeleteProfile(t *testing.T) {
 				userId: userId.String(),
 			},
 			mock: func() {
-				mockUserRepo.EXPECT().GetUserById(gomock.Any()).Return(models.User{
+				mockUserRepo.EXPECT().GetUserById(gomock.Any(), gomock.Any()).Return(models.User{
 					UserID: userId,
 				}, nil)
-				mockUserRepo.EXPECT().Save(gomock.Any()).Return(nil)
+				mockUserRepo.EXPECT().Save(gomock.Any(), gomock.Any()).Return(nil)
 			},
 			wantErr: false,
 		},
@@ -142,10 +147,10 @@ func TestUserService_DeleteProfile(t *testing.T) {
 				userId: userId.String(),
 			},
 			mock: func() {
-				mockUserRepo.EXPECT().GetUserById(userId.String()).Return(models.User{
+				mockUserRepo.EXPECT().GetUserById(gomock.Any(), userId.String()).Return(models.User{
 					UserID: userId,
 				}, nil)
-				mockUserRepo.EXPECT().Save(gomock.Any()).Return(nil)
+				mockUserRepo.EXPECT().Save(gomock.Any(), gomock.Any()).Return(nil)
 			},
 			wantErr: false,
 		},
@@ -171,7 +176,7 @@ func TestUserService_DeleteProfile(t *testing.T) {
 				userId: userId.String(),
 			},
 			mock: func() {
-				mockUserRepo.EXPECT().GetUserById(gomock.Any()).Return(models.User{}, errors.New("user not found"))
+				mockUserRepo.EXPECT().GetUserById(gomock.Any(), gomock.Any()).Return(models.User{}, errors.New("user not found"))
 			},
 			wantErr: true,
 		},
@@ -219,7 +224,7 @@ func TestUserService_GetAllUsers(t *testing.T) {
 			fields: fields{userRepo: mockUserRepo},
 			args:   args{ctx: context.Background()},
 			mock: func() {
-				mockUserRepo.EXPECT().GetAllUsers().Return(users, nil)
+				mockUserRepo.EXPECT().GetAllUsers(gomock.Any()).Return(users, nil)
 			},
 			want: []models.UserDTO{
 				{UserId: users[0].UserID.String(), Name: "User 1", Email: "user1@example.com", Role: "Customer", Office: "Office1"},
@@ -232,7 +237,7 @@ func TestUserService_GetAllUsers(t *testing.T) {
 			fields: fields{userRepo: mockUserRepo},
 			args:   args{ctx: context.Background()},
 			mock: func() {
-				mockUserRepo.EXPECT().GetAllUsers().Return(nil, errors.New("db error"))
+				mockUserRepo.EXPECT().GetAllUsers(gomock.Any()).Return(nil, errors.New("db error"))
 			},
 			want:    nil,
 			wantErr: true,
@@ -261,17 +266,24 @@ func TestUserService_GetRegisteredVehicles(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockVehicleRepo := mocks.NewMockVehicleStorage(ctrl)
+	mockBuildingRepo := mocks.NewMockBuildingStorage(ctrl)
 
 	vehicles := []models.Vehicle{
 		{
-			NumberPlate:  "asdf",
-			VehicleType:  vehicletypes.TwoWheeler,
-			AssignedSlot: models.Slot{},
+			NumberPlate:         "asdf",
+			VehicleType:         vehicletypes.TwoWheeler,
+			AssignedBuildingID:  uuid.New(),
+			AssignedFloorNumber: 1,
+			AssignedSlotNumber:  1,
+			AssignedSlot:        models.Slot{},
 		},
 		{
-			NumberPlate:  "asde",
-			VehicleType:  vehicletypes.TwoWheeler,
-			AssignedSlot: models.Slot{},
+			NumberPlate:         "asde",
+			VehicleType:         vehicletypes.TwoWheeler,
+			AssignedBuildingID:  uuid.New(),
+			AssignedFloorNumber: 1,
+			AssignedSlotNumber:  2,
+			AssignedSlot:        models.Slot{},
 		},
 	}
 
@@ -296,18 +308,28 @@ func TestUserService_GetRegisteredVehicles(t *testing.T) {
 				ctx: userCtx,
 			},
 			mock: func() {
-				mockVehicleRepo.EXPECT().GetVehiclesByUserId(gomock.Any()).Return(vehicles, nil)
+				mockVehicleRepo.EXPECT().GetVehiclesByUserId(gomock.Any(), gomock.Any()).Return(vehicles, nil)
+				mockBuildingRepo.EXPECT().GetBuildingByID(gomock.Any(), gomock.Any()).Return(models.Building{BuildingName: "Test Building"}, nil).Times(2)
+				mockVehicleRepo.EXPECT().GetParkingStatus(gomock.Any(), gomock.Any()).Return(true, nil).Times(2)
 			},
 			want: []models.VehicleDTO{
 				{
-					AssignedSlot: models.Slot{},
-					VehicleType:  vehicletypes.TwoWheeler.String(),
-					NumberPlate:  "asdf",
+					NumberPlate:          "asdf",
+					VehicleType:          vehicletypes.TwoWheeler.String(),
+					AssignedBuildingID:   vehicles[0].AssignedBuildingID.String(),
+					IsParked:             true,
+					AssignedFloorNumber:  1,
+					AssignedSlotNumber:   1,
+					AssignedBuildingName: "Test Building",
 				},
 				{
-					AssignedSlot: models.Slot{},
-					VehicleType:  vehicletypes.TwoWheeler.String(),
-					NumberPlate:  "asde",
+					NumberPlate:          "asde",
+					VehicleType:          vehicletypes.TwoWheeler.String(),
+					AssignedBuildingID:   vehicles[1].AssignedBuildingID.String(),
+					IsParked:             true,
+					AssignedFloorNumber:  1,
+					AssignedSlotNumber:   2,
+					AssignedBuildingName: "Test Building",
 				},
 			},
 			wantErr: false,
@@ -317,7 +339,7 @@ func TestUserService_GetRegisteredVehicles(t *testing.T) {
 			fields: fields{vehicleRepo: mockVehicleRepo},
 			args:   args{ctx: userCtx},
 			mock: func() {
-				mockVehicleRepo.EXPECT().GetVehiclesByUserId(gomock.Any()).Return(nil, errors.New("db error"))
+				mockVehicleRepo.EXPECT().GetVehiclesByUserId(gomock.Any(), gomock.Any()).Return(nil, errors.New("db error"))
 			},
 			want:    []models.VehicleDTO{},
 			wantErr: true,
@@ -327,7 +349,8 @@ func TestUserService_GetRegisteredVehicles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mock()
 			us := &UserService{
-				vehicleRepo: tt.fields.vehicleRepo,
+				vehicleRepo:  tt.fields.vehicleRepo,
+				buildingRepo: mockBuildingRepo,
 			}
 			got, err := us.GetRegisteredVehicles(tt.args.ctx)
 			if (err != nil) != tt.wantErr {
@@ -369,7 +392,7 @@ func TestUserService_GetUserById(t *testing.T) {
 			fields: fields{userRepo: mockUserRepo},
 			args:   args{ctx: context.Background(), userId: userID.String()},
 			mock: func() {
-				mockUserRepo.EXPECT().GetUserById(userID.String()).Return(user, nil)
+				mockUserRepo.EXPECT().GetUserById(gomock.Any(), userID.String()).Return(user, nil)
 			},
 			want: models.UserDTO{
 				UserId: userID.String(),
@@ -385,7 +408,7 @@ func TestUserService_GetUserById(t *testing.T) {
 			fields: fields{userRepo: mockUserRepo},
 			args:   args{ctx: context.Background(), userId: userID.String()},
 			mock: func() {
-				mockUserRepo.EXPECT().GetUserById(userID.String()).Return(models.User{}, errors.New("not found"))
+				mockUserRepo.EXPECT().GetUserById(gomock.Any(), userID.String()).Return(models.User{}, errors.New("not found"))
 			},
 			want:    models.UserDTO{},
 			wantErr: true,
@@ -435,7 +458,7 @@ func TestUserService_GetUserProfile(t *testing.T) {
 			fields: fields{userRepo: mockUserRepo},
 			args:   args{ctx: userCtx},
 			mock: func() {
-				mockUserRepo.EXPECT().GetUserById(userId.String()).Return(user, nil)
+				mockUserRepo.EXPECT().GetUserById(gomock.Any(), userId.String()).Return(user, nil)
 			},
 			want: models.UserDTO{
 				UserId: userId.String(),
@@ -451,7 +474,7 @@ func TestUserService_GetUserProfile(t *testing.T) {
 			fields: fields{userRepo: mockUserRepo},
 			args:   args{ctx: userCtx},
 			mock: func() {
-				mockUserRepo.EXPECT().GetUserById(userId.String()).Return(models.User{}, errors.New("not found"))
+				mockUserRepo.EXPECT().GetUserById(gomock.Any(), userId.String()).Return(models.User{}, errors.New("not found"))
 			},
 			want:    models.UserDTO{},
 			wantErr: true,
@@ -504,7 +527,7 @@ func TestUserService_RegisterVehicle(t *testing.T) {
 			fields: fields{vehicleRepo: mockVehicleRepo, assignmentService: mockAssignmentService},
 			args:   args{ctx: userCtx, numberplate: "VALID12345", vehicleType: vehicletypes.FourWheeler},
 			mock: func() {
-				mockVehicleRepo.EXPECT().AddVehicle("VALID12345", userId, vehicletypes.FourWheeler).Return(models.Vehicle{VehicleID: vehicleID}, nil)
+				mockVehicleRepo.EXPECT().AddVehicle(gomock.Any(), gomock.Any(), userId, vehicletypes.FourWheeler).Return(models.Vehicle{VehicleID: vehicleID}, nil)
 				mockAssignmentService.EXPECT().AutoAssignSlot(userCtx, vehicleID.String()).Return(nil)
 			},
 			wantErr: false,
@@ -528,7 +551,7 @@ func TestUserService_RegisterVehicle(t *testing.T) {
 			fields: fields{vehicleRepo: mockVehicleRepo},
 			args:   args{ctx: userCtx, numberplate: "VALID12345", vehicleType: vehicletypes.FourWheeler},
 			mock: func() {
-				mockVehicleRepo.EXPECT().AddVehicle("VALID12345", userId, vehicletypes.FourWheeler).Return(models.Vehicle{}, errors.New("db error"))
+				mockVehicleRepo.EXPECT().AddVehicle(gomock.Any(), gomock.Any(), userId, vehicletypes.FourWheeler).Return(models.Vehicle{}, errors.New("db error"))
 			},
 			wantErr: true,
 		},
@@ -537,7 +560,7 @@ func TestUserService_RegisterVehicle(t *testing.T) {
 			fields: fields{vehicleRepo: mockVehicleRepo, assignmentService: mockAssignmentService},
 			args:   args{ctx: userCtx, numberplate: "VALID12345", vehicleType: vehicletypes.FourWheeler},
 			mock: func() {
-				mockVehicleRepo.EXPECT().AddVehicle("VALID12345", userId, vehicletypes.FourWheeler).Return(models.Vehicle{VehicleID: vehicleID}, nil)
+				mockVehicleRepo.EXPECT().AddVehicle(gomock.Any(), gomock.Any(), userId, vehicletypes.FourWheeler).Return(models.Vehicle{VehicleID: vehicleID}, nil)
 				mockAssignmentService.EXPECT().AutoAssignSlot(userCtx, vehicleID.String()).Return(errors.New("assignment error"))
 			},
 			wantErr: true,
@@ -562,10 +585,6 @@ func TestUserService_UnregisterVehicle(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockVehicleRepo := mocks.NewMockVehicleStorage(ctrl)
-	vehicles := []models.Vehicle{
-		{NumberPlate: "PLATE12345", IsActive: true},
-		{NumberPlate: "PLATE67890", IsActive: false},
-	}
 
 	type fields struct {
 		vehicleRepo vehiclerepository.VehicleStorage
@@ -586,8 +605,8 @@ func TestUserService_UnregisterVehicle(t *testing.T) {
 			fields: fields{vehicleRepo: mockVehicleRepo},
 			args:   args{ctx: userCtx, numberplate: "PLATE12345"},
 			mock: func() {
-				mockVehicleRepo.EXPECT().GetVehiclesByUserId(userId).Return(vehicles, nil)
-				mockVehicleRepo.EXPECT().RemoveVehicle("PLATE12345").Return(nil)
+				mockVehicleRepo.EXPECT().GetVehicleByNumberPlate(gomock.Any(), "PLATE12345").Return(models.Vehicle{UserID: userId, IsActive: true}, nil)
+				mockVehicleRepo.EXPECT().RemoveVehicle(gomock.Any(), "PLATE12345").Return(nil)
 			},
 			wantErr: false,
 		},
@@ -596,16 +615,16 @@ func TestUserService_UnregisterVehicle(t *testing.T) {
 			fields: fields{vehicleRepo: mockVehicleRepo},
 			args:   args{ctx: userCtx, numberplate: "PLATE67890"},
 			mock: func() {
-				mockVehicleRepo.EXPECT().GetVehiclesByUserId(userId).Return(vehicles, nil)
+				mockVehicleRepo.EXPECT().GetVehicleByNumberPlate(gomock.Any(), "PLATE67890").Return(models.Vehicle{UserID: userId, IsActive: false}, nil)
 			},
 			wantErr: false,
 		},
 		{
-			name:   "Failure - GetVehiclesByUserId error",
+			name:   "Failure - GetVehicleByNumberPlate error",
 			fields: fields{vehicleRepo: mockVehicleRepo},
 			args:   args{ctx: userCtx, numberplate: "PLATE12345"},
 			mock: func() {
-				mockVehicleRepo.EXPECT().GetVehiclesByUserId(userId).Return(nil, errors.New("db error"))
+				mockVehicleRepo.EXPECT().GetVehicleByNumberPlate(gomock.Any(), "PLATE12345").Return(models.Vehicle{}, errors.New("db error"))
 			},
 			wantErr: true,
 		},
@@ -614,7 +633,7 @@ func TestUserService_UnregisterVehicle(t *testing.T) {
 			fields: fields{vehicleRepo: mockVehicleRepo},
 			args:   args{ctx: userCtx, numberplate: "NOTFOUND12"},
 			mock: func() {
-				mockVehicleRepo.EXPECT().GetVehiclesByUserId(userId).Return(vehicles, nil)
+				mockVehicleRepo.EXPECT().GetVehicleByNumberPlate(gomock.Any(), "NOTFOUND12").Return(models.Vehicle{}, errors.New("not found"))
 			},
 			wantErr: true,
 		},
@@ -663,9 +682,9 @@ func TestUserService_UpdateProfile(t *testing.T) {
 			fields: fields{userRepo: mockUserRepo, officeRepo: mockOfficeRepo},
 			args:   args{ctx: adminCtx, userId: userId.String(), updateReq: models.UpdateUserDTO{Name: "kaushik", Office: "wg", Email: "kaushik@a.com", Password: "asdf"}},
 			mock: func() {
-				mockUserRepo.EXPECT().GetUserById(userId.String()).Return(user, nil)
-				mockOfficeRepo.EXPECT().GetOfficeByName("wg").Return(office, nil)
-				mockUserRepo.EXPECT().Save(gomock.Any()).Return(nil)
+				mockUserRepo.EXPECT().GetUserById(gomock.Any(), userId.String()).Return(user, nil)
+				mockOfficeRepo.EXPECT().GetOfficeByName(gomock.Any(), "wg").Return(office, nil)
+				mockUserRepo.EXPECT().Save(gomock.Any(), gomock.Any()).Return(nil)
 			},
 			wantErr: false,
 		},
@@ -689,8 +708,8 @@ func TestUserService_UpdateProfile(t *testing.T) {
 				},
 			},
 			mock: func() {
-				mockUserRepo.EXPECT().GetUserById(userId.String()).Return(user, nil)
-				mockOfficeRepo.EXPECT().GetOfficeByName("wg").Return(office, nil)
+				mockUserRepo.EXPECT().GetUserById(gomock.Any(), userId.String()).Return(user, nil)
+				mockOfficeRepo.EXPECT().GetOfficeByName(gomock.Any(), "wg").Return(office, nil)
 				// No Save expectation since bcrypt should fail with a long password
 			},
 			wantErr: true, // bcrypt will fail with very long passwords (>72 bytes)
@@ -707,7 +726,7 @@ func TestUserService_UpdateProfile(t *testing.T) {
 			fields: fields{userRepo: mockUserRepo},
 			args:   args{ctx: userCtx, userId: userId.String(), updateReq: models.UpdateUserDTO{Name: "kaushik"}},
 			mock: func() {
-				mockUserRepo.EXPECT().GetUserById(userId.String()).Return(models.User{}, errors.New("not found"))
+				mockUserRepo.EXPECT().GetUserById(gomock.Any(), userId.String()).Return(models.User{}, errors.New("not found"))
 			},
 			wantErr: true,
 		},
@@ -716,8 +735,8 @@ func TestUserService_UpdateProfile(t *testing.T) {
 			fields: fields{userRepo: mockUserRepo, officeRepo: mockOfficeRepo},
 			args:   args{ctx: userCtx, userId: userId.String(), updateReq: models.UpdateUserDTO{Office: "NonExistent Office"}},
 			mock: func() {
-				mockUserRepo.EXPECT().GetUserById(userId.String()).Return(user, nil)
-				mockOfficeRepo.EXPECT().GetOfficeByName("NonExistent Office").Return(models.Office{}, errors.New("not found"))
+				mockUserRepo.EXPECT().GetUserById(gomock.Any(), userId.String()).Return(user, nil)
+				mockOfficeRepo.EXPECT().GetOfficeByName(gomock.Any(), "NonExistent Office").Return(models.Office{}, errors.New("not found"))
 			},
 			wantErr: true,
 		},
@@ -741,28 +760,30 @@ func TestUserService_GetVehiclesByUserId(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockVehicleRepo := mocks.NewMockVehicleStorage(ctrl)
+	mockBuildingRepo := mocks.NewMockBuildingStorage(ctrl)
 
 	vehicles := []models.Vehicle{
 		{
-			VehicleID:   uuid.New(),
-			UserID:      userId,
-			NumberPlate: "TEST123456",
-			VehicleType: vehicletypes.FourWheeler,
-			IsActive:    true,
-			AssignedSlot: models.Slot{
-				BuildingID:  uuid.New(),
-				FloorNumber: 1,
-				SlotNumber:  1,
-				SlotType:    vehicletypes.FourWheeler,
-			},
+			VehicleID:           uuid.New(),
+			UserID:              userId,
+			NumberPlate:         "TEST123456",
+			VehicleType:         vehicletypes.FourWheeler,
+			IsActive:            true,
+			AssignedBuildingID:  uuid.New(),
+			AssignedFloorNumber: 1,
+			AssignedSlotNumber:  1,
+			AssignedSlot:        models.Slot{},
 		},
 		{
-			VehicleID:    uuid.New(),
-			UserID:       userId,
-			NumberPlate:  "TEST789012",
-			VehicleType:  vehicletypes.TwoWheeler,
-			IsActive:     true,
-			AssignedSlot: models.Slot{},
+			VehicleID:           uuid.New(),
+			UserID:              userId,
+			NumberPlate:         "TEST789012",
+			VehicleType:         vehicletypes.TwoWheeler,
+			IsActive:            true,
+			AssignedBuildingID:  uuid.New(),
+			AssignedFloorNumber: 1,
+			AssignedSlotNumber:  2,
+			AssignedSlot:        models.Slot{},
 		},
 	}
 
@@ -786,18 +807,28 @@ func TestUserService_GetVehiclesByUserId(t *testing.T) {
 			fields: fields{vehicleRepo: mockVehicleRepo},
 			args:   args{ctx: context.Background(), userId: userId.String()},
 			mock: func() {
-				mockVehicleRepo.EXPECT().GetVehiclesByUserId(userId).Return(vehicles, nil)
+				mockVehicleRepo.EXPECT().GetVehiclesByUserId(gomock.Any(), userId).Return(vehicles, nil)
+				mockBuildingRepo.EXPECT().GetBuildingByID(gomock.Any(), gomock.Any()).Return(models.Building{BuildingName: "Test Building"}, nil).Times(2)
+				mockVehicleRepo.EXPECT().GetParkingStatus(gomock.Any(), gomock.Any()).Return(true, nil).Times(2)
 			},
 			want: []models.VehicleDTO{
 				{
-					NumberPlate:  "TEST123456",
-					VehicleType:  vehicletypes.FourWheeler.String(),
-					AssignedSlot: vehicles[0].AssignedSlot,
+					NumberPlate:          "TEST123456",
+					VehicleType:          vehicletypes.FourWheeler.String(),
+					AssignedBuildingName: "Test Building",
+					IsParked:             true,
+					AssignedFloorNumber:  1,
+					AssignedSlotNumber:   1,
+					AssignedBuildingID:   vehicles[0].AssignedBuildingID.String(),
 				},
 				{
-					NumberPlate:  "TEST789012",
-					VehicleType:  vehicletypes.TwoWheeler.String(),
-					AssignedSlot: models.Slot{},
+					NumberPlate:          "TEST789012",
+					VehicleType:          vehicletypes.TwoWheeler.String(),
+					AssignedBuildingName: "Test Building",
+					IsParked:             true,
+					AssignedFloorNumber:  1,
+					AssignedSlotNumber:   2,
+					AssignedBuildingID:   vehicles[1].AssignedBuildingID.String(),
 				},
 			},
 			wantErr: false,
@@ -815,7 +846,7 @@ func TestUserService_GetVehiclesByUserId(t *testing.T) {
 			fields: fields{vehicleRepo: mockVehicleRepo},
 			args:   args{ctx: context.Background(), userId: userId.String()},
 			mock: func() {
-				mockVehicleRepo.EXPECT().GetVehiclesByUserId(userId).Return(nil, errors.New("db error"))
+				mockVehicleRepo.EXPECT().GetVehiclesByUserId(gomock.Any(), userId).Return(nil, errors.New("db error"))
 			},
 			want:    nil,
 			wantErr: true,
@@ -825,7 +856,7 @@ func TestUserService_GetVehiclesByUserId(t *testing.T) {
 			fields: fields{vehicleRepo: mockVehicleRepo},
 			args:   args{ctx: context.Background(), userId: userId.String()},
 			mock: func() {
-				mockVehicleRepo.EXPECT().GetVehiclesByUserId(userId).Return([]models.Vehicle{}, nil)
+				mockVehicleRepo.EXPECT().GetVehiclesByUserId(gomock.Any(), userId).Return([]models.Vehicle{}, nil)
 			},
 			want:    []models.VehicleDTO{},
 			wantErr: false,
@@ -835,7 +866,8 @@ func TestUserService_GetVehiclesByUserId(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mock()
 			us := &UserService{
-				vehicleRepo: tt.fields.vehicleRepo,
+				vehicleRepo:  tt.fields.vehicleRepo,
+				buildingRepo: mockBuildingRepo,
 			}
 			got, err := us.GetVehiclesByUserId(tt.args.ctx, tt.args.userId)
 			if (err != nil) != tt.wantErr {

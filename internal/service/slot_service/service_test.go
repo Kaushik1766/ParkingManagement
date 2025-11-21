@@ -73,7 +73,7 @@ func TestSlotService_GetFreeSlotsByBuilding(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockSlotRepo := mocks.NewMockSlotStorage(ctrl)
-	mockSlotRepo.EXPECT().GetFreeSlotsByBuilding(gomock.Any()).Return([]models.Slot{
+	mockSlotRepo.EXPECT().GetFreeSlotsByBuilding(gomock.Any(), gomock.Any()).Return([]models.Slot{
 		{
 			BuildingID:  uuid.Nil,
 			FloorNumber: 1,
@@ -81,7 +81,7 @@ func TestSlotService_GetFreeSlotsByBuilding(t *testing.T) {
 			SlotType:    vehicletypes.TwoWheeler,
 		},
 	}, nil)
-	mockSlotRepo.EXPECT().GetFreeSlotsByBuilding(gomock.Any()).Return(nil, errors.New("error"))
+	mockSlotRepo.EXPECT().GetFreeSlotsByBuilding(gomock.Any(), gomock.Any()).Return(nil, errors.New("error"))
 
 	type fields struct {
 		slotRepo slotrepository.SlotStorage
@@ -168,7 +168,7 @@ func TestSlotService_GetSlotsByFloor(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockSlotRepo := mocks.NewMockSlotStorage(ctrl)
-	mockSlotRepo.EXPECT().GetSlotsByFloor(gomock.Any(), gomock.Any()).Return([]models.Slot{
+	mockSlotRepo.EXPECT().GetSlotsByFloor(gomock.Any(), gomock.Any(), gomock.Any()).Return([]models.Slot{
 		{
 			BuildingID:  uuid.Nil,
 			FloorNumber: 1,
@@ -177,7 +177,7 @@ func TestSlotService_GetSlotsByFloor(t *testing.T) {
 			Vehicles:    []models.Vehicle{},
 		},
 	}, nil)
-	mockSlotRepo.EXPECT().GetSlotsByFloor(gomock.Any(), gomock.Any()).Return(nil, errors.New("error"))
+	mockSlotRepo.EXPECT().GetSlotsByFloor(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("error"))
 
 	type fields struct {
 		slotRepo slotrepository.SlotStorage

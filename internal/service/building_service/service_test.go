@@ -40,7 +40,7 @@ func TestBuildingService_AddBuilding(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockStorage := mocks.NewMockBuildingStorage(ctrl)
-	mockStorage.EXPECT().AddBuilding(gomock.Any()).Return(nil)
+	mockStorage.EXPECT().AddBuilding(gomock.Any(), gomock.Any()).Return(nil)
 
 	tests := []struct {
 		name string // description of this test case
@@ -86,8 +86,8 @@ func TestBuildingService_AddBuilding(t *testing.T) {
 func TestBuildingService_DeleteBuildingByID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockBuildingStorage := mocks.NewMockBuildingStorage(ctrl)
-	mockBuildingStorage.EXPECT().DeleteBuildingByID("validId").Return(nil)
-	mockBuildingStorage.EXPECT().DeleteBuildingByID("invalidId").Return(errors.New("building id not found"))
+	mockBuildingStorage.EXPECT().DeleteBuildingByID(gomock.Any(), "validId").Return(nil)
+	mockBuildingStorage.EXPECT().DeleteBuildingByID(gomock.Any(), "invalidId").Return(errors.New("building id not found"))
 
 	tests := []struct {
 		name string // description of this test case
@@ -173,11 +173,11 @@ func TestBuildingService_GetBuildingByID(t *testing.T) {
 	invalidUUID := uuid.New()
 
 	mockBuildingStorage := mocks.NewMockBuildingStorage(ctrl)
-	mockBuildingStorage.EXPECT().GetBuildingByID(uuid.Nil).Return(models.Building{
+	mockBuildingStorage.EXPECT().GetBuildingByID(gomock.Any(), uuid.Nil).Return(models.Building{
 		BuildingID:   uuid.Nil,
 		BuildingName: "advant",
 	}, nil)
-	mockBuildingStorage.EXPECT().GetBuildingByID(invalidUUID).Return(models.Building{},
+	mockBuildingStorage.EXPECT().GetBuildingByID(gomock.Any(), invalidUUID).Return(models.Building{},
 		errors.New("building id not found"))
 
 	type fields struct {
@@ -265,14 +265,16 @@ func TestBuildingService_GetAllBuildings(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	mockBuildingStorage := mocks.NewMockBuildingStorage(ctrl)
-	mockBuildingStorage.EXPECT().GetAllBuildings().Return([]models.Building{
+	mockBuildingStorage.EXPECT().GetAllBuildingSummary(gomock.Any()).Return([]models.BuildingSummary{
 		{
-			BuildingID:   uuid.Nil,
-			BuildingName: "advant",
-			Floors:       nil,
+			BuildingId:     uuid.Nil,
+			BuildingName:   "advant",
+			AvailableSlots: 0,
+			TotalSlots:     0,
+			TotalFloors:    0,
 		},
 	}, nil)
-	mockBuildingStorage.EXPECT().GetAllBuildings().Return([]models.Building{}, errors.New("buildings "))
+	mockBuildingStorage.EXPECT().GetAllBuildingSummary(gomock.Any()).Return([]models.BuildingSummary{}, errors.New("buildings "))
 
 	type fields struct {
 		buildingRepo buildingrepository.BuildingStorage
@@ -297,8 +299,11 @@ func TestBuildingService_GetAllBuildings(t *testing.T) {
 			},
 			want: []models.BuildingDTO{
 				{
-					BuildingID: uuid.Nil.String(),
-					Name:       "advant",
+					BuildingID:     uuid.Nil.String(),
+					Name:           "advant",
+					AvailableSlots: 0,
+					TotalSlots:     0,
+					TotalFloors:    0,
 				},
 			},
 			wantErr: false,

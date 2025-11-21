@@ -40,7 +40,7 @@ func TestFloorService_AddFloor(t *testing.T) {
 	defer ctrl.Finish()
 
 	floorRepo := mocks.NewMockFloorStorage(ctrl)
-	floorRepo.EXPECT().AddFloor(gomock.Any(), gomock.Any()).Return(nil)
+	floorRepo.EXPECT().AddFloor(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 	type fields struct {
 		floorRepo floorrepository.FloorStorage
@@ -99,7 +99,7 @@ func TestFloorService_AddFloorByBuildingId(t *testing.T) {
 	defer ctrl.Finish()
 
 	floorRepo := mocks.NewMockFloorStorage(ctrl)
-	floorRepo.EXPECT().AddFloor(gomock.Any(), gomock.Any()).Return(nil)
+	floorRepo.EXPECT().AddFloor(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 	type fields struct {
 		floorRepo floorrepository.FloorStorage
@@ -158,7 +158,7 @@ func TestFloorService_DeleteFloor(t *testing.T) {
 	defer ctrl.Finish()
 
 	floorRepo := mocks.NewMockFloorStorage(ctrl)
-	floorRepo.EXPECT().DeleteFloor(gomock.Any(), gomock.Any()).Return(nil)
+	floorRepo.EXPECT().DeleteFloor(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 	type fields struct {
 		floorRepo floorrepository.FloorStorage
@@ -217,13 +217,13 @@ func TestFloorService_GetFloorsByBuildingId(t *testing.T) {
 	defer ctrl.Finish()
 
 	floorRepo := mocks.NewMockFloorStorage(ctrl)
-	floorRepo.EXPECT().GetFloorsByBuildingId(gomock.Any()).Return([]models.Floor{
+	floorRepo.EXPECT().GetFloorsByBuildingId(gomock.Any(), gomock.Any()).Return([]models.FloorSummary{
 		{
 			BuildingID:  uuid.Nil,
 			FloorNumber: 1,
 		},
 	}, nil)
-	floorRepo.EXPECT().GetFloorsByBuildingId(gomock.Any()).Return([]models.Floor{}, errors.New("no floors in building"))
+	floorRepo.EXPECT().GetFloorsByBuildingId(gomock.Any(), gomock.Any()).Return([]models.FloorSummary{}, errors.New("no floors in building"))
 
 	type fields struct {
 		floorRepo floorrepository.FloorStorage
@@ -250,8 +250,11 @@ func TestFloorService_GetFloorsByBuildingId(t *testing.T) {
 			},
 			want: []models.FloorDTO{
 				{
-					FloorNumber: 1,
-					BuildingID:  uuid.Nil.String(),
+					FloorNumber:    1,
+					BuildingID:     uuid.Nil.String(),
+					TotalSlots:     0,
+					AvailableSlots: 0,
+					AssignedOffice: "",
 				},
 			},
 			wantErr: false,

@@ -10,6 +10,7 @@ import (
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
+	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	parkinghistoryrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/parking_history_repository"
 	vehiclerepository "github.com/Kaushik1766/ParkingManagement/internal/repository/vehicle_repository"
 	"github.com/Kaushik1766/ParkingManagement/mocks"
@@ -73,7 +74,7 @@ func TestParkingHistoryService_GetActiveUserParkings(t *testing.T) {
 
 	mockParkingRepo := mocks.NewMockParkingHistoryStorage(ctrl)
 	mockVehicleRepo := mocks.NewMockVehicleStorage(ctrl)
-	mockParkingRepo.EXPECT().GetActiveUserParkings(gomock.Any()).Return([]models.ParkingHistoryDTO{
+	mockParkingRepo.EXPECT().GetActiveUserParkings(gomock.Any(), gomock.Any()).Return([]models.ParkingHistoryDTO{
 		{
 			TicketId:     "asdf",
 			NumberPlate:  "asdf",
@@ -82,7 +83,7 @@ func TestParkingHistoryService_GetActiveUserParkings(t *testing.T) {
 			SlotNumber:   0,
 			StartTime:    time.Time{},
 			EndTime:      time.Time{},
-			VechicleType: 0,
+			VechicleType: vehicletypes.FourWheeler.String(),
 		},
 	}, nil)
 
@@ -118,7 +119,7 @@ func TestParkingHistoryService_GetActiveUserParkings(t *testing.T) {
 					SlotNumber:   0,
 					StartTime:    time.Time{},
 					EndTime:      time.Time{},
-					VechicleType: 0,
+					VechicleType: vehicletypes.FourWheeler.String(),
 				},
 			},
 			wantErr: false,
@@ -149,7 +150,7 @@ func TestParkingHistoryService_GetParkingHistory(t *testing.T) {
 	mockParkingRepo := mocks.NewMockParkingHistoryStorage(ctrl)
 	mockVehicleRepo := mocks.NewMockVehicleStorage(ctrl)
 
-	mockParkingRepo.EXPECT().GetParkingHistoryByUser(gomock.Any(), gomock.Any(), gomock.Any()).Return([]models.ParkingHistoryDTO{}, nil)
+	mockParkingRepo.EXPECT().GetParkingHistoryByUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]models.ParkingHistoryDTO{}, nil)
 
 	type fields struct {
 		parkingRepo parkinghistoryrepository.ParkingHistoryStorage
@@ -207,14 +208,14 @@ func TestParkingHistoryService_GetParkingHistoryByNumberPlate(t *testing.T) {
 	mockParkingRepo := mocks.NewMockParkingHistoryStorage(ctrl)
 	mockVehicleRepo := mocks.NewMockVehicleStorage(ctrl)
 
-	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate("asdf").Return(models.Vehicle{
+	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate(gomock.Any(), "asdf").Return(models.Vehicle{
 		UserID: uuid.MustParse(user.ID),
 	}, nil)
-	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate("dasdf").Return(models.Vehicle{
+	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate(gomock.Any(), "dasdf").Return(models.Vehicle{
 		UserID: uuid.New(),
 	}, nil)
-	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate("invalidNumberplate").Return(models.Vehicle{}, errors.New("invalid numberplate"))
-	mockParkingRepo.EXPECT().GetParkingHistoryByNumberPlate(gomock.Any(), gomock.Any(), gomock.Any()).Return([]models.ParkingHistoryDTO{}, nil).AnyTimes()
+	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate(gomock.Any(), "invalidNumberplate").Return(models.Vehicle{}, errors.New("invalid numberplate"))
+	mockParkingRepo.EXPECT().GetParkingHistoryByNumberPlate(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]models.ParkingHistoryDTO{}, nil).AnyTimes()
 
 	type fields struct {
 		parkingRepo parkinghistoryrepository.ParkingHistoryStorage
@@ -303,12 +304,13 @@ func TestParkingHistoryService_GetParkingHistoryByUserId(t *testing.T) {
 
 	mockParkingRepo := mocks.NewMockParkingHistoryStorage(ctrl)
 	mockVehicleRepo := mocks.NewMockVehicleStorage(ctrl)
-	mockParkingRepo.EXPECT().GetParkingHistoryByUser(gomock.Any(), gomock.Any(), gomock.Any()).Return([]models.ParkingHistoryDTO{}, nil)
+	mockParkingRepo.EXPECT().GetParkingHistoryByUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]models.ParkingHistoryDTO{}, nil)
 	type fields struct {
 		parkingRepo parkinghistoryrepository.ParkingHistoryStorage
 		vehicleRepo vehiclerepository.VehicleStorage
 	}
 	type args struct {
+		ctx       context.Context
 		userId    string
 		startTime time.Time
 		endTime   time.Time
@@ -327,6 +329,7 @@ func TestParkingHistoryService_GetParkingHistoryByUserId(t *testing.T) {
 				vehicleRepo: mockVehicleRepo,
 			},
 			args: args{
+				ctx:       userCtx,
 				userId:    userCtx.Value(constants.User).(models.UserJwt).ID,
 				startTime: time.Now(),
 				endTime:   time.Now(),
@@ -341,7 +344,7 @@ func TestParkingHistoryService_GetParkingHistoryByUserId(t *testing.T) {
 				parkingRepo: tt.fields.parkingRepo,
 				vehicleRepo: tt.fields.vehicleRepo,
 			}
-			got, err := phs.GetParkingHistoryByUserId(tt.args.userId, tt.args.startTime, tt.args.endTime)
+			got, err := phs.GetParkingHistoryByUserId(tt.args.ctx, tt.args.userId, tt.args.startTime, tt.args.endTime)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetParkingHistoryByUserId() error = %v, wantErr %v", err, tt.wantErr)
 				return

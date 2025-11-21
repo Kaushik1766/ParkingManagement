@@ -1,6 +1,7 @@
 package authservice_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -18,7 +19,7 @@ func TestAuthService_Login(t *testing.T) {
 	ctrl := gomock.NewController(t)
 
 	mockUserRepo := mocks.NewMockUserStorage(ctrl)
-	mockUserRepo.EXPECT().GetUserByEmail("kaushik@a.com").MaxTimes(2).Return(models.User{
+	mockUserRepo.EXPECT().GetUserByEmail(gomock.Any(), "kaushik@a.com").MaxTimes(2).Return(models.User{
 		UserID:   uuid.Nil,
 		Name:     "kaushik",
 		Email:    "kaushik@a.com",
@@ -29,7 +30,7 @@ func TestAuthService_Login(t *testing.T) {
 		Office:   models.Office{},
 		Vehicles: []models.Vehicle{},
 	}, nil)
-	mockUserRepo.EXPECT().GetUserByEmail("unknown@a.com").Return(models.User{},
+	mockUserRepo.EXPECT().GetUserByEmail(gomock.Any(), "unknown@a.com").Return(models.User{},
 		errors.New("user nor found"))
 
 	type fields struct {
@@ -105,7 +106,7 @@ func TestAuthService_Login(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			auth := authservice.NewAuthService(tt.fields.userDb)
-			got, err := auth.Login(tt.args.loginReq)
+			got, err := auth.Login(context.Background(), tt.args.loginReq)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Login() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -122,14 +123,14 @@ func TestAuthService_Signup(t *testing.T) {
 
 	mockUserRepo := mocks.NewMockUserStorage(ctrl)
 	mockUserRepo.EXPECT().
-		CreateUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		CreateUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		MaxTimes(3).
 		Return(nil)
 
 	// Add a separate mock for the error case
 	mockUserRepoError := mocks.NewMockUserStorage(ctrl)
 	mockUserRepoError.EXPECT().
-		CreateUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		CreateUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(errors.New("database error"))
 
 	type fields struct {
@@ -219,7 +220,7 @@ func TestAuthService_Signup(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			auth := authservice.NewAuthService(tt.fields.userDb)
-			if err := auth.Signup(tt.args.registerReq, tt.args.role); (err != nil) != tt.wantErr {
+			if err := auth.Signup(context.Background(), tt.args.registerReq, tt.args.role); (err != nil) != tt.wantErr {
 				t.Errorf("Signup() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

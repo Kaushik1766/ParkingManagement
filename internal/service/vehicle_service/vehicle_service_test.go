@@ -75,19 +75,19 @@ func TestVehicleService_Park(t *testing.T) {
 	mockParkingRepo := mocks.NewMockParkingHistoryStorage(ctrl)
 
 	//customer's vehicle
-	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate("asdf").Return(models.Vehicle{
+	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate(gomock.Any(), "asdf").Return(models.Vehicle{
 		UserID: userId,
 	}, nil)
 
 	//not customer's vehicle
-	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate("qwer").Return(models.Vehicle{
+	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate(gomock.Any(), "qwer").Return(models.Vehicle{
 		UserID: uuid.New(),
 	}, nil)
 
 	//not found
-	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate("invalidNumberplate").Return(models.Vehicle{}, errors.New("vehicle not found"))
+	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate(gomock.Any(), "invalidNumberplate").Return(models.Vehicle{}, errors.New("vehicle not found"))
 
-	mockParkingRepo.EXPECT().AddParking(gomock.Any()).Return("ticketid", nil).AnyTimes()
+	mockParkingRepo.EXPECT().AddParking(gomock.Any(), gomock.Any()).Return("ticketid", nil).AnyTimes()
 
 	type fields struct {
 		vehicleRepo vehiclerepository.VehicleStorage
@@ -170,7 +170,7 @@ func TestVehicleService_Unpark(t *testing.T) {
 	mockVehicleRepo := mocks.NewMockVehicleStorage(ctrl)
 	mockParkingRepo := mocks.NewMockParkingHistoryStorage(ctrl)
 
-	mockParkingRepo.EXPECT().Unpark(gomock.Any()).Return(nil)
+	mockParkingRepo.EXPECT().Unpark(gomock.Any(), gomock.Any()).Return(nil)
 
 	type fields struct {
 		vehicleRepo vehiclerepository.VehicleStorage
@@ -221,24 +221,24 @@ func TestVehicleService_UnparkByNumberPlate(t *testing.T) {
 	mockParkingRepo := mocks.NewMockParkingHistoryStorage(ctrl)
 
 	//customer's vehicle
-	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate("validPlate").Return(models.Vehicle{
+	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate(gomock.Any(), "validPlate").Return(models.Vehicle{
 		UserID: userId,
 	}, nil)
-	mockParkingRepo.EXPECT().UnparkByNumberPlate("validPlate").Return(nil)
+	mockParkingRepo.EXPECT().UnparkByNumberPlate(gomock.Any(), "validPlate").Return(nil)
 
 	//not customer's vehicle
-	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate("notMyVehicle").Return(models.Vehicle{
+	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate(gomock.Any(), "notMyVehicle").Return(models.Vehicle{
 		UserID: uuid.New(),
 	}, nil)
 
 	//vehicle not found
-	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate("invalidPlate").Return(models.Vehicle{}, errors.New("vehicle not found"))
+	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate(gomock.Any(), "invalidPlate").Return(models.Vehicle{}, errors.New("vehicle not found"))
 
 	//customer's vehicle fail unpark
-	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate("unparkFails").Return(models.Vehicle{
+	mockVehicleRepo.EXPECT().GetVehicleByNumberPlate(gomock.Any(), "unparkFails").Return(models.Vehicle{
 		UserID: userId,
 	}, nil)
-	mockParkingRepo.EXPECT().UnparkByNumberPlate("unparkFails").Return(errors.New("unpark failed"))
+	mockParkingRepo.EXPECT().UnparkByNumberPlate(gomock.Any(), "unparkFails").Return(errors.New("unpark failed"))
 
 	type fields struct {
 		vehicleRepo vehiclerepository.VehicleStorage

@@ -1,6 +1,7 @@
 package billingservice
 
 import (
+	"context"
 	"errors"
 	"os"
 	"reflect"
@@ -52,7 +53,7 @@ func TestBillingService_GenerateMonthlyInvoice(t *testing.T) {
 			SlotNumber:   1,
 			StartTime:    startTime,
 			EndTime:      startTime.Add(2 * time.Hour), // 2 hours
-			VechicleType: vehicletypes.FourWheeler,
+			VechicleType: vehicletypes.FourWheeler.String(),
 		},
 		{
 			TicketId:     "TICKET002",
@@ -62,7 +63,7 @@ func TestBillingService_GenerateMonthlyInvoice(t *testing.T) {
 			SlotNumber:   2,
 			StartTime:    startTime.Add(3 * time.Hour),
 			EndTime:      startTime.Add(5 * time.Hour), // 2 hours
-			VechicleType: vehicletypes.TwoWheeler,
+			VechicleType: vehicletypes.TwoWheeler.String(),
 		},
 	}
 
@@ -75,7 +76,7 @@ func TestBillingService_GenerateMonthlyInvoice(t *testing.T) {
 			SlotNumber:   1,
 			StartTime:    startTime,
 			EndTime:      time.Time{}, // Zero end time - should be skipped
-			VechicleType: vehicletypes.FourWheeler,
+			VechicleType: vehicletypes.FourWheeler.String(),
 		},
 	}
 
@@ -96,9 +97,9 @@ func TestBillingService_GenerateMonthlyInvoice(t *testing.T) {
 				parkingRepository: mockParkingRepo,
 			},
 			mockSetup: func() {
-				mockUserRepo.EXPECT().GetAllUsers().Return(users, nil)
-				mockParkingRepo.EXPECT().GetParkingHistoryByUser(userID1.String(), gomock.Any(), gomock.Any()).Return(parkingHistory1, nil)
-				mockParkingRepo.EXPECT().GetParkingHistoryByUser(userID2.String(), gomock.Any(), gomock.Any()).Return(parkingHistory2, nil)
+				mockUserRepo.EXPECT().GetAllUsers(gomock.Any()).Return(users, nil)
+				mockParkingRepo.EXPECT().GetParkingHistoryByUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(parkingHistory1, nil).Times(1)
+				mockParkingRepo.EXPECT().GetParkingHistoryByUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(parkingHistory2, nil).Times(1)
 			},
 			expectFileCreation: true,
 		},
@@ -109,9 +110,8 @@ func TestBillingService_GenerateMonthlyInvoice(t *testing.T) {
 				parkingRepository: mockParkingRepo,
 			},
 			mockSetup: func() {
-				mockUserRepo.EXPECT().GetAllUsers().Return(users, nil)
-				mockParkingRepo.EXPECT().GetParkingHistoryByUser(userID1.String(), gomock.Any(), gomock.Any()).Return([]models.ParkingHistoryDTO{}, nil)
-				mockParkingRepo.EXPECT().GetParkingHistoryByUser(userID2.String(), gomock.Any(), gomock.Any()).Return([]models.ParkingHistoryDTO{}, nil)
+				mockUserRepo.EXPECT().GetAllUsers(gomock.Any()).Return(users, nil)
+				mockParkingRepo.EXPECT().GetParkingHistoryByUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]models.ParkingHistoryDTO{}, nil).AnyTimes()
 			},
 			expectFileCreation: true,
 		},
@@ -122,7 +122,7 @@ func TestBillingService_GenerateMonthlyInvoice(t *testing.T) {
 				parkingRepository: mockParkingRepo,
 			},
 			mockSetup: func() {
-				mockUserRepo.EXPECT().GetAllUsers().Return(nil, errors.New("database error"))
+				mockUserRepo.EXPECT().GetAllUsers(gomock.Any()).Return(nil, errors.New("database error"))
 			},
 			expectFileCreation: false,
 		},
@@ -133,8 +133,8 @@ func TestBillingService_GenerateMonthlyInvoice(t *testing.T) {
 				parkingRepository: mockParkingRepo,
 			},
 			mockSetup: func() {
-				mockUserRepo.EXPECT().GetAllUsers().Return(users, nil)
-				mockParkingRepo.EXPECT().GetParkingHistoryByUser(userID1.String(), gomock.Any(), gomock.Any()).Return(nil, errors.New("database error"))
+				mockUserRepo.EXPECT().GetAllUsers(gomock.Any()).Return(users, nil)
+				mockParkingRepo.EXPECT().GetParkingHistoryByUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("database error")).Times(1)
 			},
 			expectFileCreation: false,
 		},
@@ -145,7 +145,7 @@ func TestBillingService_GenerateMonthlyInvoice(t *testing.T) {
 				parkingRepository: mockParkingRepo,
 			},
 			mockSetup: func() {
-				mockUserRepo.EXPECT().GetAllUsers().Return([]models.User{}, nil)
+				mockUserRepo.EXPECT().GetAllUsers(gomock.Any()).Return([]models.User{}, nil)
 			},
 			expectFileCreation: true,
 		},
@@ -169,7 +169,7 @@ func TestBillingService_GenerateMonthlyInvoice(t *testing.T) {
 				// This is a workaround since we can't easily test the sleep in unit tests
 			}()
 
-			bs.GenerateMonthlyInvoice()
+			bs.GenerateMonthlyInvoice(context.Background())
 
 			// Check if file was created as expected
 			_, err := os.Stat("bills.txt")
