@@ -53,6 +53,14 @@
     "AvailableSlots": 15,
     "Office": "Watchguard"
   },
+  "Office": {
+    "PK": "OFFICE",
+    "SK": "DETAILS#Watchguard",
+    "OfficeName": "Watchguard",
+    "BuildingId": "BUILDING#B1",
+    "FloorNumber": 1,
+    "OfficeId": "uuid"
+  },
   "Slot": {
     "PK": "BUILDING#B1",
     "SK": "SLOT#F1#1",

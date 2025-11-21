@@ -28,7 +28,6 @@ func NewNOSQLParkingRepository(client *dynamodb.Client) *NOSQLParkingRepository 
 }
 
 func (nosqlpr *NOSQLParkingRepository) AddParking(ctx context.Context, vehicle models.Vehicle) (string, error) {
-	// Get user email from context or vehicle
 	userEmail := vehicle.UserEmail
 	if userEmail == "" && vehicle.User.Email != "" {
 		userEmail = vehicle.User.Email
@@ -88,7 +87,6 @@ func (nosqlpr *NOSQLParkingRepository) AddParking(ctx context.Context, vehicle m
 		return "", errors.New("error adding parking history")
 	}
 
-	// Update IsParked status in vehicle entity
 	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
@@ -108,14 +106,19 @@ func (nosqlpr *NOSQLParkingRepository) AddParking(ctx context.Context, vehicle m
 }
 
 func (nosqlpr *NOSQLParkingRepository) Unpark(ctx context.Context, id string) error {
-	var userEmail string
-	var timestamp string
+	userCtx := ctx.Value(constants.User).(models.UserJwt)
 
-	scanRes, err := nosqlpr.client.Scan(ctx, &dynamodb.ScanInput{
-		TableName:        aws.String(config.DynamoDBTable),
-		FilterExpression: aws.String("ParkingId = :parkingId AND attribute_not_exists(EndTime)"),
+	var PK string
+	var SK string
+
+	queryRes, err := nosqlpr.client.Query(ctx, &dynamodb.QueryInput{
+		TableName:              aws.String(config.DynamoDBTable),
+		FilterExpression:       aws.String("ParkingId = :parkingId AND attribute_not_exists(EndTime)"),
+		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":parkingId": &types.AttributeValueMemberS{Value: id},
+			":pk":        &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userCtx.Email)},
+			":sk":        &types.AttributeValueMemberS{Value: "PARKING#"},
 		},
 	})
 	if err != nil {
@@ -123,21 +126,21 @@ func (nosqlpr *NOSQLParkingRepository) Unpark(ctx context.Context, id string) er
 		return errors.New("error finding parking record")
 	}
 
-	if len(scanRes.Items) == 0 {
+	if len(queryRes.Items) == 0 {
 		log.Println("parking record not found or already unparked in Unpark")
 		return errors.New("parking record not found or already unparked")
 	}
 
-	item := scanRes.Items[0]
-	userEmail = item["PK"].(*types.AttributeValueMemberS).Value
-	timestamp = item["SK"].(*types.AttributeValueMemberS).Value
+	item := queryRes.Items[0]
+	PK = item["PK"].(*types.AttributeValueMemberS).Value
+	SK = item["SK"].(*types.AttributeValueMemberS).Value
 
 	endTime := time.Now().Unix()
 	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: userEmail},
-			"SK": &types.AttributeValueMemberS{Value: timestamp},
+			"PK": &types.AttributeValueMemberS{Value: PK},
+			"SK": &types.AttributeValueMemberS{Value: SK},
 		},
 		UpdateExpression: aws.String("SET EndTime = :endTime"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -149,12 +152,11 @@ func (nosqlpr *NOSQLParkingRepository) Unpark(ctx context.Context, id string) er
 		return errors.New("error updating parking record")
 	}
 
-	// Update IsParked status in vehicle entity
 	numberplate := item["Numberplate"].(*types.AttributeValueMemberS).Value
 	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: userEmail},
+			"PK": &types.AttributeValueMemberS{Value: PK},
 			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", numberplate)},
 		},
 		UpdateExpression: aws.String("SET IsParked = :isParked"),
@@ -170,18 +172,23 @@ func (nosqlpr *NOSQLParkingRepository) Unpark(ctx context.Context, id string) er
 }
 
 func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByNumberPlate(ctx context.Context, numberplate string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
+	userCtx := ctx.Value(constants.User).(models.UserJwt)
+
 	history := []models.ParkingHistoryDTO{}
 
 	startTimestamp := startTime.Unix()
 	endTimestamp := endTime.Unix()
 
-	scanRes, err := nosqlpr.client.Scan(ctx, &dynamodb.ScanInput{
-		TableName:        aws.String(config.DynamoDBTable),
-		FilterExpression: aws.String("Numberplate = :numberplate AND StartTime >= :startTime AND EndTime <= :endTime AND attribute_exists(EndTime)"),
+	queryRes, err := nosqlpr.client.Query(ctx, &dynamodb.QueryInput{
+		TableName:              aws.String(config.DynamoDBTable),
+		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
+		FilterExpression:       aws.String("Numberplate = :numberplate AND StartTime >= :startTime AND EndTime <= :endTime AND attribute_exists(EndTime)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":numberplate": &types.AttributeValueMemberS{Value: numberplate},
 			":startTime":   &types.AttributeValueMemberN{Value: strconv.FormatInt(startTimestamp, 10)},
 			":endTime":     &types.AttributeValueMemberN{Value: strconv.FormatInt(endTimestamp, 10)},
+			":pk":          &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userCtx.Email)},
+			":sk":          &types.AttributeValueMemberS{Value: "PARKING#"},
 		},
 	})
 	if err != nil {
@@ -189,7 +196,7 @@ func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByNumberPlate(ctx contex
 		return nil, errors.New("error fetching parking history")
 	}
 
-	for _, item := range scanRes.Items {
+	for _, item := range queryRes.Items {
 		var dto models.ParkingHistoryDTO
 		dto.TicketId = item["ParkingId"].(*types.AttributeValueMemberS).Value
 		dto.NumberPlate = item["Numberplate"].(*types.AttributeValueMemberS).Value
@@ -215,13 +222,11 @@ func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByNumberPlate(ctx contex
 func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByUser(ctx context.Context, userId string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
 	history := []models.ParkingHistoryDTO{}
 
-	// Get user email from context (userId parameter is deprecated)
 	userEmail := userId
 	if ctxUser, ok := ctx.Value(constants.User).(models.UserJwt); ok {
 		userEmail = ctxUser.Email
 	}
 
-	// Query parking history
 	startTimestamp := startTime.Unix()
 	endTimestamp := endTime.Unix()
 
@@ -241,12 +246,10 @@ func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByUser(ctx context.Conte
 	log.Printf("Found %d parking records for user %s", len(queryRes.Items), userEmail)
 
 	for _, item := range queryRes.Items {
-		// Only include records with EndTime (completed parkings)
 		if item["EndTime"] == nil {
 			continue
 		}
 
-		// Filter by time range
 		if item["StartTime"] != nil {
 			itemStartTime, _ := strconv.ParseInt(item["StartTime"].(*types.AttributeValueMemberN).Value, 10, 64)
 			if itemStartTime < startTimestamp || itemStartTime > endTimestamp {
@@ -268,7 +271,6 @@ func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByUser(ctx context.Conte
 		endTimeUnix, _ := strconv.ParseInt(item["EndTime"].(*types.AttributeValueMemberN).Value, 10, 64)
 		dto.EndTime = time.Unix(endTimeUnix, 0).Local()
 
-		// Get building name
 		buildingRes, err := nosqlpr.client.GetItem(ctx, &dynamodb.GetItemInput{
 			TableName: aws.String(config.DynamoDBTable),
 			Key: map[string]types.AttributeValue{
@@ -289,13 +291,11 @@ func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByUser(ctx context.Conte
 func (nosqlpr *NOSQLParkingRepository) GetActiveUserParkings(ctx context.Context, userId string) ([]models.ParkingHistoryDTO, error) {
 	activeParkings := []models.ParkingHistoryDTO{}
 
-	// Get user email from context (userId parameter is deprecated)
 	userEmail := userId
 	if ctxUser, ok := ctx.Value(constants.User).(models.UserJwt); ok {
 		userEmail = ctxUser.Email
 	}
 
-	// Query active parkings (without EndTime)
 	queryRes, err := nosqlpr.client.Query(ctx, &dynamodb.QueryInput{
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
@@ -329,12 +329,16 @@ func (nosqlpr *NOSQLParkingRepository) GetActiveUserParkings(ctx context.Context
 }
 
 func (nosqlpr *NOSQLParkingRepository) UnparkByNumberPlate(ctx context.Context, numberplate string) error {
-	// Find active parking by numberplate
-	scanRes, err := nosqlpr.client.Scan(ctx, &dynamodb.ScanInput{
-		TableName:        aws.String(config.DynamoDBTable),
-		FilterExpression: aws.String("Numberplate = :numberplate AND attribute_not_exists(EndTime)"),
+	userCtx := ctx.Value(constants.User).(models.UserJwt)
+
+	queryRes, err := nosqlpr.client.Query(ctx, &dynamodb.QueryInput{
+		TableName:              aws.String(config.DynamoDBTable),
+		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
+		FilterExpression:       aws.String("Numberplate = :numberplate AND attribute_not_exists(EndTime)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":numberplate": &types.AttributeValueMemberS{Value: numberplate},
+			":pk":          &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userCtx.Email)},
+			":sk":          &types.AttributeValueMemberS{Value: "PARKING#"},
 		},
 	})
 	if err != nil {
@@ -342,16 +346,15 @@ func (nosqlpr *NOSQLParkingRepository) UnparkByNumberPlate(ctx context.Context, 
 		return errors.New("error finding parking record")
 	}
 
-	if len(scanRes.Items) == 0 {
+	if len(queryRes.Items) == 0 {
 		log.Println("no active parking found for numberplate:", numberplate)
 		return errors.New("no active parking found for this numberplate")
 	}
 
-	item := scanRes.Items[0]
+	item := queryRes.Items[0]
 	userEmail := item["PK"].(*types.AttributeValueMemberS).Value
 	timestamp := item["SK"].(*types.AttributeValueMemberS).Value
 
-	// Update with end time
 	endTime := time.Now().Unix()
 	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
@@ -369,7 +372,6 @@ func (nosqlpr *NOSQLParkingRepository) UnparkByNumberPlate(ctx context.Context, 
 		return errors.New("error updating parking record")
 	}
 
-	// Update IsParked status in vehicle entity
 	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{

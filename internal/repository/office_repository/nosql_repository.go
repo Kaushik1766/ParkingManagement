@@ -31,11 +31,6 @@ func (nosqlor *NOSQLOfficeRepository) AddOffice(ctx context.Context, officeName 
 		log.Println("invalid building ID:", err.Error())
 		return errors.New("invalid building ID")
 	}
-	// office := models.Office{
-	// 	BuildingID:  buildingUUID,
-	// 	FloorNumber: floorNumber,
-	// 	OfficeName:  officeName,
-	// }
 
 	_, err = nosqlor.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
@@ -58,7 +53,7 @@ func (nosqlor *NOSQLOfficeRepository) AddOffice(ctx context.Context, officeName 
 }
 
 func (nosqlor *NOSQLOfficeRepository) DeleteOffice(ctx context.Context, officeId string) error {
-	panic("pending implementation")
+	panic("not implemented")
 }
 
 func (nosqlor *NOSQLOfficeRepository) GetBuildingAndFloorByOffice(ctx context.Context, officeName string) (uuid.UUID, int, error) {

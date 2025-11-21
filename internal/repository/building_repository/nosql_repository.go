@@ -47,16 +47,6 @@ func (nosqlbr *NOSQLBuidlingRepository) DeleteBuildingByID(ctx context.Context, 
 	return err
 }
 
-// func (nosqlbr *NOSQLBuidlingRepository) GetBuildingByName(buildingName string) (models.Building, error) {
-// if buildingName == constants.AdminBuilding {
-// 	return models.Building{}, errors.New("buildingrepo: cannot get admin building")
-// }
-// building := models.Building{}
-// err := nosqlbr.db.Where("building_name = ?", buildingName).First(&building).Error
-// return building, err
-// 	panic("not implemented")
-// }
-
 func (nosqlbr *NOSQLBuidlingRepository) GetAllBuildingSummary(ctx context.Context) ([]models.BuildingSummary, error) {
 	var buildings []models.BuildingSummary
 
@@ -98,13 +88,7 @@ func (nosqlbr *NOSQLBuidlingRepository) GetAllBuildingSummary(ctx context.Contex
 
 // unused in project
 func (nosqlbr *NOSQLBuidlingRepository) GetAllBuildings(ctx context.Context) ([]models.Building, error) {
-	// var buildings []models.Building
-	// err := nosqlbr.db.
-	// 	Where("building_name <> ?", constants.AdminBuilding).
-	// 	Preload("Floors.Slots.Vehicles").
-	// 	Find(&buildings).Error
-	// return buildings, err
-	panic("not implemented")
+	panic("not implemented coz not used, getAllBuildingSummary is used instead")
 }
 
 func (nosqlbr *NOSQLBuidlingRepository) GetBuildingByID(ctx context.Context, buildingID uuid.UUID) (models.Building, error) {
@@ -134,12 +118,6 @@ func (nosqlbr *NOSQLBuidlingRepository) GetBuildingByID(ctx context.Context, bui
 
 	building.BuildingID = buildingID
 	building.BuildingName = res.Item["BuildingName"].(*types.AttributeValueMemberS).Value
-
-	// building := models.Building{}
-	// err := nosqlbr.db.
-	// 	Where("building_id = ? AND building_name <> ?", buildingID, constants.AdminBuilding).
-	// 	First(&building).Error
-	// return building, err
 	return building, nil
 }
 

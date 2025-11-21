@@ -41,7 +41,6 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(ctx context.Context, buildingId st
 	}
 
 	// adding slots to the floor
-
 	slots := []types.WriteRequest{}
 
 	for i, s := range constants.SlotLayout {
