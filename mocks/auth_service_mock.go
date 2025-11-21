@@ -10,6 +10,7 @@
 package mocks
 
 import (
+	context "context"
 	reflect "reflect"
 
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
@@ -42,30 +43,30 @@ func (m *MockAuthenticationManager) EXPECT() *MockAuthenticationManagerMockRecor
 }
 
 // Login mocks base method.
-func (m *MockAuthenticationManager) Login(loginReq models.LoginRequestDTO) (string, error) {
+func (m *MockAuthenticationManager) Login(ctx context.Context, loginReq models.LoginRequestDTO) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Login", loginReq)
+	ret := m.ctrl.Call(m, "Login", ctx, loginReq)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Login indicates an expected call of Login.
-func (mr *MockAuthenticationManagerMockRecorder) Login(loginReq any) *gomock.Call {
+func (mr *MockAuthenticationManagerMockRecorder) Login(ctx, loginReq any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Login", reflect.TypeOf((*MockAuthenticationManager)(nil).Login), loginReq)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Login", reflect.TypeOf((*MockAuthenticationManager)(nil).Login), ctx, loginReq)
 }
 
 // Signup mocks base method.
-func (m *MockAuthenticationManager) Signup(registerReq models.RegisterRequestDTO, role roles.Role) error {
+func (m *MockAuthenticationManager) Signup(ctx context.Context, registerReq models.RegisterRequestDTO, role roles.Role) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Signup", registerReq, role)
+	ret := m.ctrl.Call(m, "Signup", ctx, registerReq, role)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Signup indicates an expected call of Signup.
-func (mr *MockAuthenticationManagerMockRecorder) Signup(registerReq, role any) *gomock.Call {
+func (mr *MockAuthenticationManagerMockRecorder) Signup(ctx, registerReq, role any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Signup", reflect.TypeOf((*MockAuthenticationManager)(nil).Signup), registerReq, role)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Signup", reflect.TypeOf((*MockAuthenticationManager)(nil).Signup), ctx, registerReq, role)
 }

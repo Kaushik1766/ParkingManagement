@@ -10,6 +10,7 @@
 package mocks
 
 import (
+	context "context"
 	reflect "reflect"
 
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
@@ -42,59 +43,59 @@ func (m *MockFloorStorage) EXPECT() *MockFloorStorageMockRecorder {
 }
 
 // AddFloor mocks base method.
-func (m *MockFloorStorage) AddFloor(buildingId string, floorNumber int) error {
+func (m *MockFloorStorage) AddFloor(ctx context.Context, buildingId string, floorNumber int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddFloor", buildingId, floorNumber)
+	ret := m.ctrl.Call(m, "AddFloor", ctx, buildingId, floorNumber)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddFloor indicates an expected call of AddFloor.
-func (mr *MockFloorStorageMockRecorder) AddFloor(buildingId, floorNumber any) *gomock.Call {
+func (mr *MockFloorStorageMockRecorder) AddFloor(ctx, buildingId, floorNumber any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFloor", reflect.TypeOf((*MockFloorStorage)(nil).AddFloor), buildingId, floorNumber)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFloor", reflect.TypeOf((*MockFloorStorage)(nil).AddFloor), ctx, buildingId, floorNumber)
 }
 
 // DeleteFloor mocks base method.
-func (m *MockFloorStorage) DeleteFloor(buildingId string, floorNumber int) error {
+func (m *MockFloorStorage) DeleteFloor(ctx context.Context, buildingId string, floorNumber int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteFloor", buildingId, floorNumber)
+	ret := m.ctrl.Call(m, "DeleteFloor", ctx, buildingId, floorNumber)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteFloor indicates an expected call of DeleteFloor.
-func (mr *MockFloorStorageMockRecorder) DeleteFloor(buildingId, floorNumber any) *gomock.Call {
+func (mr *MockFloorStorageMockRecorder) DeleteFloor(ctx, buildingId, floorNumber any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFloor", reflect.TypeOf((*MockFloorStorage)(nil).DeleteFloor), buildingId, floorNumber)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFloor", reflect.TypeOf((*MockFloorStorage)(nil).DeleteFloor), ctx, buildingId, floorNumber)
 }
 
 // GetFloor mocks base method.
-func (m *MockFloorStorage) GetFloor(buildingId uuid.UUID, floorNumber int) (int, error) {
+func (m *MockFloorStorage) GetFloor(ctx context.Context, buildingId uuid.UUID, floorNumber int) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFloor", buildingId, floorNumber)
+	ret := m.ctrl.Call(m, "GetFloor", ctx, buildingId, floorNumber)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetFloor indicates an expected call of GetFloor.
-func (mr *MockFloorStorageMockRecorder) GetFloor(buildingId, floorNumber any) *gomock.Call {
+func (mr *MockFloorStorageMockRecorder) GetFloor(ctx, buildingId, floorNumber any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFloor", reflect.TypeOf((*MockFloorStorage)(nil).GetFloor), buildingId, floorNumber)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFloor", reflect.TypeOf((*MockFloorStorage)(nil).GetFloor), ctx, buildingId, floorNumber)
 }
 
 // GetFloorsByBuildingId mocks base method.
-func (m *MockFloorStorage) GetFloorsByBuildingId(buildingId string) ([]models.Floor, error) {
+func (m *MockFloorStorage) GetFloorsByBuildingId(ctx context.Context, buildingId string) ([]models.FloorSummary, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFloorsByBuildingId", buildingId)
-	ret0, _ := ret[0].([]models.Floor)
+	ret := m.ctrl.Call(m, "GetFloorsByBuildingId", ctx, buildingId)
+	ret0, _ := ret[0].([]models.FloorSummary)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetFloorsByBuildingId indicates an expected call of GetFloorsByBuildingId.
-func (mr *MockFloorStorageMockRecorder) GetFloorsByBuildingId(buildingId any) *gomock.Call {
+func (mr *MockFloorStorageMockRecorder) GetFloorsByBuildingId(ctx, buildingId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFloorsByBuildingId", reflect.TypeOf((*MockFloorStorage)(nil).GetFloorsByBuildingId), buildingId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFloorsByBuildingId", reflect.TypeOf((*MockFloorStorage)(nil).GetFloorsByBuildingId), ctx, buildingId)
 }

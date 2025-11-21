@@ -10,6 +10,7 @@
 package mocks
 
 import (
+	context "context"
 	reflect "reflect"
 
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
@@ -43,104 +44,119 @@ func (m *MockVehicleStorage) EXPECT() *MockVehicleStorageMockRecorder {
 }
 
 // AddVehicle mocks base method.
-func (m *MockVehicleStorage) AddVehicle(numberplate string, userid uuid.UUID, vehicleType vehicletypes.VehicleType) (models.Vehicle, error) {
+func (m *MockVehicleStorage) AddVehicle(ctx context.Context, numberplate string, userid uuid.UUID, vehicleType vehicletypes.VehicleType) (models.Vehicle, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddVehicle", numberplate, userid, vehicleType)
+	ret := m.ctrl.Call(m, "AddVehicle", ctx, numberplate, userid, vehicleType)
 	ret0, _ := ret[0].(models.Vehicle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AddVehicle indicates an expected call of AddVehicle.
-func (mr *MockVehicleStorageMockRecorder) AddVehicle(numberplate, userid, vehicleType any) *gomock.Call {
+func (mr *MockVehicleStorageMockRecorder) AddVehicle(ctx, numberplate, userid, vehicleType any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddVehicle", reflect.TypeOf((*MockVehicleStorage)(nil).AddVehicle), numberplate, userid, vehicleType)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddVehicle", reflect.TypeOf((*MockVehicleStorage)(nil).AddVehicle), ctx, numberplate, userid, vehicleType)
+}
+
+// GetParkingStatus mocks base method.
+func (m *MockVehicleStorage) GetParkingStatus(ctx context.Context, numberplate string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetParkingStatus", ctx, numberplate)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetParkingStatus indicates an expected call of GetParkingStatus.
+func (mr *MockVehicleStorageMockRecorder) GetParkingStatus(ctx, numberplate any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParkingStatus", reflect.TypeOf((*MockVehicleStorage)(nil).GetParkingStatus), ctx, numberplate)
 }
 
 // GetVehicleById mocks base method.
-func (m *MockVehicleStorage) GetVehicleById(vehicleId uuid.UUID) (models.Vehicle, error) {
+func (m *MockVehicleStorage) GetVehicleById(ctx context.Context, vehicleId uuid.UUID) (models.Vehicle, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetVehicleById", vehicleId)
+	ret := m.ctrl.Call(m, "GetVehicleById", ctx, vehicleId)
 	ret0, _ := ret[0].(models.Vehicle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetVehicleById indicates an expected call of GetVehicleById.
-func (mr *MockVehicleStorageMockRecorder) GetVehicleById(vehicleId any) *gomock.Call {
+func (mr *MockVehicleStorageMockRecorder) GetVehicleById(ctx, vehicleId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVehicleById", reflect.TypeOf((*MockVehicleStorage)(nil).GetVehicleById), vehicleId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVehicleById", reflect.TypeOf((*MockVehicleStorage)(nil).GetVehicleById), ctx, vehicleId)
 }
 
 // GetVehicleByNumberPlate mocks base method.
-func (m *MockVehicleStorage) GetVehicleByNumberPlate(numberplate string) (models.Vehicle, error) {
+func (m *MockVehicleStorage) GetVehicleByNumberPlate(ctx context.Context, numberplate string) (models.Vehicle, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetVehicleByNumberPlate", numberplate)
+	ret := m.ctrl.Call(m, "GetVehicleByNumberPlate", ctx, numberplate)
 	ret0, _ := ret[0].(models.Vehicle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetVehicleByNumberPlate indicates an expected call of GetVehicleByNumberPlate.
-func (mr *MockVehicleStorageMockRecorder) GetVehicleByNumberPlate(numberplate any) *gomock.Call {
+func (mr *MockVehicleStorageMockRecorder) GetVehicleByNumberPlate(ctx, numberplate any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVehicleByNumberPlate", reflect.TypeOf((*MockVehicleStorage)(nil).GetVehicleByNumberPlate), numberplate)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVehicleByNumberPlate", reflect.TypeOf((*MockVehicleStorage)(nil).GetVehicleByNumberPlate), ctx, numberplate)
 }
 
 // GetVehiclesByUserId mocks base method.
-func (m *MockVehicleStorage) GetVehiclesByUserId(userId uuid.UUID) ([]models.Vehicle, error) {
+func (m *MockVehicleStorage) GetVehiclesByUserId(ctx context.Context, userId uuid.UUID) ([]models.Vehicle, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetVehiclesByUserId", userId)
+	ret := m.ctrl.Call(m, "GetVehiclesByUserId", ctx, userId)
 	ret0, _ := ret[0].([]models.Vehicle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetVehiclesByUserId indicates an expected call of GetVehiclesByUserId.
-func (mr *MockVehicleStorageMockRecorder) GetVehiclesByUserId(userId any) *gomock.Call {
+func (mr *MockVehicleStorageMockRecorder) GetVehiclesByUserId(ctx, userId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVehiclesByUserId", reflect.TypeOf((*MockVehicleStorage)(nil).GetVehiclesByUserId), userId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVehiclesByUserId", reflect.TypeOf((*MockVehicleStorage)(nil).GetVehiclesByUserId), ctx, userId)
 }
 
 // GetVehiclesWithUnassignedSlots mocks base method.
-func (m *MockVehicleStorage) GetVehiclesWithUnassignedSlots() ([]models.Vehicle, error) {
+func (m *MockVehicleStorage) GetVehiclesWithUnassignedSlots(ctx context.Context) ([]models.Vehicle, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetVehiclesWithUnassignedSlots")
+	ret := m.ctrl.Call(m, "GetVehiclesWithUnassignedSlots", ctx)
 	ret0, _ := ret[0].([]models.Vehicle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetVehiclesWithUnassignedSlots indicates an expected call of GetVehiclesWithUnassignedSlots.
-func (mr *MockVehicleStorageMockRecorder) GetVehiclesWithUnassignedSlots() *gomock.Call {
+func (mr *MockVehicleStorageMockRecorder) GetVehiclesWithUnassignedSlots(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVehiclesWithUnassignedSlots", reflect.TypeOf((*MockVehicleStorage)(nil).GetVehiclesWithUnassignedSlots))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVehiclesWithUnassignedSlots", reflect.TypeOf((*MockVehicleStorage)(nil).GetVehiclesWithUnassignedSlots), ctx)
 }
 
 // RemoveVehicle mocks base method.
-func (m *MockVehicleStorage) RemoveVehicle(numberplate string) error {
+func (m *MockVehicleStorage) RemoveVehicle(ctx context.Context, numberplate string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RemoveVehicle", numberplate)
+	ret := m.ctrl.Call(m, "RemoveVehicle", ctx, numberplate)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // RemoveVehicle indicates an expected call of RemoveVehicle.
-func (mr *MockVehicleStorageMockRecorder) RemoveVehicle(numberplate any) *gomock.Call {
+func (mr *MockVehicleStorageMockRecorder) RemoveVehicle(ctx, numberplate any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveVehicle", reflect.TypeOf((*MockVehicleStorage)(nil).RemoveVehicle), numberplate)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveVehicle", reflect.TypeOf((*MockVehicleStorage)(nil).RemoveVehicle), ctx, numberplate)
 }
 
 // Save mocks base method.
-func (m *MockVehicleStorage) Save(vehicle models.Vehicle) error {
+func (m *MockVehicleStorage) Save(ctx context.Context, vehicle models.Vehicle) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", vehicle)
+	ret := m.ctrl.Call(m, "Save", ctx, vehicle)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Save indicates an expected call of Save.
-func (mr *MockVehicleStorageMockRecorder) Save(vehicle any) *gomock.Call {
+func (mr *MockVehicleStorageMockRecorder) Save(ctx, vehicle any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockVehicleStorage)(nil).Save), vehicle)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockVehicleStorage)(nil).Save), ctx, vehicle)
 }

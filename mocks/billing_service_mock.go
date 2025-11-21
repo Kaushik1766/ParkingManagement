@@ -10,6 +10,7 @@
 package mocks
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -40,13 +41,13 @@ func (m *MockBillingMgr) EXPECT() *MockBillingMgrMockRecorder {
 }
 
 // GenerateMonthlyInvoice mocks base method.
-func (m *MockBillingMgr) GenerateMonthlyInvoice() {
+func (m *MockBillingMgr) GenerateMonthlyInvoice(ctx context.Context) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "GenerateMonthlyInvoice")
+	m.ctrl.Call(m, "GenerateMonthlyInvoice", ctx)
 }
 
 // GenerateMonthlyInvoice indicates an expected call of GenerateMonthlyInvoice.
-func (mr *MockBillingMgrMockRecorder) GenerateMonthlyInvoice() *gomock.Call {
+func (mr *MockBillingMgrMockRecorder) GenerateMonthlyInvoice(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateMonthlyInvoice", reflect.TypeOf((*MockBillingMgr)(nil).GenerateMonthlyInvoice))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateMonthlyInvoice", reflect.TypeOf((*MockBillingMgr)(nil).GenerateMonthlyInvoice), ctx)
 }

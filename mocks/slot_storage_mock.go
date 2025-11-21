@@ -10,6 +10,7 @@
 package mocks
 
 import (
+	context "context"
 	reflect "reflect"
 
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
@@ -43,88 +44,88 @@ func (m *MockSlotStorage) EXPECT() *MockSlotStorageMockRecorder {
 }
 
 // AddSlot mocks base method.
-func (m *MockSlotStorage) AddSlot(buildingId uuid.UUID, floorNumber, slotNumber int, slotType vehicletypes.VehicleType) error {
+func (m *MockSlotStorage) AddSlot(ctx context.Context, buildingId uuid.UUID, floorNumber, slotNumber int, slotType vehicletypes.VehicleType) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddSlot", buildingId, floorNumber, slotNumber, slotType)
+	ret := m.ctrl.Call(m, "AddSlot", ctx, buildingId, floorNumber, slotNumber, slotType)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddSlot indicates an expected call of AddSlot.
-func (mr *MockSlotStorageMockRecorder) AddSlot(buildingId, floorNumber, slotNumber, slotType any) *gomock.Call {
+func (mr *MockSlotStorageMockRecorder) AddSlot(ctx, buildingId, floorNumber, slotNumber, slotType any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddSlot", reflect.TypeOf((*MockSlotStorage)(nil).AddSlot), buildingId, floorNumber, slotNumber, slotType)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddSlot", reflect.TypeOf((*MockSlotStorage)(nil).AddSlot), ctx, buildingId, floorNumber, slotNumber, slotType)
 }
 
 // DeleteSlot mocks base method.
-func (m *MockSlotStorage) DeleteSlot(buildingId uuid.UUID, floorNumber, slotNumber int) error {
+func (m *MockSlotStorage) DeleteSlot(ctx context.Context, buildingId uuid.UUID, floorNumber, slotNumber int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteSlot", buildingId, floorNumber, slotNumber)
+	ret := m.ctrl.Call(m, "DeleteSlot", ctx, buildingId, floorNumber, slotNumber)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteSlot indicates an expected call of DeleteSlot.
-func (mr *MockSlotStorageMockRecorder) DeleteSlot(buildingId, floorNumber, slotNumber any) *gomock.Call {
+func (mr *MockSlotStorageMockRecorder) DeleteSlot(ctx, buildingId, floorNumber, slotNumber any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSlot", reflect.TypeOf((*MockSlotStorage)(nil).DeleteSlot), buildingId, floorNumber, slotNumber)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSlot", reflect.TypeOf((*MockSlotStorage)(nil).DeleteSlot), ctx, buildingId, floorNumber, slotNumber)
 }
 
 // GetFreeSlotsByBuilding mocks base method.
-func (m *MockSlotStorage) GetFreeSlotsByBuilding(buildingId uuid.UUID) ([]models.Slot, error) {
+func (m *MockSlotStorage) GetFreeSlotsByBuilding(ctx context.Context, buildingId uuid.UUID) ([]models.Slot, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFreeSlotsByBuilding", buildingId)
+	ret := m.ctrl.Call(m, "GetFreeSlotsByBuilding", ctx, buildingId)
 	ret0, _ := ret[0].([]models.Slot)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetFreeSlotsByBuilding indicates an expected call of GetFreeSlotsByBuilding.
-func (mr *MockSlotStorageMockRecorder) GetFreeSlotsByBuilding(buildingId any) *gomock.Call {
+func (mr *MockSlotStorageMockRecorder) GetFreeSlotsByBuilding(ctx, buildingId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFreeSlotsByBuilding", reflect.TypeOf((*MockSlotStorage)(nil).GetFreeSlotsByBuilding), buildingId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFreeSlotsByBuilding", reflect.TypeOf((*MockSlotStorage)(nil).GetFreeSlotsByBuilding), ctx, buildingId)
 }
 
 // GetFreeSlotsByFloor mocks base method.
-func (m *MockSlotStorage) GetFreeSlotsByFloor(buildingId uuid.UUID, floorNumber int) ([]models.Slot, error) {
+func (m *MockSlotStorage) GetFreeSlotsByFloor(ctx context.Context, buildingId uuid.UUID, floorNumber int) ([]models.Slot, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFreeSlotsByFloor", buildingId, floorNumber)
+	ret := m.ctrl.Call(m, "GetFreeSlotsByFloor", ctx, buildingId, floorNumber)
 	ret0, _ := ret[0].([]models.Slot)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetFreeSlotsByFloor indicates an expected call of GetFreeSlotsByFloor.
-func (mr *MockSlotStorageMockRecorder) GetFreeSlotsByFloor(buildingId, floorNumber any) *gomock.Call {
+func (mr *MockSlotStorageMockRecorder) GetFreeSlotsByFloor(ctx, buildingId, floorNumber any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFreeSlotsByFloor", reflect.TypeOf((*MockSlotStorage)(nil).GetFreeSlotsByFloor), buildingId, floorNumber)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFreeSlotsByFloor", reflect.TypeOf((*MockSlotStorage)(nil).GetFreeSlotsByFloor), ctx, buildingId, floorNumber)
 }
 
 // GetSlotsByFloor mocks base method.
-func (m *MockSlotStorage) GetSlotsByFloor(buildingId uuid.UUID, floorNumber int) ([]models.Slot, error) {
+func (m *MockSlotStorage) GetSlotsByFloor(ctx context.Context, buildingId uuid.UUID, floorNumber int) ([]models.Slot, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSlotsByFloor", buildingId, floorNumber)
+	ret := m.ctrl.Call(m, "GetSlotsByFloor", ctx, buildingId, floorNumber)
 	ret0, _ := ret[0].([]models.Slot)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetSlotsByFloor indicates an expected call of GetSlotsByFloor.
-func (mr *MockSlotStorageMockRecorder) GetSlotsByFloor(buildingId, floorNumber any) *gomock.Call {
+func (mr *MockSlotStorageMockRecorder) GetSlotsByFloor(ctx, buildingId, floorNumber any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSlotsByFloor", reflect.TypeOf((*MockSlotStorage)(nil).GetSlotsByFloor), buildingId, floorNumber)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSlotsByFloor", reflect.TypeOf((*MockSlotStorage)(nil).GetSlotsByFloor), ctx, buildingId, floorNumber)
 }
 
 // Save mocks base method.
-func (m *MockSlotStorage) Save(slot models.Slot) error {
+func (m *MockSlotStorage) Save(ctx context.Context, slot models.Slot) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", slot)
+	ret := m.ctrl.Call(m, "Save", ctx, slot)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Save indicates an expected call of Save.
-func (mr *MockSlotStorageMockRecorder) Save(slot any) *gomock.Call {
+func (mr *MockSlotStorageMockRecorder) Save(ctx, slot any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockSlotStorage)(nil).Save), slot)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockSlotStorage)(nil).Save), ctx, slot)
 }

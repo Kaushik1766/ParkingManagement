@@ -10,6 +10,7 @@
 package mocks
 
 import (
+	context "context"
 	reflect "reflect"
 	time "time"
 
@@ -42,89 +43,89 @@ func (m *MockParkingHistoryStorage) EXPECT() *MockParkingHistoryStorageMockRecor
 }
 
 // AddParking mocks base method.
-func (m *MockParkingHistoryStorage) AddParking(vehicle models.Vehicle) (string, error) {
+func (m *MockParkingHistoryStorage) AddParking(ctx context.Context, vehicle models.Vehicle) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddParking", vehicle)
+	ret := m.ctrl.Call(m, "AddParking", ctx, vehicle)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AddParking indicates an expected call of AddParking.
-func (mr *MockParkingHistoryStorageMockRecorder) AddParking(vehicle any) *gomock.Call {
+func (mr *MockParkingHistoryStorageMockRecorder) AddParking(ctx, vehicle any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddParking", reflect.TypeOf((*MockParkingHistoryStorage)(nil).AddParking), vehicle)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddParking", reflect.TypeOf((*MockParkingHistoryStorage)(nil).AddParking), ctx, vehicle)
 }
 
 // GetActiveUserParkings mocks base method.
-func (m *MockParkingHistoryStorage) GetActiveUserParkings(userId string) ([]models.ParkingHistoryDTO, error) {
+func (m *MockParkingHistoryStorage) GetActiveUserParkings(ctx context.Context, userId string) ([]models.ParkingHistoryDTO, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetActiveUserParkings", userId)
+	ret := m.ctrl.Call(m, "GetActiveUserParkings", ctx, userId)
 	ret0, _ := ret[0].([]models.ParkingHistoryDTO)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetActiveUserParkings indicates an expected call of GetActiveUserParkings.
-func (mr *MockParkingHistoryStorageMockRecorder) GetActiveUserParkings(userId any) *gomock.Call {
+func (mr *MockParkingHistoryStorageMockRecorder) GetActiveUserParkings(ctx, userId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActiveUserParkings", reflect.TypeOf((*MockParkingHistoryStorage)(nil).GetActiveUserParkings), userId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActiveUserParkings", reflect.TypeOf((*MockParkingHistoryStorage)(nil).GetActiveUserParkings), ctx, userId)
 }
 
 // GetParkingHistoryByNumberPlate mocks base method.
-func (m *MockParkingHistoryStorage) GetParkingHistoryByNumberPlate(numberplate string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
+func (m *MockParkingHistoryStorage) GetParkingHistoryByNumberPlate(ctx context.Context, numberplate string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetParkingHistoryByNumberPlate", numberplate, startTime, endTime)
+	ret := m.ctrl.Call(m, "GetParkingHistoryByNumberPlate", ctx, numberplate, startTime, endTime)
 	ret0, _ := ret[0].([]models.ParkingHistoryDTO)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetParkingHistoryByNumberPlate indicates an expected call of GetParkingHistoryByNumberPlate.
-func (mr *MockParkingHistoryStorageMockRecorder) GetParkingHistoryByNumberPlate(numberplate, startTime, endTime any) *gomock.Call {
+func (mr *MockParkingHistoryStorageMockRecorder) GetParkingHistoryByNumberPlate(ctx, numberplate, startTime, endTime any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParkingHistoryByNumberPlate", reflect.TypeOf((*MockParkingHistoryStorage)(nil).GetParkingHistoryByNumberPlate), numberplate, startTime, endTime)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParkingHistoryByNumberPlate", reflect.TypeOf((*MockParkingHistoryStorage)(nil).GetParkingHistoryByNumberPlate), ctx, numberplate, startTime, endTime)
 }
 
 // GetParkingHistoryByUser mocks base method.
-func (m *MockParkingHistoryStorage) GetParkingHistoryByUser(userId string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
+func (m *MockParkingHistoryStorage) GetParkingHistoryByUser(ctx context.Context, userId string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetParkingHistoryByUser", userId, startTime, endTime)
+	ret := m.ctrl.Call(m, "GetParkingHistoryByUser", ctx, userId, startTime, endTime)
 	ret0, _ := ret[0].([]models.ParkingHistoryDTO)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetParkingHistoryByUser indicates an expected call of GetParkingHistoryByUser.
-func (mr *MockParkingHistoryStorageMockRecorder) GetParkingHistoryByUser(userId, startTime, endTime any) *gomock.Call {
+func (mr *MockParkingHistoryStorageMockRecorder) GetParkingHistoryByUser(ctx, userId, startTime, endTime any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParkingHistoryByUser", reflect.TypeOf((*MockParkingHistoryStorage)(nil).GetParkingHistoryByUser), userId, startTime, endTime)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParkingHistoryByUser", reflect.TypeOf((*MockParkingHistoryStorage)(nil).GetParkingHistoryByUser), ctx, userId, startTime, endTime)
 }
 
 // Unpark mocks base method.
-func (m *MockParkingHistoryStorage) Unpark(id string) error {
+func (m *MockParkingHistoryStorage) Unpark(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Unpark", id)
+	ret := m.ctrl.Call(m, "Unpark", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Unpark indicates an expected call of Unpark.
-func (mr *MockParkingHistoryStorageMockRecorder) Unpark(id any) *gomock.Call {
+func (mr *MockParkingHistoryStorageMockRecorder) Unpark(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unpark", reflect.TypeOf((*MockParkingHistoryStorage)(nil).Unpark), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unpark", reflect.TypeOf((*MockParkingHistoryStorage)(nil).Unpark), ctx, id)
 }
 
 // UnparkByNumberPlate mocks base method.
-func (m *MockParkingHistoryStorage) UnparkByNumberPlate(numberplate string) error {
+func (m *MockParkingHistoryStorage) UnparkByNumberPlate(ctx context.Context, numberplate string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UnparkByNumberPlate", numberplate)
+	ret := m.ctrl.Call(m, "UnparkByNumberPlate", ctx, numberplate)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UnparkByNumberPlate indicates an expected call of UnparkByNumberPlate.
-func (mr *MockParkingHistoryStorageMockRecorder) UnparkByNumberPlate(numberplate any) *gomock.Call {
+func (mr *MockParkingHistoryStorageMockRecorder) UnparkByNumberPlate(ctx, numberplate any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnparkByNumberPlate", reflect.TypeOf((*MockParkingHistoryStorage)(nil).UnparkByNumberPlate), numberplate)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnparkByNumberPlate", reflect.TypeOf((*MockParkingHistoryStorage)(nil).UnparkByNumberPlate), ctx, numberplate)
 }

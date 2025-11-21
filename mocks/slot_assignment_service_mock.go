@@ -68,32 +68,3 @@ func (mr *MockSlotAssignmentMgrMockRecorder) AutoAssignSlot(ctx, vehicleId any) 
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AutoAssignSlot", reflect.TypeOf((*MockSlotAssignmentMgr)(nil).AutoAssignSlot), ctx, vehicleId)
 }
-
-// GetVehiclesWithUnassignedSlots mocks base method.
-func (m *MockSlotAssignmentMgr) GetVehiclesWithUnassignedSlots(ctx context.Context) ([]models.Vehicle, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetVehiclesWithUnassignedSlots", ctx)
-	ret0, _ := ret[0].([]models.Vehicle)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetVehiclesWithUnassignedSlots indicates an expected call of GetVehiclesWithUnassignedSlots.
-func (mr *MockSlotAssignmentMgrMockRecorder) GetVehiclesWithUnassignedSlots(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVehiclesWithUnassignedSlots", reflect.TypeOf((*MockSlotAssignmentMgr)(nil).GetVehiclesWithUnassignedSlots), ctx)
-}
-
-// UnassignSlot mocks base method.
-func (m *MockSlotAssignmentMgr) UnassignSlot(ctx context.Context, vehicleId string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UnassignSlot", ctx, vehicleId)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UnassignSlot indicates an expected call of UnassignSlot.
-func (mr *MockSlotAssignmentMgrMockRecorder) UnassignSlot(ctx, vehicleId any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnassignSlot", reflect.TypeOf((*MockSlotAssignmentMgr)(nil).UnassignSlot), ctx, vehicleId)
-}

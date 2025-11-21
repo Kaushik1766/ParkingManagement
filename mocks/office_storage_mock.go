@@ -10,6 +10,7 @@
 package mocks
 
 import (
+	context "context"
 	reflect "reflect"
 
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
@@ -42,52 +43,52 @@ func (m *MockOfficeStorage) EXPECT() *MockOfficeStorageMockRecorder {
 }
 
 // AddOffice mocks base method.
-func (m *MockOfficeStorage) AddOffice(officeName, buildingID string, floorNumber int) error {
+func (m *MockOfficeStorage) AddOffice(ctx context.Context, officeName, buildingID string, floorNumber int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddOffice", officeName, buildingID, floorNumber)
+	ret := m.ctrl.Call(m, "AddOffice", ctx, officeName, buildingID, floorNumber)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddOffice indicates an expected call of AddOffice.
-func (mr *MockOfficeStorageMockRecorder) AddOffice(officeName, buildingID, floorNumber any) *gomock.Call {
+func (mr *MockOfficeStorageMockRecorder) AddOffice(ctx, officeName, buildingID, floorNumber any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOffice", reflect.TypeOf((*MockOfficeStorage)(nil).AddOffice), officeName, buildingID, floorNumber)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOffice", reflect.TypeOf((*MockOfficeStorage)(nil).AddOffice), ctx, officeName, buildingID, floorNumber)
 }
 
 // DeleteOffice mocks base method.
-func (m *MockOfficeStorage) DeleteOffice(officeId string) error {
+func (m *MockOfficeStorage) DeleteOffice(ctx context.Context, officeId string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteOffice", officeId)
+	ret := m.ctrl.Call(m, "DeleteOffice", ctx, officeId)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteOffice indicates an expected call of DeleteOffice.
-func (mr *MockOfficeStorageMockRecorder) DeleteOffice(officeId any) *gomock.Call {
+func (mr *MockOfficeStorageMockRecorder) DeleteOffice(ctx, officeId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOffice", reflect.TypeOf((*MockOfficeStorage)(nil).DeleteOffice), officeId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOffice", reflect.TypeOf((*MockOfficeStorage)(nil).DeleteOffice), ctx, officeId)
 }
 
 // GetAllOffices mocks base method.
-func (m *MockOfficeStorage) GetAllOffices() ([]models.Office, error) {
+func (m *MockOfficeStorage) GetAllOffices(ctx context.Context) ([]models.Office, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllOffices")
+	ret := m.ctrl.Call(m, "GetAllOffices", ctx)
 	ret0, _ := ret[0].([]models.Office)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAllOffices indicates an expected call of GetAllOffices.
-func (mr *MockOfficeStorageMockRecorder) GetAllOffices() *gomock.Call {
+func (mr *MockOfficeStorageMockRecorder) GetAllOffices(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllOffices", reflect.TypeOf((*MockOfficeStorage)(nil).GetAllOffices))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllOffices", reflect.TypeOf((*MockOfficeStorage)(nil).GetAllOffices), ctx)
 }
 
 // GetBuildingAndFloorByOffice mocks base method.
-func (m *MockOfficeStorage) GetBuildingAndFloorByOffice(officeName string) (uuid.UUID, int, error) {
+func (m *MockOfficeStorage) GetBuildingAndFloorByOffice(ctx context.Context, officeName string) (uuid.UUID, int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBuildingAndFloorByOffice", officeName)
+	ret := m.ctrl.Call(m, "GetBuildingAndFloorByOffice", ctx, officeName)
 	ret0, _ := ret[0].(uuid.UUID)
 	ret1, _ := ret[1].(int)
 	ret2, _ := ret[2].(error)
@@ -95,37 +96,37 @@ func (m *MockOfficeStorage) GetBuildingAndFloorByOffice(officeName string) (uuid
 }
 
 // GetBuildingAndFloorByOffice indicates an expected call of GetBuildingAndFloorByOffice.
-func (mr *MockOfficeStorageMockRecorder) GetBuildingAndFloorByOffice(officeName any) *gomock.Call {
+func (mr *MockOfficeStorageMockRecorder) GetBuildingAndFloorByOffice(ctx, officeName any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBuildingAndFloorByOffice", reflect.TypeOf((*MockOfficeStorage)(nil).GetBuildingAndFloorByOffice), officeName)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBuildingAndFloorByOffice", reflect.TypeOf((*MockOfficeStorage)(nil).GetBuildingAndFloorByOffice), ctx, officeName)
 }
 
 // GetOfficeByName mocks base method.
-func (m *MockOfficeStorage) GetOfficeByName(officeName string) (models.Office, error) {
+func (m *MockOfficeStorage) GetOfficeByName(ctx context.Context, officeName string) (models.Office, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOfficeByName", officeName)
+	ret := m.ctrl.Call(m, "GetOfficeByName", ctx, officeName)
 	ret0, _ := ret[0].(models.Office)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetOfficeByName indicates an expected call of GetOfficeByName.
-func (mr *MockOfficeStorageMockRecorder) GetOfficeByName(officeName any) *gomock.Call {
+func (mr *MockOfficeStorageMockRecorder) GetOfficeByName(ctx, officeName any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOfficeByName", reflect.TypeOf((*MockOfficeStorage)(nil).GetOfficeByName), officeName)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOfficeByName", reflect.TypeOf((*MockOfficeStorage)(nil).GetOfficeByName), ctx, officeName)
 }
 
 // GetOfficesByBuilding mocks base method.
-func (m *MockOfficeStorage) GetOfficesByBuilding(buildingID string) ([]models.Office, error) {
+func (m *MockOfficeStorage) GetOfficesByBuilding(ctx context.Context, buildingID string) ([]models.Office, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOfficesByBuilding", buildingID)
+	ret := m.ctrl.Call(m, "GetOfficesByBuilding", ctx, buildingID)
 	ret0, _ := ret[0].([]models.Office)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetOfficesByBuilding indicates an expected call of GetOfficesByBuilding.
-func (mr *MockOfficeStorageMockRecorder) GetOfficesByBuilding(buildingID any) *gomock.Call {
+func (mr *MockOfficeStorageMockRecorder) GetOfficesByBuilding(ctx, buildingID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOfficesByBuilding", reflect.TypeOf((*MockOfficeStorage)(nil).GetOfficesByBuilding), buildingID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOfficesByBuilding", reflect.TypeOf((*MockOfficeStorage)(nil).GetOfficesByBuilding), ctx, buildingID)
 }

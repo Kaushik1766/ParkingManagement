@@ -88,16 +88,16 @@ func (mr *MockParkingHistoryMgrMockRecorder) GetParkingHistoryByNumberPlate(ctx,
 }
 
 // GetParkingHistoryByUserId mocks base method.
-func (m *MockParkingHistoryMgr) GetParkingHistoryByUserId(userId string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
+func (m *MockParkingHistoryMgr) GetParkingHistoryByUserId(ctx context.Context, userId string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetParkingHistoryByUserId", userId, startTime, endTime)
+	ret := m.ctrl.Call(m, "GetParkingHistoryByUserId", ctx, userId, startTime, endTime)
 	ret0, _ := ret[0].([]models.ParkingHistoryDTO)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetParkingHistoryByUserId indicates an expected call of GetParkingHistoryByUserId.
-func (mr *MockParkingHistoryMgrMockRecorder) GetParkingHistoryByUserId(userId, startTime, endTime any) *gomock.Call {
+func (mr *MockParkingHistoryMgrMockRecorder) GetParkingHistoryByUserId(ctx, userId, startTime, endTime any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParkingHistoryByUserId", reflect.TypeOf((*MockParkingHistoryMgr)(nil).GetParkingHistoryByUserId), userId, startTime, endTime)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParkingHistoryByUserId", reflect.TypeOf((*MockParkingHistoryMgr)(nil).GetParkingHistoryByUserId), ctx, userId, startTime, endTime)
 }
