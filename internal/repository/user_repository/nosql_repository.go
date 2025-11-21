@@ -57,7 +57,7 @@ func (nosqlur *NOSQLUserRepository) GetUserByEmail(ctx context.Context, email st
 func (nosqlur *NOSQLUserRepository) GetUserById(ctx context.Context, id string) (models.User, error) {
 	var user models.User
 
-	// Scan to find user by ID
+	// func rarely used, only in case of admin to fetch particular user, so used scan
 	scanRes, err := nosqlur.client.Scan(ctx, &dynamodb.ScanInput{
 		TableName:        aws.String(config.DynamoDBTable),
 		FilterExpression: aws.String("Id = :id AND begins_with(SK, :sk) AND IsActive = :active"),
@@ -150,7 +150,6 @@ func (nosqlur *NOSQLUserRepository) Save(ctx context.Context, user models.User) 
 }
 
 func (nosqlur *NOSQLUserRepository) CreateUser(ctx context.Context, name, email, password, officeName string, role roles.Role) error {
-	// Get office details
 	var officeId uuid.UUID
 
 	if officeName != "" {

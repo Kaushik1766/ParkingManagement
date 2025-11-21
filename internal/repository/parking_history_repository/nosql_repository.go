@@ -102,6 +102,36 @@ func (nosqlpr *NOSQLParkingRepository) AddParking(ctx context.Context, vehicle m
 		log.Println("Warning: could not update IsParked status:", err.Error())
 	}
 
+	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		TableName: aws.String(config.DynamoDBTable),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", vehicle.AssignedBuildingID.String())},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOORINFO#%d", vehicle.AssignedFloorNumber)},
+		},
+		UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots - :decrement"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":decrement": &types.AttributeValueMemberN{Value: "1"},
+		},
+	})
+	if err != nil {
+		log.Println("Warning: could not update floor AvailableSlots:", err.Error())
+	}
+
+	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		TableName: aws.String(config.DynamoDBTable),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: "BUILDING"},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", vehicle.AssignedBuildingID.String())},
+		},
+		UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots - :decrement"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":decrement": &types.AttributeValueMemberN{Value: "1"},
+		},
+	})
+	if err != nil {
+		log.Println("Warning: could not update building AvailableSlots:", err.Error())
+	}
+
 	return parkingID.String(), nil
 }
 
@@ -134,6 +164,8 @@ func (nosqlpr *NOSQLParkingRepository) Unpark(ctx context.Context, id string) er
 	item := queryRes.Items[0]
 	PK = item["PK"].(*types.AttributeValueMemberS).Value
 	SK = item["SK"].(*types.AttributeValueMemberS).Value
+	buildingID := item["BuildingId"].(*types.AttributeValueMemberS).Value
+	floorNumber, _ := strconv.Atoi(item["FloorNumber"].(*types.AttributeValueMemberN).Value)
 
 	endTime := time.Now().Unix()
 	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
@@ -166,6 +198,36 @@ func (nosqlpr *NOSQLParkingRepository) Unpark(ctx context.Context, id string) er
 	})
 	if err != nil {
 		log.Println("Warning: could not update IsParked status:", err.Error())
+	}
+
+	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		TableName: aws.String(config.DynamoDBTable),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOORINFO#%d", floorNumber)},
+		},
+		UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots + :increment"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":increment": &types.AttributeValueMemberN{Value: "1"},
+		},
+	})
+	if err != nil {
+		log.Println("Warning: could not update floor AvailableSlots:", err.Error())
+	}
+
+	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		TableName: aws.String(config.DynamoDBTable),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: "BUILDING"},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
+		},
+		UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots + :increment"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":increment": &types.AttributeValueMemberN{Value: "1"},
+		},
+	})
+	if err != nil {
+		log.Println("Warning: could not update building AvailableSlots:", err.Error())
 	}
 
 	return nil
@@ -354,6 +416,8 @@ func (nosqlpr *NOSQLParkingRepository) UnparkByNumberPlate(ctx context.Context, 
 	item := queryRes.Items[0]
 	userEmail := item["PK"].(*types.AttributeValueMemberS).Value
 	timestamp := item["SK"].(*types.AttributeValueMemberS).Value
+	buildingID := item["BuildingId"].(*types.AttributeValueMemberS).Value
+	floorNumber, _ := strconv.Atoi(item["FloorNumber"].(*types.AttributeValueMemberN).Value)
 
 	endTime := time.Now().Unix()
 	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
@@ -385,6 +449,38 @@ func (nosqlpr *NOSQLParkingRepository) UnparkByNumberPlate(ctx context.Context, 
 	})
 	if err != nil {
 		log.Println("Warning: could not update IsParked status:", err.Error())
+	}
+
+	// Update floor AvailableSlots (increment by 1)
+	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		TableName: aws.String(config.DynamoDBTable),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOORINFO#%d", floorNumber)},
+		},
+		UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots + :increment"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":increment": &types.AttributeValueMemberN{Value: "1"},
+		},
+	})
+	if err != nil {
+		log.Println("Warning: could not update floor AvailableSlots:", err.Error())
+	}
+
+	// Update building AvailableSlots (increment by 1)
+	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		TableName: aws.String(config.DynamoDBTable),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: "BUILDING"},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
+		},
+		UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots + :increment"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":increment": &types.AttributeValueMemberN{Value: "1"},
+		},
+	})
+	if err != nil {
+		log.Println("Warning: could not update building AvailableSlots:", err.Error())
 	}
 
 	return nil

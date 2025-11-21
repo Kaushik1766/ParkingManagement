@@ -30,7 +30,7 @@ type UserService struct {
 
 func (us *UserService) GetUserProfile(ctx context.Context) (models.UserDTO, error) {
 	ctxUser := ctx.Value(constants.User).(models.UserJwt)
-	currentUser, err := us.userRepo.GetUserById(ctx, ctxUser.ID)
+	currentUser, err := us.userRepo.GetUserByEmail(ctx, ctxUser.Email)
 	if err != nil {
 		return models.UserDTO{}, err
 	}
@@ -195,7 +195,7 @@ func (us *UserService) UpdateProfile(ctx context.Context, userId string, updateR
 		return errors.New("unauthorized to update other user's profile")
 	}
 
-	updatedUser, err := us.userRepo.GetUserById(ctx, userId)
+	updatedUser, err := us.userRepo.GetUserByEmail(ctx, currentUser.Email)
 	if err != nil {
 		return err
 	}
@@ -229,7 +229,7 @@ func (us *UserService) DeleteProfile(ctx context.Context, userId string) error {
 		return errors.New("unauthorized to delete other user's profile")
 	}
 
-	user, err := us.userRepo.GetUserById(ctx, userId)
+	user, err := us.userRepo.GetUserByEmail(ctx, ctxUser.Email)
 	if err != nil {
 		return err
 	}

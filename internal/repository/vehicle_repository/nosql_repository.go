@@ -116,35 +116,16 @@ func (nosqlvr *NOSQLVehicleRepository) RemoveVehicle(ctx context.Context, number
 		return errors.New("vehicle is parked please unpark it first")
 	}
 
-	// Find the vehicle
-	scanRes, err := nosqlvr.client.Scan(ctx, &dynamodb.ScanInput{
-		TableName:        aws.String(config.DynamoDBTable),
-		FilterExpression: aws.String("Numberplate = :numberplate AND begins_with(SK, :sk)"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":numberplate": &types.AttributeValueMemberS{Value: numberplate},
-			":sk":          &types.AttributeValueMemberS{Value: "VEHICLE#"},
-		},
-	})
-	if err != nil {
-		log.Println(err.Error())
-		return errors.New("error finding vehicle")
-	}
+	// Get user email from context
+	userCtx := ctx.Value(constants.User).(models.UserJwt)
+	userEmail := userCtx.Email
 
-	if len(scanRes.Items) == 0 {
-		log.Println("vehicle not found in RemoveVehicle")
-		return errors.New("vehicle not found")
-	}
-
-	item := scanRes.Items[0]
-	userEmail := item["PK"].(*types.AttributeValueMemberS).Value
-	vehicleSK := item["SK"].(*types.AttributeValueMemberS).Value
-
-	// Delete the vehicle item
+	// Delete the vehicle item directly using PK and SK
 	_, err = nosqlvr.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: userEmail},
-			"SK": &types.AttributeValueMemberS{Value: vehicleSK},
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userEmail)},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", numberplate)},
 		},
 	})
 	if err != nil {
@@ -242,12 +223,16 @@ func (nosqlvr *NOSQLVehicleRepository) GetVehiclesByUserId(ctx context.Context, 
 func (nosqlvr *NOSQLVehicleRepository) GetVehicleByNumberPlate(ctx context.Context, numberplate string) (models.Vehicle, error) {
 	var vehicle models.Vehicle
 
-	scanRes, err := nosqlvr.client.Scan(ctx, &dynamodb.ScanInput{
-		TableName:        aws.String(config.DynamoDBTable),
-		FilterExpression: aws.String("Numberplate = :numberplate AND begins_with(SK, :sk)"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":numberplate": &types.AttributeValueMemberS{Value: numberplate},
-			":sk":          &types.AttributeValueMemberS{Value: "VEHICLE#"},
+	// Get user email from context
+	userCtx := ctx.Value(constants.User).(models.UserJwt)
+	userEmail := userCtx.Email
+
+	// Query the specific vehicle using PK and SK
+	getRes, err := nosqlvr.client.GetItem(ctx, &dynamodb.GetItemInput{
+		TableName: aws.String(config.DynamoDBTable),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userEmail)},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", numberplate)},
 		},
 	})
 	if err != nil {
@@ -255,12 +240,11 @@ func (nosqlvr *NOSQLVehicleRepository) GetVehicleByNumberPlate(ctx context.Conte
 		return vehicle, errors.New("error fetching vehicle")
 	}
 
-	if len(scanRes.Items) == 0 {
+	if len(getRes.Item) == 0 {
 		return vehicle, errors.New("vehicle not found")
 	}
 
-	item := scanRes.Items[0]
-	vehicle = nosqlvr.itemToVehicle(item)
+	vehicle = nosqlvr.itemToVehicle(getRes.Item)
 
 	// Fetch UserID from email
 	userID, err := nosqlvr.getUserIDFromEmail(ctx, vehicle.UserEmail)
@@ -302,13 +286,19 @@ func (nosqlvr *NOSQLVehicleRepository) GetVehiclesWithUnassignedSlots(ctx contex
 }
 
 func (nosqlvr *NOSQLVehicleRepository) GetParkingStatus(ctx context.Context, numberplate string) (bool, error) {
-	// Check if there's an active parking (without EndTime) for this numberplate
-	scanRes, err := nosqlvr.client.Scan(ctx, &dynamodb.ScanInput{
-		TableName:        aws.String(config.DynamoDBTable),
-		FilterExpression: aws.String("Numberplate = :numberplate AND attribute_not_exists(EndTime) AND begins_with(SK, :sk)"),
+	// Get user email from context
+	userCtx := ctx.Value(constants.User).(models.UserJwt)
+	userEmail := userCtx.Email
+
+	// Query parking history for this user and filter by numberplate without EndTime
+	queryRes, err := nosqlvr.client.Query(ctx, &dynamodb.QueryInput{
+		TableName:              aws.String(config.DynamoDBTable),
+		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
+		FilterExpression:       aws.String("Numberplate = :numberplate AND attribute_not_exists(EndTime)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":numberplate": &types.AttributeValueMemberS{Value: numberplate},
+			":pk":          &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userEmail)},
 			":sk":          &types.AttributeValueMemberS{Value: "PARKING#"},
+			":numberplate": &types.AttributeValueMemberS{Value: numberplate},
 		},
 	})
 	if err != nil {
@@ -316,34 +306,13 @@ func (nosqlvr *NOSQLVehicleRepository) GetParkingStatus(ctx context.Context, num
 		return false, errors.New("error checking parking status")
 	}
 
-	return len(scanRes.Items) > 0, nil
+	return len(queryRes.Items) > 0, nil
 }
 
 func (nosqlvr *NOSQLVehicleRepository) Save(ctx context.Context, vehicle models.Vehicle) error {
-	// Get user email from vehicle
-	userEmail := vehicle.UserEmail
-	if userEmail == "" {
-		// Fetch user email if not provided
-		userRes, err := nosqlvr.client.Query(ctx, &dynamodb.QueryInput{
-			TableName:              aws.String(config.DynamoDBTable),
-			KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
-			ExpressionAttributeValues: map[string]types.AttributeValue{
-				":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", vehicle.UserID.String())},
-				":sk": &types.AttributeValueMemberS{Value: "PROFILE#"},
-			},
-		})
-		if err != nil {
-			log.Println(err.Error())
-			return errors.New("error fetching user")
-		}
-
-		if len(userRes.Items) == 0 {
-			log.Println("user not found in Save")
-			return errors.New("user not found")
-		}
-
-		userEmail = userRes.Items[0]["Email"].(*types.AttributeValueMemberS).Value
-	}
+	// Get user email from context
+	userCtx := ctx.Value(constants.User).(models.UserJwt)
+	userEmail := userCtx.Email
 
 	updateExpression := "SET VehicleType = :vehicleType"
 	expressionValues := map[string]types.AttributeValue{
