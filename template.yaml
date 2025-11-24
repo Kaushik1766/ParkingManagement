@@ -369,3 +369,32 @@ Resources:
             Method: patch
             Path: /parkings/{numberplate}/unpark
             RestApiId: !Ref Api
+
+  GetMonthlyBill:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: cmd/functions/billing/get_monthly_bill
+      Handler: main
+      Role: !GetAtt LambdaRole.Arn
+      Events:
+        GetMonthlyBill:
+          Type: Api
+          Properties:
+            Path: /billing
+            Method: get
+
+  GenerateBill:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: cmd/functions/billing/generate_bill
+      Handler: main
+      Role: !GetAtt LambdaRole.Arn
+      Events:
+        MonthlySchedule:
+          Type: ScheduleV2
+          Properties:
+            ScheduleExpression: rate(30 days)

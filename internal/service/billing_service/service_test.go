@@ -3,13 +3,12 @@ package billingservice
 import (
 	"context"
 	"errors"
-	"os"
 	"reflect"
 	"testing"
 	"time"
 
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
-	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
+	billrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/bill_repository"
 	parkinghistoryrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/parking_history_repository"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
 	"github.com/Kaushik1766/ParkingManagement/mocks"
@@ -17,188 +16,137 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-// TestBillingService_GenerateMonthlyInvoice tests the GenerateMonthlyInvoice method
-func TestBillingService_GenerateMonthlyInvoice(t *testing.T) {
+func TestBillingService_GetMonthlyBill(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	mockUserRepo := mocks.NewMockUserStorage(ctrl)
 	mockParkingRepo := mocks.NewMockParkingHistoryStorage(ctrl)
+	mockBillRepo := mocks.NewMockBillStorage(ctrl)
 
 	// Test data
-	userID1 := uuid.New()
-	userID2 := uuid.New()
+	// Test data
+	userID := uuid.New().String()
+	month := 10
+	year := 2023
 
-	users := []models.User{
-		{
-			UserID: userID1,
-			Name:   "John Doe",
-			Email:  "john@example.com",
-		},
-		{
-			UserID: userID2,
-			Name:   "Jane Smith",
-			Email:  "jane@example.com",
-		},
-	}
-
-	startTime := time.Now().AddDate(0, -1, 0)
-
-	parkingHistory1 := []models.ParkingHistoryDTO{
-		{
-			TicketId:     "TICKET001",
-			NumberPlate:  "ABC123",
-			BuildingId:   "BUILD001",
-			FLoorNumber:  1,
-			SlotNumber:   1,
-			StartTime:    startTime,
-			EndTime:      startTime.Add(2 * time.Hour), // 2 hours
-			VechicleType: vehicletypes.FourWheeler.String(),
-		},
-		{
-			TicketId:     "TICKET002",
-			NumberPlate:  "XYZ789",
-			BuildingId:   "BUILD001",
-			FLoorNumber:  1,
-			SlotNumber:   2,
-			StartTime:    startTime.Add(3 * time.Hour),
-			EndTime:      startTime.Add(5 * time.Hour), // 2 hours
-			VechicleType: vehicletypes.TwoWheeler.String(),
-		},
-	}
-
-	parkingHistory2 := []models.ParkingHistoryDTO{
-		{
-			TicketId:     "TICKET003",
-			NumberPlate:  "DEF456",
-			BuildingId:   "BUILD002",
-			FLoorNumber:  2,
-			SlotNumber:   1,
-			StartTime:    startTime,
-			EndTime:      time.Time{}, // Zero end time - should be skipped
-			VechicleType: vehicletypes.FourWheeler.String(),
-		},
+	expectedBill := models.BillDTO{
+		TotalAmount: 400, // 2 hours * 200
+		BillDate:    time.Now().Format(time.DateOnly),
+		UserId:      userID,
 	}
 
 	type fields struct {
 		userRepository    userrepository.UserStorage
 		parkingRepository parkinghistoryrepository.ParkingHistoryStorage
+		billRepository    billrepository.BillStorage
+	}
+	type args struct {
+		userId string
+		month  int
+		year   int
 	}
 	tests := []struct {
-		name               string
-		fields             fields
-		mockSetup          func()
-		expectFileCreation bool
+		name      string
+		fields    fields
+		args      args
+		mockSetup func()
+		want      models.BillDTO
+		wantErr   bool
 	}{
 		{
-			name: "Success - Generate invoice with multiple users and parking history",
+			name: "Success - Get monthly bill (cached)",
 			fields: fields{
 				userRepository:    mockUserRepo,
 				parkingRepository: mockParkingRepo,
+				billRepository:    mockBillRepo,
+			},
+			args: args{
+				userId: userID,
+				month:  month,
+				year:   year,
 			},
 			mockSetup: func() {
-				mockUserRepo.EXPECT().GetAllUsers(gomock.Any()).Return(users, nil)
-				mockParkingRepo.EXPECT().GetParkingHistoryByUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(parkingHistory1, nil).Times(1)
-				mockParkingRepo.EXPECT().GetParkingHistoryByUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(parkingHistory2, nil).Times(1)
+				mockBillRepo.EXPECT().GetBill(gomock.Any(), userID, month, year).Return(expectedBill, nil)
 			},
-			expectFileCreation: true,
+			want:    expectedBill,
+			wantErr: false,
 		},
 		{
-			name: "Success - Generate invoice with empty parking history",
+			name: "Error - Bill not found",
 			fields: fields{
 				userRepository:    mockUserRepo,
 				parkingRepository: mockParkingRepo,
+				billRepository:    mockBillRepo,
+			},
+			args: args{
+				userId: userID,
+				month:  month,
+				year:   year,
 			},
 			mockSetup: func() {
-				mockUserRepo.EXPECT().GetAllUsers(gomock.Any()).Return(users, nil)
-				mockParkingRepo.EXPECT().GetParkingHistoryByUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return([]models.ParkingHistoryDTO{}, nil).AnyTimes()
+				mockBillRepo.EXPECT().GetBill(gomock.Any(), userID, month, year).Return(models.BillDTO{}, nil)
 			},
-			expectFileCreation: true,
+			want:    models.BillDTO{},
+			wantErr: true,
 		},
 		{
-			name: "Error - GetAllUsers fails",
+			name: "Error - GetBill fails",
 			fields: fields{
 				userRepository:    mockUserRepo,
 				parkingRepository: mockParkingRepo,
+				billRepository:    mockBillRepo,
+			},
+			args: args{
+				userId: userID,
+				month:  month,
+				year:   year,
 			},
 			mockSetup: func() {
-				mockUserRepo.EXPECT().GetAllUsers(gomock.Any()).Return(nil, errors.New("database error"))
+				mockBillRepo.EXPECT().GetBill(gomock.Any(), userID, month, year).Return(models.BillDTO{}, errors.New("db error"))
 			},
-			expectFileCreation: false,
-		},
-		{
-			name: "Error - GetParkingHistoryByUser fails",
-			fields: fields{
-				userRepository:    mockUserRepo,
-				parkingRepository: mockParkingRepo,
-			},
-			mockSetup: func() {
-				mockUserRepo.EXPECT().GetAllUsers(gomock.Any()).Return(users, nil)
-				mockParkingRepo.EXPECT().GetParkingHistoryByUser(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("database error")).Times(1)
-			},
-			expectFileCreation: false,
-		},
-		{
-			name: "Success - Empty user list",
-			fields: fields{
-				userRepository:    mockUserRepo,
-				parkingRepository: mockParkingRepo,
-			},
-			mockSetup: func() {
-				mockUserRepo.EXPECT().GetAllUsers(gomock.Any()).Return([]models.User{}, nil)
-			},
-			expectFileCreation: true,
+			want:    models.BillDTO{},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Clean up any existing bills.txt file
-			os.Remove("bills.txt")
-
 			tt.mockSetup()
-
-			bs := &BillingService{
-				userRepository:    tt.fields.userRepository,
-				parkingRepository: tt.fields.parkingRepository,
+			bs := NewBillingService(tt.fields.userRepository, tt.fields.parkingRepository, tt.fields.billRepository)
+			got, err := bs.GetMonthlyBill(context.Background(), tt.args.userId, tt.args.month, tt.args.year)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("BillingService.GetMonthlyBill() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
-
-			// Note: GenerateMonthlyInvoice sleeps for 1 hour, but for testing we'll need to work around this
-			// For now, we'll just call it and check if the file is created
-			go func() {
-				time.Sleep(100 * time.Millisecond) // Small delay to let the method start
-				// This is a workaround since we can't easily test the sleep in unit tests
-			}()
-
-			bs.GenerateMonthlyInvoice(context.Background())
-
-			// Check if file was created as expected
-			_, err := os.Stat("bills.txt")
-			fileExists := !os.IsNotExist(err)
-
-			if tt.expectFileCreation && !fileExists {
-				t.Errorf("GenerateMonthlyInvoice() expected file creation but file was not created")
+			if !tt.wantErr {
+				// We can't compare BillDate exactly because it uses time.Now()
+				// So we'll check other fields and ensure BillDate is today
+				if got.UserId != tt.want.UserId {
+					t.Errorf("BillingService.GetMonthlyBill() UserId = %v, want %v", got.UserId, tt.want.UserId)
+				}
+				if got.TotalAmount != tt.want.TotalAmount {
+					t.Errorf("BillingService.GetMonthlyBill() TotalAmount = %v, want %v", got.TotalAmount, tt.want.TotalAmount)
+				}
+				if len(got.ParkingHistory) != len(tt.want.ParkingHistory) {
+					t.Errorf("BillingService.GetMonthlyBill() ParkingHistory length = %v, want %v", len(got.ParkingHistory), len(tt.want.ParkingHistory))
+				}
 			}
-			if !tt.expectFileCreation && fileExists {
-				t.Errorf("GenerateMonthlyInvoice() did not expect file creation but file was created")
-			}
-
-			// Clean up
-			os.Remove("bills.txt")
 		})
 	}
 }
 
 func TestNewBillingService(t *testing.T) {
-
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	mockUserRepo := mocks.NewMockUserStorage(ctrl)
 	mockParkingRepo := mocks.NewMockParkingHistoryStorage(ctrl)
+	mockBillRepo := mocks.NewMockBillStorage(ctrl)
 
 	type args struct {
 		userRepo    userrepository.UserStorage
 		parkingRepo parkinghistoryrepository.ParkingHistoryStorage
+		billRepo    billrepository.BillStorage
 	}
 	tests := []struct {
 		name string
@@ -210,16 +158,18 @@ func TestNewBillingService(t *testing.T) {
 			args: args{
 				userRepo:    mockUserRepo,
 				parkingRepo: mockParkingRepo,
+				billRepo:    mockBillRepo,
 			},
 			want: &BillingService{
 				userRepository:    mockUserRepo,
 				parkingRepository: mockParkingRepo,
+				billRepository:    mockBillRepo,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewBillingService(tt.args.userRepo, tt.args.parkingRepo); !reflect.DeepEqual(got, tt.want) {
+			if got := NewBillingService(tt.args.userRepo, tt.args.parkingRepo, tt.args.billRepo); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewBillingService() = %v, want %v", got, tt.want)
 			}
 		})

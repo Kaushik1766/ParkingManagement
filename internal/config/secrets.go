@@ -14,4 +14,5 @@ const (
 	VehiclesPath       = "data/vehicles.json"
 	EnvPath            = "./.env"
 	DynamoDBTable      = "pm_nosql"
+	AwsRegion          = "ap-south-1"
 )
