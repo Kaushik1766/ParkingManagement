@@ -264,4 +264,13 @@ functions = ["UnparkVehicle"]
 [function_build_definitions.f614e836-2e3a-4be8-b597-8d6a753d41f3.metadata]
 BuildMethod = "go1.x"
 
+[function_build_definitions.a28e8b46-7f3a-4ad6-aaf7-edde9a1e8980]
+codeuri = "/home/kaushik/Github/ParkingManagement/warmer"
+runtime = "python3.13"
+architecture = "x86_64"
+handler = "warmer.warmer"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["Warmer"]
+
 [layer_build_definitions]

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"log"
 
 	corsmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/cors_middleware"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
@@ -28,6 +29,8 @@ func init() {
 
 	userRepo := userrepository.NewNOSQLUserRepository(client)
 	authService = authservice.NewAuthService(userRepo)
+
+	log.Println("initialized login function")
 }
 
 func main() {
@@ -35,6 +38,9 @@ func main() {
 }
 
 func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	log.Printf("%+v\n", ctx)
+	log.Printf("%+v\n", event)
+
 	var req models.LoginRequestDTO
 
 	if err := json.Unmarshal([]byte(event.Body), &req); err != nil {
