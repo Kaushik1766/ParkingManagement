@@ -31,6 +31,7 @@ func (nosqlbr *NOSQLBillRepository) SaveBill(ctx context.Context, bill models.Bi
 		return err
 	}
 
+	// bill.UserId contains the user email
 	pk := fmt.Sprintf("USER#%s", bill.UserId)
 	sk := fmt.Sprintf("BILL#%d#%d", billDate.Year(), billDate.Month())
 
@@ -59,7 +60,6 @@ func (nosqlbr *NOSQLBillRepository) SaveBill(ctx context.Context, bill models.Bi
 		"TotalAmount":    &types.AttributeValueMemberN{Value: fmt.Sprintf("%.2f", bill.TotalAmount)},
 		"BillDate":       &types.AttributeValueMemberS{Value: bill.BillDate},
 		"ParkingHistory": &types.AttributeValueMemberL{Value: parkingHistoryItems},
-		"Type":           &types.AttributeValueMemberS{Value: "BILL"},
 	}
 
 	_, err = nosqlbr.client.PutItem(ctx, &dynamodb.PutItemInput{
@@ -75,6 +75,7 @@ func (nosqlbr *NOSQLBillRepository) SaveBill(ctx context.Context, bill models.Bi
 }
 
 func (nosqlbr *NOSQLBillRepository) GetBill(ctx context.Context, userId string, month, year int) (models.BillDTO, error) {
+	// userId is the user email
 	pk := fmt.Sprintf("USER#%s", userId)
 	sk := fmt.Sprintf("BILL#%d#%d", year, month)
 

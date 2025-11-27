@@ -68,20 +68,24 @@ func (bs *BillingService) GenerateMonthlyBills(ctx context.Context) {
 	log.Printf("billingservice: Generating bills for %d-%d", month, year)
 
 	for _, user := range users {
+		userEmail := user.Email
 		userId := user.UserID.String()
 
-		// Check if bill already exists
-		existingBill, err := bs.billRepository.GetBill(ctx, userId, month, year)
+		// Check if bill already exists (using email)
+		existingBill, err := bs.billRepository.GetBill(ctx, userEmail, month, year)
 		if err == nil && existingBill.UserId != "" {
-			log.Printf("billingservice: Bill already exists for user %s, skipping...\n", userId)
+			log.Printf("billingservice: Bill already exists for user %s, skipping...\n", userEmail)
 			continue
 		}
 
+		// Get parking history using UUID (will be converted to email in repository)
 		parkingHistory, err := bs.parkingRepository.GetParkingHistoryByUser(ctx, userId, startTime, endTime)
 		if err != nil {
 			log.Printf("billingservice: Error fetching parking history for user %s: %v\n", userId, err)
 			continue
 		}
+
+		log.Printf("billingservice: Found %d parking records for user %s (email: %s) in period %v to %v", len(parkingHistory), userId, userEmail, startTime, endTime)
 
 		var totalAmount float64 = 0
 		for _, ph := range parkingHistory {
@@ -101,15 +105,17 @@ func (bs *BillingService) GenerateMonthlyBills(ctx context.Context) {
 			ParkingHistory: parkingHistory,
 			TotalAmount:    totalAmount,
 			BillDate:       time.Now().Format(time.DateOnly),
-			UserId:         userId,
+			UserId:         userEmail,
 		}
+
+		log.Printf("billingservice: Creating bill for user %s with %d parking records, total amount: %.2f", userEmail, len(bill.ParkingHistory), totalAmount)
 
 		// Store the bill
 		err = bs.billRepository.SaveBill(ctx, bill)
 		if err != nil {
-			log.Printf("billingservice: Error saving bill for user %s: %v\n", userId, err)
+			log.Printf("billingservice: Error saving bill for user %s: %v\n", userEmail, err)
 		} else {
-			log.Printf("billingservice: Generated and saved bill for user %s\n", userId)
+			log.Printf("billingservice: Generated and saved bill for user %s\n", userEmail)
 		}
 	}
 }

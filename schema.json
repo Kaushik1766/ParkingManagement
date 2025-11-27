@@ -34,8 +34,8 @@
     "BuildingId": "BUILDING#B1",
     "FloorNumber": 1,
     "SlotId": "SLOT#S1",
-    "StartTime": "2023-10-01T10:00:00Z",
-    "EndTime": "2023-10-01T12:00:00Z"
+    "StartTime": 1763572066,
+    "EndTime": 1763572066
   },
   "Building": {
     "PK": "BUILDING",
@@ -79,7 +79,6 @@
     "SK": "BILL#2023#10",
     "TotalAmount": 200,
     "BillDate": "2023-11-01",
-    "Type": "BILL",
     "ParkingHistory": [
       {
         "TicketId": "TICKET001",
@@ -89,8 +88,8 @@
         "FloorNumber": 1,
         "SlotNumber": 1,
         "VehicleType": "TwoWheeler",
-        "StartTime": "2023-10-01T10:00:00Z",
-        "EndTime": "2023-10-01T12:00:00Z"
+        "StartTime": 1763572066,
+        "EndTime": 1763572066
       }
     ]
   }

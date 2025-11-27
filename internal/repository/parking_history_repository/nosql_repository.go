@@ -284,9 +284,30 @@ func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByNumberPlate(ctx contex
 func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByUser(ctx context.Context, userId string, startTime, endTime time.Time) ([]models.ParkingHistoryDTO, error) {
 	history := []models.ParkingHistoryDTO{}
 
-	userEmail := userId
+	var userEmail string
+
 	if ctxUser, ok := ctx.Value(constants.User).(models.UserJwt); ok {
 		userEmail = ctxUser.Email
+	} else {
+		scanRes, err := nosqlpr.client.Scan(ctx, &dynamodb.ScanInput{
+			TableName:        aws.String(config.DynamoDBTable),
+			FilterExpression: aws.String("Id = :userId AND begins_with(SK, :sk)"),
+			ExpressionAttributeValues: map[string]types.AttributeValue{
+				":userId": &types.AttributeValueMemberS{Value: userId},
+				":sk":     &types.AttributeValueMemberS{Value: "PROFILE#"},
+			},
+		})
+		if err != nil {
+			log.Println("Error fetching user profile:", err.Error())
+			return history, errors.New("error fetching user profile")
+		}
+
+		if len(scanRes.Items) == 0 {
+			log.Printf("User not found with ID: %s", userId)
+			return history, errors.New("user not found")
+		}
+
+		userEmail = scanRes.Items[0]["Email"].(*types.AttributeValueMemberS).Value
 	}
 
 	startTimestamp := startTime.Unix()
@@ -306,15 +327,18 @@ func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByUser(ctx context.Conte
 	}
 
 	log.Printf("Found %d parking records for user %s", len(queryRes.Items), userEmail)
+	log.Printf("Filtering parking records for time range: %d to %d (%v to %v)", startTimestamp, endTimestamp, startTime, endTime)
 
 	for _, item := range queryRes.Items {
 		if item["EndTime"] == nil {
+			log.Printf("Skipping parking record without EndTime (active parking)")
 			continue
 		}
 
 		if item["StartTime"] != nil {
 			itemStartTime, _ := strconv.ParseInt(item["StartTime"].(*types.AttributeValueMemberN).Value, 10, 64)
 			if itemStartTime < startTimestamp || itemStartTime > endTimestamp {
+				log.Printf("Skipping parking record with StartTime %d (outside range %d-%d)", itemStartTime, startTimestamp, endTimestamp)
 				continue
 			}
 		}
@@ -353,9 +377,30 @@ func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByUser(ctx context.Conte
 func (nosqlpr *NOSQLParkingRepository) GetActiveUserParkings(ctx context.Context, userId string) ([]models.ParkingHistoryDTO, error) {
 	activeParkings := []models.ParkingHistoryDTO{}
 
-	userEmail := userId
+	var userEmail string
+
 	if ctxUser, ok := ctx.Value(constants.User).(models.UserJwt); ok {
 		userEmail = ctxUser.Email
+	} else {
+		scanRes, err := nosqlpr.client.Scan(ctx, &dynamodb.ScanInput{
+			TableName:        aws.String(config.DynamoDBTable),
+			FilterExpression: aws.String("Id = :userId AND begins_with(SK, :sk)"),
+			ExpressionAttributeValues: map[string]types.AttributeValue{
+				":userId": &types.AttributeValueMemberS{Value: userId},
+				":sk":     &types.AttributeValueMemberS{Value: "PROFILE#"},
+			},
+		})
+		if err != nil {
+			log.Println("Error fetching user profile:", err.Error())
+			return activeParkings, errors.New("error fetching user profile")
+		}
+
+		if len(scanRes.Items) == 0 {
+			log.Printf("User not found with ID: %s", userId)
+			return activeParkings, errors.New("user not found")
+		}
+
+		userEmail = scanRes.Items[0]["Email"].(*types.AttributeValueMemberS).Value
 	}
 
 	queryRes, err := nosqlpr.client.Query(ctx, &dynamodb.QueryInput{
