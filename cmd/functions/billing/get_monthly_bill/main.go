@@ -8,6 +8,8 @@ import (
 	"strconv"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
+	authenticationmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/authentication_middleware"
+	corsmiddleware "github.com/Kaushik1766/ParkingManagement/internal/middleware/cors_middleware"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	billrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/bill_repository"
 	parkinghistoryrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/parking_history_repository"
@@ -42,11 +44,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 
 	if userId == "" {
-		// Fallback for testing or if middleware is different
-		userId = request.QueryStringParameters["userId"]
-	}
-
-	if userId == "" {
+		log.Println("Unauthorized: User ID not found in context")
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusUnauthorized,
 			Body:       `{"message": "Unauthorized: User ID not found in context"}`,
@@ -57,6 +55,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	yearStr := request.QueryStringParameters["year"]
 
 	if monthStr == "" || yearStr == "" {
+		log.Println("Missing required query parameters: month, year")
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusBadRequest,
 			Body:       `{"message": "Missing required query parameters: month, year"}`,
@@ -65,6 +64,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	month, err := strconv.Atoi(monthStr)
 	if err != nil || month < 1 || month > 12 {
+		log.Println("Invalid month value")
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusBadRequest,
 			Body:       `{"message": "Invalid month"}`,
@@ -73,6 +73,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 	year, err := strconv.Atoi(yearStr)
 	if err != nil {
+		log.Println("Invalid year value")
 		return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusBadRequest,
 			Body:       `{"message": "Invalid year"}`,
@@ -113,5 +114,5 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 }
 
 func main() {
-	lambda.Start(handler)
+	lambda.Start(corsmiddleware.WithCORS(authenticationmiddleware.AuthorizedInvoke(handler)))
 }

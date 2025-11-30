@@ -384,6 +384,7 @@ Resources:
           Properties:
             Path: /billing
             Method: get
+            RestApiId: !Ref Api
 
   GenerateBill:
     Type: AWS::Serverless::Function
