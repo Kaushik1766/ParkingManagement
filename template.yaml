@@ -40,6 +40,11 @@ Resources:
                   - dynamodb:*
                 Resource: arn:aws:dynamodb:ap-south-1:513758042129:table/pm_nosql
 
+  EmailQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 300
+
   Login:
     Type: AWS::Serverless::Function
     Metadata:
@@ -399,3 +404,18 @@ Resources:
           Type: ScheduleV2
           Properties:
             ScheduleExpression: rate(30 days)
+
+  SendEmail:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: cmd/functions/billing/email
+      Handler: main
+      Policies:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt EmailQueue.Arn

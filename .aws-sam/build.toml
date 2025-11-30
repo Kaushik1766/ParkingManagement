@@ -288,4 +288,16 @@ functions = ["GenerateBill"]
 [function_build_definitions.ef316486-c471-4e82-b2f1-e72a1e74ca3b.metadata]
 BuildMethod = "go1.x"
 
+[function_build_definitions.8628ef0a-545c-4c05-a66a-10781e124008]
+codeuri = "/home/kaushik/ParkingManagement/cmd/functions/billing/email"
+runtime = "provided.al2023"
+architecture = "x86_64"
+handler = "main"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["SendEmail"]
+
+[function_build_definitions.8628ef0a-545c-4c05-a66a-10781e124008.metadata]
+BuildMethod = "go1.x"
+
 [layer_build_definitions]
