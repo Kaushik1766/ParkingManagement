@@ -32,7 +32,7 @@ func (nosqlbr *NOSQLBillRepository) SaveBill(ctx context.Context, bill models.Bi
 	}
 
 	// bill.UserId contains the user email
-	pk := fmt.Sprintf("USER#%s", bill.UserId)
+	pk := fmt.Sprintf("USER#%s", bill.UserEmail)
 	sk := fmt.Sprintf("BILL#%d#%d", billDate.Year(), billDate.Month())
 
 	// Convert ParkingHistory to a list of maps for DynamoDB
@@ -74,9 +74,9 @@ func (nosqlbr *NOSQLBillRepository) SaveBill(ctx context.Context, bill models.Bi
 	return nil
 }
 
-func (nosqlbr *NOSQLBillRepository) GetBill(ctx context.Context, userId string, month, year int) (models.BillDTO, error) {
+func (nosqlbr *NOSQLBillRepository) GetBill(ctx context.Context, userEmail string, month, year int) (models.BillDTO, error) {
 	// userId is the user email
-	pk := fmt.Sprintf("USER#%s", userId)
+	pk := fmt.Sprintf("USER#%s", userEmail)
 	sk := fmt.Sprintf("BILL#%d#%d", year, month)
 
 	res, err := nosqlbr.client.GetItem(ctx, &dynamodb.GetItemInput{
@@ -96,7 +96,7 @@ func (nosqlbr *NOSQLBillRepository) GetBill(ctx context.Context, userId string, 
 	}
 
 	var bill models.BillDTO
-	bill.UserId = userId
+	bill.UserEmail = userEmail
 	bill.BillDate = res.Item["BillDate"].(*types.AttributeValueMemberS).Value
 	totalAmountStr := res.Item["TotalAmount"].(*types.AttributeValueMemberN).Value
 	bill.TotalAmount, _ = strconv.ParseFloat(totalAmountStr, 64)

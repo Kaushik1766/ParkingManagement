@@ -1,10 +1,19 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/aws/serverless-application-model/main/samtranslator/schema/schema.json
 Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  SMTPUsername:
+    Description: "smtp username for the email service"
+    Type: String
+  SMTPPassword:
+    Description: "smtp password"
+    Type: String
+
 Globals:
   Function:
     Architectures:
       - x86_64
-    Timeout: 200
+    Timeout: 30
     Handler: bootstrap
     Runtime: provided.al2023
 
@@ -40,10 +49,20 @@ Resources:
                   - dynamodb:*
                 Resource: arn:aws:dynamodb:ap-south-1:513758042129:table/pm_nosql
 
+  EmailDLQ:
+    Type: AWS::SQS::Queue
+    # Properties:
+    #   RedriveAllowPolicy:
+    #     redrivePermission: allowAll
+    #     sourceQueueArns: !GetAtt EmailQueue.Arn
+
   EmailQueue:
     Type: AWS::SQS::Queue
     Properties:
-      VisibilityTimeout: 300
+      VisibilityTimeout: 30
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt EmailDLQ.Arn
+        maxReceiveCount: 3
 
   Login:
     Type: AWS::Serverless::Function
@@ -397,8 +416,20 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: cmd/functions/billing/generate_bill
+      Timeout: 300
       Handler: main
-      Role: !GetAtt LambdaRole.Arn
+      Environment:
+        Variables:
+          EMAIL_SQS: !GetAtt EmailQueue.QueueUrl
+      Policies:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - sqs:sendMessage
+              Resource: !GetAtt EmailQueue.Arn
       Events:
         MonthlySchedule:
           Type: ScheduleV2
@@ -411,11 +442,18 @@ Resources:
       BuildMethod: go1.x
     Properties:
       CodeUri: cmd/functions/billing/email
+      Environment:
+        Variables:
+          SMTP_USERNAME: !Ref SMTPUsername
+          SMTP_PASSWORD: !Ref SMTPPassword
       Handler: main
+      Timeout: 300
       Policies:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole
       Events:
         SQSEvent:
           Type: SQS
           Properties:
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
             Queue: !GetAtt EmailQueue.Arn

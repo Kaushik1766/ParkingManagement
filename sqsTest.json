@@ -1,0 +1,18 @@
+[
+  {
+    "Id": "1",
+    "MessageBody": "{\"to\":\"noobitanobi176@gmail.com\",\"header\":\"Test Email Header\",\"body\":\"This is a test email body.\"}"
+  },
+  {
+    "Id": "2",
+    "MessageBody": "{\"to\":\"noobitanobi176@gmail.com\",\"header\":\"Test Email Header\",\"body\":\"This is a test email body.\"}"
+  },
+  {
+    "Id": "3",
+    "MessageBody": "{\"to\":\"noobitanobi176@gmail.com\",\"header\":\"Test Email Header\",\"body\":\"This is a test email body.\"}"
+  },
+  {
+    "Id": "4",
+    "MessageBody": "{\"to\":\"noobitanobi176@gmail.com\",\"header\":\"Test Email Header\",\"body\":\"This is a test email body.\"}"
+  }
+]

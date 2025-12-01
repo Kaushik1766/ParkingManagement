@@ -2,16 +2,23 @@ package billingservice
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
+	"os"
+	"strings"
 	"time"
 
+	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	billingrates "github.com/Kaushik1766/ParkingManagement/internal/constants/billing_rates"
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	billrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/bill_repository"
 	parkinghistoryrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/parking_history_repository"
 	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
 
 type BillingService struct {
@@ -20,6 +27,7 @@ type BillingService struct {
 	userRepository    userrepository.UserStorage
 	parkingRepository parkinghistoryrepository.ParkingHistoryStorage
 	billRepository    billrepository.BillStorage
+	sqsClient         *sqs.Client
 }
 
 // func NewBillingService(userService userservice.UserManager, parkingHistoryService parkinghistoryservice.ParkingHistoryMgr) *BillingService {
@@ -29,11 +37,12 @@ type BillingService struct {
 // 	}
 // }
 
-func NewBillingService(userRepo userrepository.UserStorage, parkingRepo parkinghistoryrepository.ParkingHistoryStorage, billRepo billrepository.BillStorage) *BillingService {
+func NewBillingService(userRepo userrepository.UserStorage, parkingRepo parkinghistoryrepository.ParkingHistoryStorage, billRepo billrepository.BillStorage, sqsClient *sqs.Client) *BillingService {
 	return &BillingService{
 		userRepository:    userRepo,
 		parkingRepository: parkingRepo,
 		billRepository:    billRepo,
+		sqsClient:         sqsClient,
 	}
 }
 
@@ -44,7 +53,7 @@ func (bs *BillingService) GetMonthlyBill(ctx context.Context, userId string, mon
 		log.Printf("billingservice: Error fetching bill for user %s: %v\n", userId, err)
 		return models.BillDTO{}, err
 	}
-	if existingBill.UserId == "" {
+	if existingBill.UserEmail == "" {
 		return models.BillDTO{}, errors.New("bill not found")
 	}
 
@@ -58,7 +67,7 @@ func (bs *BillingService) GenerateMonthlyBills(ctx context.Context) {
 		return
 	}
 
-	// Generate for previous month
+	// gen for prev month
 	now := time.Now()
 	startTime := time.Date(now.Year(), now.Month()-1, 1, 0, 0, 0, 0, time.Local)
 	endTime := startTime.AddDate(0, 1, 0).Add(-time.Nanosecond)
@@ -71,14 +80,13 @@ func (bs *BillingService) GenerateMonthlyBills(ctx context.Context) {
 		userEmail := user.Email
 		userId := user.UserID.String()
 
-		// Check if bill already exists (using email)
+		// check if already generated
 		existingBill, err := bs.billRepository.GetBill(ctx, userEmail, month, year)
-		if err == nil && existingBill.UserId != "" {
+		if err == nil && existingBill.UserEmail != "" {
 			log.Printf("billingservice: Bill already exists for user %s, skipping...\n", userEmail)
 			continue
 		}
 
-		// Get parking history using UUID (will be converted to email in repository)
 		parkingHistory, err := bs.parkingRepository.GetParkingHistoryByUser(ctx, userId, startTime, endTime)
 		if err != nil {
 			log.Printf("billingservice: Error fetching parking history for user %s: %v\n", userId, err)
@@ -105,12 +113,15 @@ func (bs *BillingService) GenerateMonthlyBills(ctx context.Context) {
 			ParkingHistory: parkingHistory,
 			TotalAmount:    totalAmount,
 			BillDate:       time.Now().Format(time.DateOnly),
-			UserId:         userEmail,
+			UserEmail:      userEmail,
 		}
 
-		log.Printf("billingservice: Creating bill for user %s with %d parking records, total amount: %.2f", userEmail, len(bill.ParkingHistory), totalAmount)
+		err = bs.sendToSQS(ctx, bill)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
 
-		// Store the bill
 		err = bs.billRepository.SaveBill(ctx, bill)
 		if err != nil {
 			log.Printf("billingservice: Error saving bill for user %s: %v\n", userEmail, err)
@@ -118,4 +129,36 @@ func (bs *BillingService) GenerateMonthlyBills(ctx context.Context) {
 			log.Printf("billingservice: Generated and saved bill for user %s\n", userEmail)
 		}
 	}
+}
+
+func (bs *BillingService) sendToSQS(ctx context.Context, bill models.BillDTO) error {
+	queueUrl := os.Getenv("EMAIL_SQS")
+	emailMessage := models.SQSEmailMessage{
+		To:     bill.UserEmail,
+		Header: fmt.Sprintf(constants.BillEmailHeader, bill.BillDate),
+		Body:   formatBillBody(bill),
+	}
+
+	messageBytes, err := json.Marshal(emailMessage)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	_, err = bs.sqsClient.SendMessage(ctx, &sqs.SendMessageInput{
+		MessageBody: aws.String(string(messageBytes)),
+		QueueUrl:    aws.String(queueUrl),
+	})
+	return err
+}
+
+func formatBillBody(bill models.BillDTO) string {
+	formattedBill := strings.Builder{}
+
+	for _, parking := range bill.ParkingHistory {
+		formattedBill.WriteString(parking.String())
+	}
+
+	formattedBill.WriteString(fmt.Sprintf("Total amount: %f\nBillDate: %s", bill.TotalAmount, bill.BillDate))
+	return formattedBill.String()
 }

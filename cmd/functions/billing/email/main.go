@@ -2,36 +2,30 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
 	"log"
 
-	"github.com/Kaushik1766/ParkingManagement/internal/config"
-	billrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/bill_repository"
-	parkinghistoryrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/parking_history_repository"
-	userrepository "github.com/Kaushik1766/ParkingManagement/internal/repository/user_repository"
-	billingservice "github.com/Kaushik1766/ParkingManagement/internal/service/billing_service"
+	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	emailservice "github.com/Kaushik1766/ParkingManagement/internal/service/email_service"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	awsconfig "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
-var billingService billingservice.BillingMgr
+// var billingService billingservice.BillingMgr
 var emailService emailservice.EmailManager
 
 func init() {
-	cfg, err := awsconfig.LoadDefaultConfig(context.TODO(), awsconfig.WithRegion(config.AwsRegion))
-	if err != nil {
-		log.Fatalf("unable to load SDK config, %v", err)
-	}
+	// cfg, err := awsconfig.LoadDefaultConfig(context.TODO(), awsconfig.WithRegion(config.AwsRegion))
+	// if err != nil {
+	// 	log.Fatalf("unable to load SDK config, %v", err)
+	// }
 
-	client := dynamodb.NewFromConfig(cfg)
-	userRepo := userrepository.NewNOSQLUserRepository(client)
-	parkingRepo := parkinghistoryrepository.NewNOSQLParkingRepository(client)
-	billRepo := billrepository.NewNOSQLBillRepository(client)
+	// client := dynamodb.NewFromConfig(cfg)
+	// userRepo := userrepository.NewNOSQLUserRepository(client)
+	// parkingRepo := parkinghistoryrepository.NewNOSQLParkingRepository(client)
+	// billRepo := billrepository.NewNOSQLBillRepository(client)
 
-	billingService = billingservice.NewBillingService(userRepo, parkingRepo, billRepo)
+	// billingService = billingservice.NewBillingService(userRepo, parkingRepo, billRepo)
 	emailService = emailservice.NewEmailService()
 }
 
@@ -39,7 +33,34 @@ func main() {
 	lambda.Start(handler)
 }
 
-func handler(ctx context.Context, event events.SQSMessage) error {
-	fmt.Println(event.Body)
-	return nil
+func handler(ctx context.Context, event events.SQSEvent) (events.SQSEventResponse, error) {
+	failedEvents := []events.SQSBatchItemFailure{}
+
+	log.Printf("num of messages received: %d", len(event.Records))
+
+	for _, r := range event.Records {
+		log.Printf("Body: %s, MessageId: %s\n", r.Body, r.MessageId)
+
+		var sqsMessage models.SQSEmailMessage
+
+		err := json.Unmarshal([]byte(r.Body), &sqsMessage)
+		if err != nil {
+			log.Println(err)
+			failedEvents = append(failedEvents, events.SQSBatchItemFailure{
+				ItemIdentifier: r.MessageId,
+			})
+		}
+
+		err = emailService.SendEmail(ctx, sqsMessage)
+		if err != nil {
+			log.Println(err)
+			failedEvents = append(failedEvents, events.SQSBatchItemFailure{
+				ItemIdentifier: r.MessageId,
+			})
+		}
+	}
+
+	return events.SQSEventResponse{
+		BatchItemFailures: failedEvents,
+	}, nil
 }

@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
 
 var billingService billingservice.BillingMgr
@@ -30,11 +31,12 @@ func init() {
 	}
 
 	client := dynamodb.NewFromConfig(cfg)
+	sqsClient := sqs.NewFromConfig(cfg)
 	userRepo := userrepository.NewNOSQLUserRepository(client)
 	parkingRepo := parkinghistoryrepository.NewNOSQLParkingRepository(client)
 	billRepo := billrepository.NewNOSQLBillRepository(client)
 
-	billingService = billingservice.NewBillingService(userRepo, parkingRepo, billRepo)
+	billingService = billingservice.NewBillingService(userRepo, parkingRepo, billRepo, sqsClient)
 }
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {

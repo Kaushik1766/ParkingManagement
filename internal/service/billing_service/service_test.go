@@ -33,7 +33,7 @@ func TestBillingService_GetMonthlyBill(t *testing.T) {
 	expectedBill := models.BillDTO{
 		TotalAmount: 400, // 2 hours * 200
 		BillDate:    time.Now().Format(time.DateOnly),
-		UserId:      userID,
+		UserEmail:      userID,
 	}
 
 	type fields struct {
@@ -121,8 +121,8 @@ func TestBillingService_GetMonthlyBill(t *testing.T) {
 			if !tt.wantErr {
 				// We can't compare BillDate exactly because it uses time.Now()
 				// So we'll check other fields and ensure BillDate is today
-				if got.UserId != tt.want.UserId {
-					t.Errorf("BillingService.GetMonthlyBill() UserId = %v, want %v", got.UserId, tt.want.UserId)
+				if got.UserEmail != tt.want.UserEmail {
+					t.Errorf("BillingService.GetMonthlyBill() UserId = %v, want %v", got.UserEmail, tt.want.UserEmail)
 				}
 				if got.TotalAmount != tt.want.TotalAmount {
 					t.Errorf("BillingService.GetMonthlyBill() TotalAmount = %v, want %v", got.TotalAmount, tt.want.TotalAmount)
