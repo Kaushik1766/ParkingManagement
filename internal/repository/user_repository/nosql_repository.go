@@ -25,16 +25,18 @@ func NewNOSQLUserRepository(client *dynamodb.Client) *NOSQLUserRepository {
 	}
 }
 
+// TODO: change query to get by email coz now pk contains uuid not email
 func (nosqlur *NOSQLUserRepository) GetUserByEmail(ctx context.Context, email string) (models.User, error) {
 	var user models.User
 
+	// query in reverse lookup to get uuid
 	queryRes, err := nosqlur.client.Query(ctx, &dynamodb.QueryInput{
 		TableName:              aws.String(config.DynamoDBTable),
-		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
+		KeyConditionExpression: aws.String("PK = :pk AND SK = :sk"),
 		FilterExpression:       aws.String("IsActive = :active"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk":     &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", email)},
-			":sk":     &types.AttributeValueMemberS{Value: "PROFILE#"},
+			":pk":     &types.AttributeValueMemberS{Value: "USER"},
+			":sk":     &types.AttributeValueMemberS{Value: email},
 			":active": &types.AttributeValueMemberBOOL{Value: true},
 		},
 	})
@@ -48,8 +50,19 @@ func (nosqlur *NOSQLUserRepository) GetUserByEmail(ctx context.Context, email st
 		return user, errors.New("user not found")
 	}
 
+	id := queryRes.Items[0]["UUID"].(*types.AttributeValueMemberS).Value
+
+	userQuery, err := nosqlur.client.Query(ctx, &dynamodb.QueryInput{
+		TableName:              aws.String(config.DynamoDBTable),
+		KeyConditionExpression: aws.String("PK = :pk and begins_with(SK, :sk)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s")},
+			":sk": &types.AttributeValueMemberS{Value: "PROFILE#"},
+		},
+	})
+
 	item := queryRes.Items[0]
-	user = nosqlur.itemToUser(item)
+	user = nosqlur.itemToUser(ctx, item)
 
 	return user, nil
 }
@@ -57,14 +70,12 @@ func (nosqlur *NOSQLUserRepository) GetUserByEmail(ctx context.Context, email st
 func (nosqlur *NOSQLUserRepository) GetUserById(ctx context.Context, id string) (models.User, error) {
 	var user models.User
 
-	// TODO: fix scan, coz db schema updated
-	scanRes, err := nosqlur.client.Scan(ctx, &dynamodb.ScanInput{
-		TableName:        aws.String(config.DynamoDBTable),
-		FilterExpression: aws.String("Id = :id AND begins_with(SK, :sk) AND IsActive = :active"),
+	res, err := nosqlur.client.Query(ctx, &dynamodb.QueryInput{
+		TableName:              aws.String(config.DynamoDBTable),
+		KeyConditionExpression: aws.String("PK = :pk and begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":id":     &types.AttributeValueMemberS{Value: id},
-			":sk":     &types.AttributeValueMemberS{Value: "PROFILE#"},
-			":active": &types.AttributeValueMemberBOOL{Value: true},
+			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", id)},
+			":sk": &types.AttributeValueMemberS{Value: "PROFILE#"},
 		},
 	})
 	if err != nil {
@@ -72,13 +83,13 @@ func (nosqlur *NOSQLUserRepository) GetUserById(ctx context.Context, id string) 
 		return user, errors.New("error fetching user")
 	}
 
-	if len(scanRes.Items) == 0 {
+	if len(res.Items) == 0 {
 		log.Println("user not found in GetUserById")
 		return user, errors.New("user not found")
 	}
 
-	item := scanRes.Items[0]
-	user = nosqlur.itemToUser(item)
+	item := res.Items[0]
+	user = nosqlur.itemToUser(ctx, item)
 
 	return user, nil
 }
@@ -101,7 +112,7 @@ func (nosqlur *NOSQLUserRepository) GetAllUsers(ctx context.Context) ([]models.U
 	}
 
 	for _, item := range scanRes.Items {
-		user := nosqlur.itemToUser(item)
+		user := nosqlur.itemToUser(ctx, item)
 		users = append(users, user)
 	}
 
@@ -206,7 +217,7 @@ func (nosqlur *NOSQLUserRepository) CreateUser(ctx context.Context, name, email,
 }
 
 // helper for dynamo to user
-func (nosqlur *NOSQLUserRepository) itemToUser(item map[string]types.AttributeValue) models.User {
+func (nosqlur *NOSQLUserRepository) itemToUser(ctx context.Context, item map[string]types.AttributeValue) models.User {
 	var user models.User
 
 	user.UserID = uuid.MustParse(item["Id"].(*types.AttributeValueMemberS).Value)
@@ -229,13 +240,29 @@ func (nosqlur *NOSQLUserRepository) itemToUser(item map[string]types.AttributeVa
 
 	user.IsActive = item["IsActive"].(*types.AttributeValueMemberBOOL).Value
 
-	// Get office info if present
-	if item["Office"] != nil {
-		user.Office.OfficeName = item["Office"].(*types.AttributeValueMemberS).Value
-	}
+	// if item["Office"] != nil {
+	// 	user.Office.OfficeName = item["Office"].(*types.AttributeValueMemberS).Value
+	// }
 	if item["OfficeId"] != nil {
 		user.OfficeID = uuid.MustParse(item["OfficeId"].(*types.AttributeValueMemberS).Value)
 		user.Office.OfficeID = user.OfficeID
+
+		res, err := nosqlur.client.Query(ctx, &dynamodb.QueryInput{
+			TableName:              aws.String(config.DynamoDBTable),
+			KeyConditionExpression: aws.String("PK = :pk AND SK = :sk"),
+			ExpressionAttributeValues: map[string]types.AttributeValue{
+				":pk": &types.AttributeValueMemberS{Value: "OFFICE"},
+				":sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("DETAILS#%s", user.OfficeID.String())},
+			},
+			AttributesToGet: []string{
+				"OfficeName",
+			},
+		})
+		if err == nil && len(res.Items) > 0 {
+			user.Office.OfficeName = res.Items[0]["OfficeName"].(*types.AttributeValueMemberS).Value
+		}
+
+		user.Office.OfficeName = item["OfficeName"].(*types.AttributeValueMemberS).Value
 	}
 
 	return user

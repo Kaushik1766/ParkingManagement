@@ -61,7 +61,7 @@
   },
   "Office": {
     "PK": "OFFICE",
-    "SK": "DETAILS#Watchguard",
+    "SK": "DETAILS#<uuid>",
     "OfficeName": "Watchguard",
     "BuildingId": "BUILDING#B1",
     "FloorNumber": 1,
