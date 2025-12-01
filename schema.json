@@ -4,31 +4,37 @@
     "floors": "keeping separate because of 2 reasons 1. same as before adding/removing/updating slot status rewrites the whole building (if embedded), 2. querying for available slots becomes easier",
     "buildingName": "keeping pk as building#buildingid instead of name coz name can change later, but id will remain same"
   },
+  // reverse lookup for email to uuid
+  "EmailUserIdLookup": {
+    "PK": "USER",
+    "SK": "<email>",
+    "UUID": "<uuid>"
+  },
   "User": {
-    "PK": "USER#kaushik@a.com",
-    "SK": "PROFILE#uuid", // come back to this later
-    "Email": "kaushik@a.com",
-    "Id": "uuid",
-    "Username": "Kaushik Saha",
-    "PasswordHash": "$2b$10$...",
-    "Office": "Watchguard",
-    "Role": "ADMIN"
+    "PK": "USER#<uuid>",
+    "SK": "PROFILE",
+    "Email": "<email>",
+    "Id": "<uuid>",
+    "Username": "<full_name>",
+    "PasswordHash": "<hashed_password>",
+    "OfficeId": "<uuid>",
+    "Role": "<Customer|Admin>"
   },
   "Vehicle": {
-    "PK": "USER#kaushik@a.com",
-    "SK": "VEHICLE#UP32KK2222",
-    "VehicleId": "uuid",
-    "Numberplate": "UP32KK2222",
-    "VehicleType": "TwoWheeler",
+    "PK": "USER#<uuid>",
+    "SK": "VEHICLE#<numberplate>",
+    "VehicleId": "<uuid>",
+    "Numberplate": "<numberplate>",
+    "VehicleType": "<TwoWheeler|FourWheeler>",
     "IsParked": true,
     "AssignedSlot": {
-      "BuildingId": "BUILDING#B1",
+      "BuildingId": "BUILDING#<building_id>",
       "FloorNumber": 1,
       "SlotId": "SLOT#S1"
     }
   },
   "ParkingHistory": {
-    "PK": "USER#kaushik@a.com",
+    "PK": "USER#<uuid>",
     "SK": "PARKING#timestamp",
     "Numberplate": "UP32KK2222",
     "BuildingId": "BUILDING#B1",
@@ -41,7 +47,7 @@
     "PK": "BUILDING",
     "SK": "BUILDING#B1",
     "BuildingId": "B1",
-    "BuildingName": "Advant",
+    "BuildingName": "<building_name>",
     "TotalFloors": 3,
     "AvailableSlots": 50
   },
@@ -51,7 +57,7 @@
     "FloorNumber": 1,
     "TotalSlots": 20,
     "AvailableSlots": 15,
-    "Office": "Watchguard"
+    "OfficeId": "<uuid>"
   },
   "Office": {
     "PK": "OFFICE",
@@ -63,7 +69,7 @@
   },
   "Slot": {
     "PK": "BUILDING#B1",
-    "SK": "SLOT#F1#1",
+    "SK": "FLOOR#F1#SLOT#1",
     "SlotId": "1",
     "SlotType": "TwoWheeler",
     "IsOccupied": true,
@@ -75,7 +81,7 @@
     }
   },
   "Bill": {
-    "PK": "USER#kaushik@a.com",
+    "PK": "USER#<uuid>",
     "SK": "BILL#2023#10",
     "TotalAmount": 200,
     "BillDate": "2023-11-01",

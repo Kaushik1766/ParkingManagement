@@ -289,6 +289,7 @@ func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByUser(ctx context.Conte
 	if ctxUser, ok := ctx.Value(constants.User).(models.UserJwt); ok {
 		userEmail = ctxUser.Email
 	} else {
+		// TODO: scan can be fixed
 		scanRes, err := nosqlpr.client.Scan(ctx, &dynamodb.ScanInput{
 			TableName:        aws.String(config.DynamoDBTable),
 			FilterExpression: aws.String("Id = :userId AND begins_with(SK, :sk)"),
@@ -382,6 +383,7 @@ func (nosqlpr *NOSQLParkingRepository) GetActiveUserParkings(ctx context.Context
 	if ctxUser, ok := ctx.Value(constants.User).(models.UserJwt); ok {
 		userEmail = ctxUser.Email
 	} else {
+		// TODO: can be fixed by querying USER#userid, begins_with SK PARKING# and filter EndTime not exists
 		scanRes, err := nosqlpr.client.Scan(ctx, &dynamodb.ScanInput{
 			TableName:        aws.String(config.DynamoDBTable),
 			FilterExpression: aws.String("Id = :userId AND begins_with(SK, :sk)"),

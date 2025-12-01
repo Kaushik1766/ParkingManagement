@@ -155,7 +155,7 @@ func (nosqlor *NOSQLOfficeRepository) GetAllOffices(ctx context.Context) ([]mode
 func (nosqlor *NOSQLOfficeRepository) GetOfficeByName(ctx context.Context, officeName string) (models.Office, error) {
 	var office models.Office
 
-	// Need to scan since offices are stored with PK=BUILDING#{id}, not PK=BUILDING
+	// TODO: scan not required, will fix this
 	scanRes, err := nosqlor.client.Scan(ctx, &dynamodb.ScanInput{
 		TableName:        aws.String(config.DynamoDBTable),
 		FilterExpression: aws.String("begins_with(SK, :sk) AND Office = :officeName"),

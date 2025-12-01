@@ -57,7 +57,7 @@ func (nosqlur *NOSQLUserRepository) GetUserByEmail(ctx context.Context, email st
 func (nosqlur *NOSQLUserRepository) GetUserById(ctx context.Context, id string) (models.User, error) {
 	var user models.User
 
-	// func rarely used, only in case of admin to fetch particular user, so used scan
+	// TODO: fix scan, coz db schema updated
 	scanRes, err := nosqlur.client.Scan(ctx, &dynamodb.ScanInput{
 		TableName:        aws.String(config.DynamoDBTable),
 		FilterExpression: aws.String("Id = :id AND begins_with(SK, :sk) AND IsActive = :active"),
@@ -86,6 +86,7 @@ func (nosqlur *NOSQLUserRepository) GetUserById(ctx context.Context, id string) 
 func (nosqlur *NOSQLUserRepository) GetAllUsers(ctx context.Context) ([]models.User, error) {
 	var users []models.User
 
+	// TODO: this function isnt needed much, for billing get only user ids, and delete the get all users admin route coz its not used
 	scanRes, err := nosqlur.client.Scan(ctx, &dynamodb.ScanInput{
 		TableName:        aws.String(config.DynamoDBTable),
 		FilterExpression: aws.String("begins_with(SK, :sk) AND IsActive = :active"),
@@ -153,6 +154,7 @@ func (nosqlur *NOSQLUserRepository) CreateUser(ctx context.Context, name, email,
 	var officeId uuid.UUID
 
 	if officeName != "" {
+		// TODO: checking of office existence can be done using the OFFICE PK
 		scanRes, err := nosqlur.client.Scan(ctx, &dynamodb.ScanInput{
 			TableName:        aws.String(config.DynamoDBTable),
 			FilterExpression: aws.String("Office = :office AND begins_with(SK, :sk)"),

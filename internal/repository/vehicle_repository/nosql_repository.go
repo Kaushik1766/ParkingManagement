@@ -139,6 +139,7 @@ func (nosqlvr *NOSQLVehicleRepository) RemoveVehicle(ctx context.Context, number
 func (nosqlvr *NOSQLVehicleRepository) GetVehicleById(ctx context.Context, vehicleId uuid.UUID) (models.Vehicle, error) {
 	var vehicle models.Vehicle
 
+	// TODO: numberplate to vehicle id reverse lookup can be created
 	scanRes, err := nosqlvr.client.Scan(ctx, &dynamodb.ScanInput{
 		TableName:        aws.String(config.DynamoDBTable),
 		FilterExpression: aws.String("VehicleId = :vehicleId AND begins_with(SK, :sk)"),
@@ -258,31 +259,32 @@ func (nosqlvr *NOSQLVehicleRepository) GetVehicleByNumberPlate(ctx context.Conte
 }
 
 func (nosqlvr *NOSQLVehicleRepository) GetVehiclesWithUnassignedSlots(ctx context.Context) (vehicles []models.Vehicle, err error) {
-	scanRes, err := nosqlvr.client.Scan(ctx, &dynamodb.ScanInput{
-		TableName:        aws.String(config.DynamoDBTable),
-		FilterExpression: aws.String("attribute_not_exists(AssignedSlot) AND begins_with(SK, :sk)"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":sk": &types.AttributeValueMemberS{Value: "VEHICLE#"},
-		},
-	})
-	if err != nil {
-		log.Println(err.Error())
-		return nil, errors.New("error fetching vehicles with unassigned slots")
-	}
+	// scanRes, err := nosqlvr.client.Scan(ctx, &dynamodb.ScanInput{
+	// 	TableName:        aws.String(config.DynamoDBTable),
+	// 	FilterExpression: aws.String("attribute_not_exists(AssignedSlot) AND begins_with(SK, :sk)"),
+	// 	ExpressionAttributeValues: map[string]types.AttributeValue{
+	// 		":sk": &types.AttributeValueMemberS{Value: "VEHICLE#"},
+	// 	},
+	// })
+	// if err != nil {
+	// 	log.Println(err.Error())
+	// 	return nil, errors.New("error fetching vehicles with unassigned slots")
+	// }
 
-	for _, item := range scanRes.Items {
-		vehicle := nosqlvr.itemToVehicle(item)
-		// Fetch UserID from email
-		userID, err := nosqlvr.getUserIDFromEmail(ctx, vehicle.UserEmail)
-		if err != nil {
-			log.Println("Warning: could not fetch UserID:", err.Error())
-		} else {
-			vehicle.UserID = userID
-		}
-		vehicles = append(vehicles, vehicle)
-	}
+	// for _, item := range scanRes.Items {
+	// 	vehicle := nosqlvr.itemToVehicle(item)
+	// 	// Fetch UserID from email
+	// 	userID, err := nosqlvr.getUserIDFromEmail(ctx, vehicle.UserEmail)
+	// 	if err != nil {
+	// 		log.Println("Warning: could not fetch UserID:", err.Error())
+	// 	} else {
+	// 		vehicle.UserID = userID
+	// 	}
+	// 	vehicles = append(vehicles, vehicle)
+	// }
 
-	return vehicles, nil
+	// return vehicles, nil
+	panic("Not implemented yet coz not used")
 }
 
 func (nosqlvr *NOSQLVehicleRepository) GetParkingStatus(ctx context.Context, numberplate string) (bool, error) {

@@ -82,6 +82,7 @@ func (nosqlsr *NOSQLSlotRepository) GetSlotsByFloor(ctx context.Context, buildin
 	// Get all active parkings to determine which slots have parked vehicles
 	activeParkings := make(map[string]models.Vehicle)
 
+	// TODO: fix, slot occupancy can be inferred by occupiedby optional attr.
 	scanRes, err := nosqlsr.client.Scan(ctx, &dynamodb.ScanInput{
 		TableName:        aws.String(config.DynamoDBTable),
 		FilterExpression: aws.String("attribute_not_exists(EndTime) AND begins_with(SK, :sk)"),
@@ -172,6 +173,7 @@ func (nosqlsr *NOSQLSlotRepository) GetFreeSlotsByFloor(ctx context.Context, bui
 	// Get all vehicles that have this slot assigned (regardless of parking status)
 	assignedSlots := make(map[string]bool)
 
+	// TODO: slot occupancy can be inferred by occupiedby optional attr.
 	scanRes, err := nosqlsr.client.Scan(ctx, &dynamodb.ScanInput{
 		TableName:        aws.String(config.DynamoDBTable),
 		FilterExpression: aws.String("begins_with(SK, :sk) AND attribute_exists(AssignedSlot)"),

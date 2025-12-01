@@ -8,6 +8,10 @@ region = "ap-south-1"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
 image_repositories = []
+parameter_overrides = [
+    "SMTP_USERNAME=kaushiksaha004@gmail.com",
+    "SMTP_PASSWORD=\"cbtq wsro bvrx ifxm\"",
+]
 
 [default.global.parameters]
 region = "ap-south-1"
