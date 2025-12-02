@@ -13,5 +13,5 @@ type UserStorage interface {
 	GetUserById(ctx context.Context, id string) (models.User, error)
 	GetAllUsers(ctx context.Context) ([]models.User, error)
 	Save(ctx context.Context, user models.User) error
-	CreateUser(ctx context.Context, name, email, password, officeName string, role roles.Role) error
+	CreateUser(ctx context.Context, name, email, password, officeId string, role roles.Role) error
 }

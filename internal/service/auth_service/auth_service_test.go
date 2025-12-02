@@ -155,7 +155,7 @@ func TestAuthService_Signup(t *testing.T) {
 				registerReq: models.RegisterRequestDTO{
 					Name:     "kaushik",
 					Email:    "kaushik@a.com",
-					Office:   "watchguard",
+					OfficeId:   "watchguard",
 					Password: "123",
 				},
 				role: 0,
@@ -171,7 +171,7 @@ func TestAuthService_Signup(t *testing.T) {
 				registerReq: models.RegisterRequestDTO{
 					Name:     "kaushik",
 					Email:    "kaushik",
-					Office:   "watchguard",
+					OfficeId:   "watchguard",
 					Password: "123",
 				},
 				role: 0,
@@ -187,7 +187,7 @@ func TestAuthService_Signup(t *testing.T) {
 				registerReq: models.RegisterRequestDTO{
 					Name:   "kaushik",
 					Email:  "kaushik@a.com",
-					Office: "watchguard",
+					OfficeId: "watchguard",
 					Password: func() string {
 						pass := ""
 						for range 100 {
@@ -209,7 +209,7 @@ func TestAuthService_Signup(t *testing.T) {
 				registerReq: models.RegisterRequestDTO{
 					Name:     "kaushik",
 					Email:    "kaushik@a.com",
-					Office:   "watchguard",
+					OfficeId:   "watchguard",
 					Password: "123",
 				},
 				role: 0,

@@ -21,7 +21,7 @@ Resources:
   Api:
     Type: AWS::Serverless::Api
     Properties:
-      StageName: dev
+      StageName: dev1
       Cors:
         AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS,PATCH'"
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"

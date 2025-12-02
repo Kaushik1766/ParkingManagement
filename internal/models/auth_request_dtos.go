@@ -3,7 +3,7 @@ package models
 type RegisterRequestDTO struct {
 	Name     string `json:"name" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
-	Office   string `json:"officeName" validate:"required"`
+	OfficeId string `json:"officeId" validate:"required"`
 	Password string `json:"password"`
 }
 

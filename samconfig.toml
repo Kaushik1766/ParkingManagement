@@ -9,8 +9,8 @@ confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
 image_repositories = []
 parameter_overrides = [
-    "SMTP_USERNAME=kaushiksaha004@gmail.com",
-    "SMTP_PASSWORD=\"cbtq wsro bvrx ifxm\"",
+  "SMTPUsername=kaushiksaha004@gmail.com",
+  "SMTPPassword=\"cbtq wsro bvrx ifxm\"",
 ]
 
 [default.global.parameters]
