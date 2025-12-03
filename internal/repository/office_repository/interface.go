@@ -15,4 +15,5 @@ type OfficeStorage interface {
 	GetOfficesByBuilding(ctx context.Context, buildingID string) ([]models.Office, error)
 	GetAllOffices(ctx context.Context) ([]models.Office, error)
 	GetOfficeByName(ctx context.Context, officeName string) (models.Office, error)
+	GetOfficeById(ctx context.Context, officeId string) (models.Office, error)
 }

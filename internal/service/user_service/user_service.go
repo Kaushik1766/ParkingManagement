@@ -206,12 +206,12 @@ func (us *UserService) UpdateProfile(ctx context.Context, userId string, updateR
 	if updateReq.Email != "" {
 		updatedUser.Email = updateReq.Email
 	}
-	if updateReq.Office != "" {
-		_, err = us.officeRepo.GetOfficeByName(ctx, updateReq.Office)
+	if updateReq.OfficeId != "" {
+		_, err = us.officeRepo.GetOfficeById(ctx, updateReq.OfficeId)
 		if err != nil {
 			return errors.New("office does not exist")
 		}
-		// updatedUser.Office = office
+		updatedUser.OfficeID = uuid.MustParse(updateReq.OfficeId)
 	}
 	if updateReq.Password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updateReq.Password), 12)

@@ -65,15 +65,3 @@ func (officeServ *OfficeService) GetAllOfficeNames(ctx context.Context) ([]strin
 	}
 	return officeNames, nil
 }
-
-func (officeServ *OfficeService) GetOfficeByName(ctx context.Context, officeName string) (models.Office, error) {
-	if officeName == "" {
-		return models.Office{}, errors.New("office name cannot be empty")
-	}
-
-	officeStruct, err := officeServ.officeRepo.GetOfficeByName(ctx, officeName)
-	if err != nil {
-		return models.Office{}, errors.New("office does not exist")
-	}
-	return officeStruct, nil
-}

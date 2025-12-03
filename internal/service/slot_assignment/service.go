@@ -59,7 +59,7 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId 
 
 	// Vehicle doesn't have a slot, need to assign a new one
 	// This means it's the first vehicle of this type for the user
-	userOffice, err := sas.officeRepo.GetOfficeByName(ctx, ctxUser.Office)
+	userOffice, err := sas.officeRepo.GetOfficeById(ctx, ctxUser.OfficeId)
 	if err != nil {
 		log.Println(err.Error())
 		return err

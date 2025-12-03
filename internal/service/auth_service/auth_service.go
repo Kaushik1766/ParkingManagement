@@ -64,9 +64,9 @@ func (auth *AuthService) Login(ctx context.Context, loginReq models.LoginRequest
 
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		models.UserJwt{
-			Email:  user.Email,
-			Role:   user.Role,
-			Office: user.Office.OfficeName,
+			Email:    user.Email,
+			Role:     user.Role,
+			OfficeId: user.Office.OfficeID.String(),
 			RegisteredClaims: jwt.RegisteredClaims{
 				ID:        user.UserID.String(),
 				ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),

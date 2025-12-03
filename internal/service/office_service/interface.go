@@ -12,5 +12,4 @@ type OfficeMgr interface {
 	RemoveOffice(ctx context.Context, officeId string) error
 	ListOfficesByBuilding(ctx context.Context, buildingId string) ([]models.OfficeDTO, error)
 	GetAllOfficeNames(ctx context.Context) ([]string, error)
-	GetOfficeByName(ctx context.Context, officeName string) (models.Office, error)
 }

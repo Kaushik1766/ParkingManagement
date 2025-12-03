@@ -151,8 +151,22 @@ func (nosqlfr *NOSQLFloorRepository) GetFloorsByBuildingId(ctx context.Context, 
 		floor.FloorNumber, _ = strconv.Atoi(item["FloorNumber"].(*types.AttributeValueMemberN).Value)
 		floor.TotalSlots, _ = strconv.Atoi(item["TotalSlots"].(*types.AttributeValueMemberN).Value)
 		floor.AvailableSlots, _ = strconv.Atoi(item["AvailableSlots"].(*types.AttributeValueMemberN).Value)
-		if item["Office"] != nil {
-			floor.AssignedOffice = item["Office"].(*types.AttributeValueMemberS).Value
+		if item["OfficeId"] != nil {
+			officeId := item["OfficeId"].(*types.AttributeValueMemberS).Value
+
+			officeQuery, err := nosqlfr.client.Query(ctx, &dynamodb.QueryInput{
+				TableName:              aws.String(config.DynamoDBTable),
+				KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
+				ExpressionAttributeValues: map[string]types.AttributeValue{
+					":pk": &types.AttributeValueMemberS{Value: "OFFICE"},
+					":sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("DETAILS#%s", officeId)},
+				},
+			})
+			if err != nil {
+				log.Println("Error details:", err.Error())
+				return nil, errors.New("error fetching office")
+			}
+			floor.AssignedOffice = officeQuery.Items[0]["OfficeName"].(*types.AttributeValueMemberS).Value
 		}
 		floors = append(floors, floor)
 	}
