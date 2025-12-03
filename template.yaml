@@ -47,7 +47,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - dynamodb:*
-                Resource: arn:aws:dynamodb:ap-south-1:513758042129:table/pm_nosql
+                Resource: "*"
 
   EmailDLQ:
     Type: AWS::SQS::Queue

@@ -2,6 +2,7 @@ package authservice
 
 import (
 	"context"
+	"log"
 	"net/mail"
 	"time"
 
@@ -30,15 +31,18 @@ func NewAuthService(
 func (auth *AuthService) Signup(ctx context.Context, registerReq models.RegisterRequestDTO, role roles.Role) error {
 	_, err := mail.ParseAddress(registerReq.Email)
 	if err != nil {
+		log.Println(err)
 		return customerrors.NewWebError(err, errorcodes.InvalidInput)
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(registerReq.Password), 12)
 	if err != nil {
+		log.Println(err)
 		return customerrors.NewWebError(err, errorcodes.InternalServerError)
 	}
 
 	err = auth.userDb.CreateUser(ctx, registerReq.Name, registerReq.Email, string(hashedPassword), registerReq.OfficeId, role)
 	if err != nil {
+		log.Println(err)
 		return customerrors.NewWebError(err, errorcodes.UserAlreadyExists)
 	}
 	return nil

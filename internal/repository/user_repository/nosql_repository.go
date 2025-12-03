@@ -32,11 +32,9 @@ func (nosqlur *NOSQLUserRepository) GetUserByEmail(ctx context.Context, email st
 	lookupQuery, err := nosqlur.client.Query(ctx, &dynamodb.QueryInput{
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk AND SK = :sk"),
-		FilterExpression:       aws.String("IsActive = :active"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk":     &types.AttributeValueMemberS{Value: "USER"},
-			":sk":     &types.AttributeValueMemberS{Value: email},
-			":active": &types.AttributeValueMemberBOOL{Value: true},
+			":pk": &types.AttributeValueMemberS{Value: "USER"},
+			":sk": &types.AttributeValueMemberS{Value: email},
 		},
 	})
 	if err != nil {
@@ -59,6 +57,10 @@ func (nosqlur *NOSQLUserRepository) GetUserByEmail(ctx context.Context, email st
 			":sk": &types.AttributeValueMemberS{Value: "PROFILE"},
 		},
 	})
+	if err != nil {
+		log.Println(err.Error())
+		return user, errors.New("error fetching user")
+	}
 
 	item := userQuery.Items[0]
 	user = nosqlur.itemToUser(ctx, item)
@@ -162,23 +164,27 @@ func (nosqlur *NOSQLUserRepository) Save(ctx context.Context, user models.User) 
 
 // DONE: get office id instead of name
 func (nosqlur *NOSQLUserRepository) CreateUser(ctx context.Context, name, email, password, officeId string, role roles.Role) error {
-	if officeId != "" {
-		// check if office exists
-		officeQuery, err := nosqlur.client.Query(ctx, &dynamodb.QueryInput{
-			KeyConditionExpression: aws.String("PK = :pk, SK = :sk"),
-			ExpressionAttributeValues: map[string]types.AttributeValue{
-				":pk": &types.AttributeValueMemberS{Value: "OFFICE"},
-				":sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("DETAILS#%s", officeId)},
-			},
-		})
-		if err != nil {
-			log.Println(err.Error())
-			return errors.New("error fetching office")
-		}
-		if len(officeQuery.Items) == 0 {
-			log.Printf("no office with id %s found", officeId)
-			return errors.New("specified office not found")
-		}
+	if officeId == "" {
+		log.Println("no office id provided")
+		return errors.New("office id is required")
+	}
+
+	// check if office exists
+	officeQuery, err := nosqlur.client.Query(ctx, &dynamodb.QueryInput{
+		TableName:              aws.String(config.DynamoDBTable),
+		KeyConditionExpression: aws.String("PK = :pk AND SK = :sk"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":pk": &types.AttributeValueMemberS{Value: "OFFICE"},
+			":sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("DETAILS#%s", officeId)},
+		},
+	})
+	if err != nil {
+		log.Println(err.Error())
+		return errors.New("error fetching office")
+	}
+	if len(officeQuery.Items) == 0 {
+		log.Printf("no office with id %s found", officeId)
+		return errors.New("specified office not found")
 	}
 
 	// check if user exists
@@ -287,8 +293,6 @@ func (nosqlur *NOSQLUserRepository) itemToUser(ctx context.Context, item map[str
 		if err == nil && len(res.Items) > 0 {
 			user.Office.OfficeName = res.Items[0]["OfficeName"].(*types.AttributeValueMemberS).Value
 		}
-
-		user.Office.OfficeName = item["OfficeName"].(*types.AttributeValueMemberS).Value
 	}
 
 	return user
