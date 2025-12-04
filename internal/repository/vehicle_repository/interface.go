@@ -12,7 +12,6 @@ import (
 type VehicleStorage interface {
 	AddVehicle(ctx context.Context, numberplate string, userid uuid.UUID, vehicleType vehicletypes.VehicleType) (models.Vehicle, error)
 	RemoveVehicle(ctx context.Context, numberplate string) error
-	GetVehicleById(ctx context.Context, vehicleId uuid.UUID) (models.Vehicle, error)
 	GetVehiclesByUserId(ctx context.Context, userId uuid.UUID) ([]models.Vehicle, error)
 	GetVehicleByNumberPlate(ctx context.Context, numberplate string) (models.Vehicle, error)
 	GetVehiclesWithUnassignedSlots(ctx context.Context) (vehicles []models.Vehicle, err error)

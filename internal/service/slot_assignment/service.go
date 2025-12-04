@@ -105,25 +105,3 @@ func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, numberplat
 	log.Printf("No free slot of type %s found among %d free slots", vehicle.VehicleType, len(freeSlots))
 	return errors.New("no free slot available please contact the admin")
 }
-
-func (sas *SlotAssignmentService) AssignSlot(ctx context.Context, vehicleId string, slot models.Slot) error {
-	// ctxUser := ctx.Value(constants.User).(models.UserJwt)
-
-	vehicle, err := sas.vehicleRepo.GetVehicleById(ctx, uuid.MustParse(vehicleId))
-	if err != nil {
-		return err
-	}
-
-	userVehicles, err := sas.vehicleRepo.GetVehiclesByUserId(ctx, vehicle.UserID)
-	if err != nil {
-		return err
-	}
-
-	for i, val := range userVehicles {
-		if val.VehicleType == vehicle.VehicleType {
-			userVehicles[i].AssignedSlot = slot
-			sas.vehicleRepo.Save(ctx, userVehicles[i])
-		}
-	}
-	return sas.slotRepo.Save(ctx, slot)
-}

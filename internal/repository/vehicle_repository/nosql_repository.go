@@ -154,36 +154,6 @@ func (nosqlvr *NOSQLVehicleRepository) RemoveVehicle(ctx context.Context, number
 	return nil
 }
 
-func (nosqlvr *NOSQLVehicleRepository) GetVehicleById(ctx context.Context, vehicleId uuid.UUID) (models.Vehicle, error) {
-	userCtx := ctx.Value(constants.User).(models.UserJwt)
-	var vehicle models.Vehicle
-
-	// TODO: change this to get vehicle by numberplate wherever used
-	scanRes, err := nosqlvr.client.Scan(ctx, &dynamodb.ScanInput{
-		TableName:        aws.String(config.DynamoDBTable),
-		FilterExpression: aws.String("VehicleId = :vehicleId AND begins_with(SK, :sk)"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":vehicleId": &types.AttributeValueMemberS{Value: vehicleId.String()},
-			":sk":        &types.AttributeValueMemberS{Value: "VEHICLE#"},
-		},
-	})
-	if err != nil {
-		log.Println(err.Error())
-		return vehicle, errors.New("error fetching vehicle")
-	}
-
-	if len(scanRes.Items) == 0 {
-		return vehicle, errors.New("vehicle not found")
-	}
-
-	item := scanRes.Items[0]
-	vehicle = nosqlvr.itemToVehicle(item)
-	vehicle.UserID = uuid.MustParse(userCtx.ID)
-	vehicle.UserEmail = userCtx.Email
-
-	return vehicle, nil
-}
-
 func (nosqlvr *NOSQLVehicleRepository) GetVehiclesByUserId(ctx context.Context, userId uuid.UUID) ([]models.Vehicle, error) {
 	var vehicles []models.Vehicle
 
