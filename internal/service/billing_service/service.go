@@ -53,7 +53,7 @@ func (bs *BillingService) GetMonthlyBill(ctx context.Context, userId string, mon
 		log.Printf("billingservice: Error fetching bill for user %s: %v\n", userId, err)
 		return models.BillDTO{}, err
 	}
-	if existingBill.UserEmail == "" {
+	if existingBill.UserId == "" {
 		return models.BillDTO{}, errors.New("bill not found")
 	}
 
@@ -67,10 +67,10 @@ func (bs *BillingService) GenerateMonthlyBills(ctx context.Context) {
 		return
 	}
 
-	// gen for prev month
+	// gen for current month
 	now := time.Now()
-	startTime := time.Date(now.Year(), now.Month()-1, 1, 0, 0, 0, 0, time.Local)
-	endTime := startTime.AddDate(0, 1, 0).Add(-time.Nanosecond)
+	startTime := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.Local)
+	endTime := now
 	month := int(startTime.Month())
 	year := startTime.Year()
 
@@ -81,11 +81,11 @@ func (bs *BillingService) GenerateMonthlyBills(ctx context.Context) {
 		userId := user.UserID.String()
 
 		// check if already generated
-		existingBill, err := bs.billRepository.GetBill(ctx, userEmail, month, year)
-		if err == nil && existingBill.UserEmail != "" {
-			log.Printf("billingservice: Bill already exists for user %s, skipping...\n", userEmail)
-			continue
-		}
+		// existingBill, err := bs.billRepository.GetBill(ctx, userId, month, year)
+		// if err == nil && existingBill.UserId != "" {
+		// 	log.Printf("billingservice: Bill already exists for user %s, skipping...\n", userEmail)
+		// 	continue
+		// }
 
 		parkingHistory, err := bs.parkingRepository.GetParkingHistoryByUser(ctx, userId, startTime, endTime)
 		if err != nil {
@@ -114,6 +114,9 @@ func (bs *BillingService) GenerateMonthlyBills(ctx context.Context) {
 			TotalAmount:    totalAmount,
 			BillDate:       time.Now().Format(time.DateOnly),
 			UserEmail:      userEmail,
+			UserId:         userId,
+			BillingMonth:   month,
+			BillingYear:    year,
 		}
 
 		err = bs.sendToSQS(ctx, bill)
@@ -153,12 +156,28 @@ func (bs *BillingService) sendToSQS(ctx context.Context, bill models.BillDTO) er
 }
 
 func formatBillBody(bill models.BillDTO) string {
-	formattedBill := strings.Builder{}
+	rows := strings.Builder{}
 
 	for _, parking := range bill.ParkingHistory {
-		formattedBill.WriteString(parking.String())
+		if parking.EndTime.IsZero() {
+			continue
+		}
+		duration := parking.EndTime.Sub(parking.StartTime).Hours()
+		var cost float64
+		if parking.VechicleType == vehicletypes.TwoWheeler.String() {
+			cost = duration * billingrates.TwoWheeler
+		} else {
+			cost = duration * billingrates.FourWheeler
+		}
+
+		rows.WriteString(fmt.Sprintf("<tr><td>%s</td><td>%s</td><td>%s</td><td>%.2f</td><td>%.2f</td></tr>",
+			parking.StartTime.Format("2006-01-02"),
+			parking.VechicleType,
+			parking.NumberPlate,
+			duration,
+			cost,
+		))
 	}
 
-	formattedBill.WriteString(fmt.Sprintf("Total amount: %f\nBillDate: %s", bill.TotalAmount, bill.BillDate))
-	return formattedBill.String()
+	return fmt.Sprintf(constants.BillEmailTemplate, rows.String(), bill.TotalAmount)
 }

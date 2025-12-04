@@ -8,7 +8,10 @@ type BillDTO struct {
 	ParkingHistory []ParkingHistoryDTO `json:"parking_history"`
 	TotalAmount    float64             `json:"total_amount"`
 	BillDate       string              `json:"bill_date"`
-	UserEmail         string              `json:"user_id"`
+	UserEmail      string              `json:"user_email"`
+	UserId         string              `json:"user_id"`
+	BillingMonth   int                 `json:"billing_month"`
+	BillingYear    int                 `json:"billing_year"`
 }
 
 func (bdto *BillDTO) String() string {

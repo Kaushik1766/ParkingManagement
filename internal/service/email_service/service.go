@@ -25,7 +25,14 @@ func (emailService *EmailService) SendEmail(ctx context.Context, emailMessage mo
 
 	auth := smtp.PlainAuth("", smtpUsername, smtpPassword, smtpHost)
 
-	err := smtp.SendMail(smtpHost+":"+strconv.Itoa(smtpPort), auth, smtpUsername, []string{emailMessage.To}, []byte("To: "+emailMessage.To+"\r\n"+"Subject: "+emailMessage.Header+"\r\n"+"\r\n"+emailMessage.Body))
+	msg := []byte("To: " + emailMessage.To + "\r\n" +
+		"Subject: " + emailMessage.Header + "\r\n" +
+		"MIME-Version: 1.0\r\n" +
+		"Content-Type: text/html; charset=\"UTF-8\"\r\n" +
+		"\r\n" +
+		emailMessage.Body)
+
+	err := smtp.SendMail(smtpHost+":"+strconv.Itoa(smtpPort), auth, smtpUsername, []string{emailMessage.To}, msg)
 	if err != nil {
 		log.Println(err)
 		return err

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sync"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
@@ -95,29 +96,86 @@ func (nosqlur *NOSQLUserRepository) GetUserById(ctx context.Context, id string) 
 	return user, nil
 }
 
-// TODO: change this to get all user ids only
 func (nosqlur *NOSQLUserRepository) GetAllUsers(ctx context.Context) ([]models.User, error) {
-	var users []models.User
-
-	// TODO: this function isnt needed much, for billing get only user ids, and delete the get all users admin route coz its not used
-	scanRes, err := nosqlur.client.Scan(ctx, &dynamodb.ScanInput{
-		TableName:        aws.String(config.DynamoDBTable),
-		FilterExpression: aws.String("begins_with(SK, :sk) AND IsActive = :active"),
+	// 1. Get all UUIDs from reverse lookup
+	lookupQuery, err := nosqlur.client.Query(ctx, &dynamodb.QueryInput{
+		TableName:              aws.String(config.DynamoDBTable),
+		KeyConditionExpression: aws.String("PK = :pk"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":sk":     &types.AttributeValueMemberS{Value: "PROFILE#"},
-			":active": &types.AttributeValueMemberBOOL{Value: true},
+			":pk": &types.AttributeValueMemberS{Value: "USER"},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return nil, errors.New("error fetching users")
+		return nil, errors.New("error fetching user list")
 	}
 
-	for _, item := range scanRes.Items {
-		user := nosqlur.itemToUser(ctx, item)
-		users = append(users, user)
+	var userKeys []map[string]types.AttributeValue
+	for _, item := range lookupQuery.Items {
+		if val, ok := item["UUID"]; ok {
+			uid := val.(*types.AttributeValueMemberS).Value
+			userKeys = append(userKeys, map[string]types.AttributeValue{
+				"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", uid)},
+				"SK": &types.AttributeValueMemberS{Value: "PROFILE"},
+			})
+		}
 	}
 
+	// 2. BatchGetItem to fetch user profiles
+	var userItems []map[string]types.AttributeValue
+	batchSize := 100
+
+	for i := 0; i < len(userKeys); i += batchSize {
+		end := i + batchSize
+		if end > len(userKeys) {
+			end = len(userKeys)
+		}
+		batchKeys := userKeys[i:end]
+
+		input := &dynamodb.BatchGetItemInput{
+			RequestItems: map[string]types.KeysAndAttributes{
+				config.DynamoDBTable: {
+					Keys: batchKeys,
+				},
+			},
+		}
+
+		for {
+			out, err := nosqlur.client.BatchGetItem(ctx, input)
+			if err != nil {
+				log.Println("BatchGetItem error:", err)
+				return nil, err
+			}
+			userItems = append(userItems, out.Responses[config.DynamoDBTable]...)
+
+			if len(out.UnprocessedKeys) > 0 {
+				input.RequestItems = out.UnprocessedKeys
+			} else {
+				break
+			}
+		}
+	}
+
+	// 3. Process items in parallel (to keep Office fetch fast)
+	var users []models.User
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+
+	for _, item := range userItems {
+		wg.Add(1)
+		go func(itm map[string]types.AttributeValue) {
+			defer wg.Done()
+			user := nosqlur.itemToUser(ctx, itm)
+			// filter inactive users
+			if user.IsActive {
+				mu.Lock()
+				users = append(users, user)
+				mu.Unlock()
+			}
+		}(item)
+	}
+
+	wg.Wait()
 	return users, nil
 }
 

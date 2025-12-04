@@ -25,15 +25,9 @@ func NewNOSQLBillRepository(client *dynamodb.Client) *NOSQLBillRepository {
 }
 
 func (nosqlbr *NOSQLBillRepository) SaveBill(ctx context.Context, bill models.BillDTO) error {
-	billDate, err := time.Parse(time.DateOnly, bill.BillDate)
-	if err != nil {
-		log.Println("Error parsing bill date:", err)
-		return err
-	}
-
-	// bill.UserId contains the user email
-	pk := fmt.Sprintf("USER#%s", bill.UserEmail)
-	sk := fmt.Sprintf("BILL#%d#%d", billDate.Year(), billDate.Month())
+	// bill.UserId contains the user uuid
+	pk := fmt.Sprintf("USER#%s", bill.UserId)
+	sk := fmt.Sprintf("BILL#%d#%d", bill.BillingYear, bill.BillingMonth)
 
 	// Convert ParkingHistory to a list of maps for DynamoDB
 	var parkingHistoryItems []types.AttributeValue
@@ -46,10 +40,10 @@ func (nosqlbr *NOSQLBillRepository) SaveBill(ctx context.Context, bill models.Bi
 			"FloorNumber":  &types.AttributeValueMemberN{Value: strconv.Itoa(ph.FLoorNumber)},
 			"SlotNumber":   &types.AttributeValueMemberN{Value: strconv.Itoa(ph.SlotNumber)},
 			"VehicleType":  &types.AttributeValueMemberS{Value: ph.VechicleType},
-			"StartTime":    &types.AttributeValueMemberS{Value: ph.StartTime.Format(time.RFC3339)},
+			"StartTime":    &types.AttributeValueMemberN{Value: strconv.FormatInt(ph.StartTime.Unix(), 10)},
 		}
 		if !ph.EndTime.IsZero() {
-			phItem["EndTime"] = &types.AttributeValueMemberS{Value: ph.EndTime.Format(time.RFC3339)}
+			phItem["EndTime"] = &types.AttributeValueMemberN{Value: strconv.FormatInt(ph.EndTime.Unix(), 10)}
 		}
 		parkingHistoryItems = append(parkingHistoryItems, &types.AttributeValueMemberM{Value: phItem})
 	}
@@ -59,10 +53,12 @@ func (nosqlbr *NOSQLBillRepository) SaveBill(ctx context.Context, bill models.Bi
 		"SK":             &types.AttributeValueMemberS{Value: sk},
 		"TotalAmount":    &types.AttributeValueMemberN{Value: fmt.Sprintf("%.2f", bill.TotalAmount)},
 		"BillDate":       &types.AttributeValueMemberS{Value: bill.BillDate},
+		"BillingMonth":   &types.AttributeValueMemberN{Value: strconv.Itoa(bill.BillingMonth)},
+		"BillingYear":    &types.AttributeValueMemberN{Value: strconv.Itoa(bill.BillingYear)},
 		"ParkingHistory": &types.AttributeValueMemberL{Value: parkingHistoryItems},
 	}
 
-	_, err = nosqlbr.client.PutItem(ctx, &dynamodb.PutItemInput{
+	_, err := nosqlbr.client.PutItem(ctx, &dynamodb.PutItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Item:      item,
 	})
@@ -74,9 +70,8 @@ func (nosqlbr *NOSQLBillRepository) SaveBill(ctx context.Context, bill models.Bi
 	return nil
 }
 
-func (nosqlbr *NOSQLBillRepository) GetBill(ctx context.Context, userEmail string, month, year int) (models.BillDTO, error) {
-	// userId is the user email
-	pk := fmt.Sprintf("USER#%s", userEmail)
+func (nosqlbr *NOSQLBillRepository) GetBill(ctx context.Context, userId string, month, year int) (models.BillDTO, error) {
+	pk := fmt.Sprintf("USER#%s", userId)
 	sk := fmt.Sprintf("BILL#%d#%d", year, month)
 
 	res, err := nosqlbr.client.GetItem(ctx, &dynamodb.GetItemInput{
@@ -96,8 +91,19 @@ func (nosqlbr *NOSQLBillRepository) GetBill(ctx context.Context, userEmail strin
 	}
 
 	var bill models.BillDTO
-	bill.UserEmail = userEmail
+	bill.UserId = userId
 	bill.BillDate = res.Item["BillDate"].(*types.AttributeValueMemberS).Value
+	if res.Item["BillingMonth"] != nil {
+		bill.BillingMonth, _ = strconv.Atoi(res.Item["BillingMonth"].(*types.AttributeValueMemberN).Value)
+	} else {
+		// Fallback if not present (legacy)
+		bill.BillingMonth = month
+	}
+	if res.Item["BillingYear"] != nil {
+		bill.BillingYear, _ = strconv.Atoi(res.Item["BillingYear"].(*types.AttributeValueMemberN).Value)
+	} else {
+		bill.BillingYear = year
+	}
 	totalAmountStr := res.Item["TotalAmount"].(*types.AttributeValueMemberN).Value
 	bill.TotalAmount, _ = strconv.ParseFloat(totalAmountStr, 64)
 
@@ -113,12 +119,12 @@ func (nosqlbr *NOSQLBillRepository) GetBill(ctx context.Context, userEmail strin
 		ph.SlotNumber, _ = strconv.Atoi(phMap["SlotNumber"].(*types.AttributeValueMemberN).Value)
 		ph.VechicleType = phMap["VehicleType"].(*types.AttributeValueMemberS).Value
 
-		startTimeStr := phMap["StartTime"].(*types.AttributeValueMemberS).Value
-		ph.StartTime, _ = time.Parse(time.RFC3339, startTimeStr)
+		startTimeUnix, _ := strconv.ParseInt(phMap["StartTime"].(*types.AttributeValueMemberN).Value, 10, 64)
+		ph.StartTime = time.Unix(startTimeUnix, 0).Local()
 
 		if phMap["EndTime"] != nil {
-			endTimeStr := phMap["EndTime"].(*types.AttributeValueMemberS).Value
-			ph.EndTime, _ = time.Parse(time.RFC3339, endTimeStr)
+			endTimeUnix, _ := strconv.ParseInt(phMap["EndTime"].(*types.AttributeValueMemberN).Value, 10, 64)
+			ph.EndTime = time.Unix(endTimeUnix, 0).Local()
 		}
 
 		bill.ParkingHistory = append(bill.ParkingHistory, ph)

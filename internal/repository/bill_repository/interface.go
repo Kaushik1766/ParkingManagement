@@ -9,5 +9,5 @@ import (
 //go:generate mockgen -source=interface.go -destination=../../../mocks/bill_repository_mock.go -package=mocks
 type BillStorage interface {
 	SaveBill(ctx context.Context, bill models.BillDTO) error
-	GetBill(ctx context.Context, userEmail string, month, year int) (models.BillDTO, error)
+	GetBill(ctx context.Context, userId string, month, year int) (models.BillDTO, error)
 }

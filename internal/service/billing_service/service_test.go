@@ -31,9 +31,12 @@ func TestBillingService_GetMonthlyBill(t *testing.T) {
 	year := 2023
 
 	expectedBill := models.BillDTO{
-		TotalAmount: 400, // 2 hours * 200
-		BillDate:    time.Now().Format(time.DateOnly),
-		UserEmail:      userID,
+		TotalAmount:  400, // 2 hours * 200
+		BillDate:     time.Now().Format(time.DateOnly),
+		UserEmail:    "test@example.com",
+		UserId:       userID,
+		BillingMonth: month,
+		BillingYear:  year,
 	}
 
 	type fields struct {
@@ -112,7 +115,7 @@ func TestBillingService_GetMonthlyBill(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockSetup()
-			bs := NewBillingService(tt.fields.userRepository, tt.fields.parkingRepository, tt.fields.billRepository)
+			bs := NewBillingService(tt.fields.userRepository, tt.fields.parkingRepository, tt.fields.billRepository, nil)
 			got, err := bs.GetMonthlyBill(context.Background(), tt.args.userId, tt.args.month, tt.args.year)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("BillingService.GetMonthlyBill() error = %v, wantErr %v", err, tt.wantErr)
@@ -169,7 +172,7 @@ func TestNewBillingService(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewBillingService(tt.args.userRepo, tt.args.parkingRepo, tt.args.billRepo); !reflect.DeepEqual(got, tt.want) {
+			if got := NewBillingService(tt.args.userRepo, tt.args.parkingRepo, tt.args.billRepo, nil); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewBillingService() = %v, want %v", got, tt.want)
 			}
 		})
