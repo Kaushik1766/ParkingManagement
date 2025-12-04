@@ -39,26 +39,32 @@ func NewSlotAssignmentService(
 	}
 }
 
-func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, vehicleId string) error {
+func (sas *SlotAssignmentService) AutoAssignSlot(ctx context.Context, numberplate string) error {
 	ctxUser := ctx.Value(constants.User).(models.UserJwt)
 
-	vehicleUuid, err := uuid.Parse(vehicleId)
+	// vehicleUuid, err := uuid.Parse(vehicleId)
+	// if err != nil {
+	// 	return err
+	// }
+	// vehicle, err := sas.vehicleRepo.GetVehicleById(ctx, vehicleUuid)
+	// if err != nil {
+	// 	return err
+	// }
+
+	vehicle, err := sas.vehicleRepo.GetVehicleByNumberPlate(ctx, numberplate)
 	if err != nil {
-		return err
-	}
-	vehicle, err := sas.vehicleRepo.GetVehicleById(ctx, vehicleUuid)
-	if err != nil {
+		log.Println(err)
 		return err
 	}
 
-	// Check if vehicle already has a slot assigned (from reusing another vehicle's slot)
+	// check slot already assigned
 	if vehicle.AssignedBuildingID != uuid.Nil {
 		log.Println("Vehicle already has slot assigned:", vehicle.AssignedBuildingID, vehicle.AssignedFloorNumber, vehicle.AssignedSlotNumber)
 		return nil
 	}
 
-	// Vehicle doesn't have a slot, need to assign a new one
-	// This means it's the first vehicle of this type for the user
+	// Vehicle doesnt have a slot need to assign a new one
+	// This means its the first vehicle of this type for the user
 	userOffice, err := sas.officeRepo.GetOfficeById(ctx, ctxUser.OfficeId)
 	if err != nil {
 		log.Println(err.Error())

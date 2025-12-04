@@ -72,7 +72,7 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(ctx context.Context, buildingId st
 			_, err := nosqlfr.client.
 				BatchWriteItem(ctx, &dynamodb.BatchWriteItemInput{
 					RequestItems: map[string][]types.WriteRequest{
-						"pm_nosql": slots,
+						config.DynamoDBTable: slots,
 					},
 				})
 			if err != nil {

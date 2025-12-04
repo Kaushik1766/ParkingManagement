@@ -52,16 +52,23 @@ func (officeServ *OfficeService) ListOfficesByBuilding(ctx context.Context, buil
 	return officeDTOs, nil
 }
 
-func (officeServ *OfficeService) GetAllOfficeNames(ctx context.Context) ([]string, error) {
+func (officeServ *OfficeService) GetAllOffices(ctx context.Context) ([]models.OfficeDTO, error) {
 	offices, err := officeServ.officeRepo.GetAllOffices(ctx)
 	if err != nil {
 		log.Println(err.Error())
 		return nil, errors.New("no offices found")
 	}
 
-	var officeNames []string
+	offceDtOs := make([]models.OfficeDTO, 0, len(offices))
 	for _, office := range offices {
-		officeNames = append(officeNames, office.OfficeName)
+		officeDTO := models.OfficeDTO{
+			OfficeName:  office.OfficeName,
+			BuildingID:  office.BuildingID.String(),
+			FloorNumber: office.FloorNumber,
+			OfficeID:    office.OfficeID.String(),
+		}
+		offceDtOs = append(offceDtOs, officeDTO)
 	}
-	return officeNames, nil
+
+	return offceDtOs, nil
 }

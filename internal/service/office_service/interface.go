@@ -11,5 +11,5 @@ type OfficeMgr interface {
 	AddOffice(ctx context.Context, officeName string, buildingId string, floorNumber int) error
 	RemoveOffice(ctx context.Context, officeId string) error
 	ListOfficesByBuilding(ctx context.Context, buildingId string) ([]models.OfficeDTO, error)
-	GetAllOfficeNames(ctx context.Context) ([]string, error)
+	GetAllOffices(ctx context.Context) ([]models.OfficeDTO, error)
 }

@@ -36,7 +36,7 @@ func main() {
 }
 
 func handler(ctx context.Context, _ events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	offices, err := officeService.GetAllOfficeNames(ctx)
+	offices, err := officeService.GetAllOffices(ctx)
 	if err != nil {
 		return lambdaError(err), nil
 	}

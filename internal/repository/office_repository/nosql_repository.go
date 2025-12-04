@@ -77,7 +77,6 @@ func (nosqlor *NOSQLOfficeRepository) AddOffice(ctx context.Context, officeName 
 			},
 		},
 	})
-
 	if err != nil {
 		log.Println(err.Error())
 		return errors.New("error adding office")
@@ -159,54 +158,6 @@ func (nosqlor *NOSQLOfficeRepository) GetOfficesByBuilding(ctx context.Context, 
 
 func (nosqlor *NOSQLOfficeRepository) GetAllOffices(ctx context.Context) ([]models.Office, error) {
 	var offices []models.Office
-
-	// buildings, err := nosqlor.client.Query(ctx, &dynamodb.QueryInput{
-	// 	TableName:              aws.String(config.DynamoDBTable),
-	// 	KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
-	// 	ExpressionAttributeValues: map[string]types.AttributeValue{
-	// 		":pk": &types.AttributeValueMemberS{Value: "BUILDING"},
-	// 		":sk": &types.AttributeValueMemberS{Value: "BUILDING#"},
-	// 	},
-	// })
-	// if err != nil {
-	// 	log.Println(err.Error())
-	// 	return nil, errors.New("failed to fetch buildings")
-	// }
-	//
-	// for _, building := range buildings.Items {
-	// 	buildingID := building["BuildingId"].(*types.AttributeValueMemberS).Value
-	// 	fmt.Println(buildingID)
-	// 	res, err := nosqlor.client.Query(ctx, &dynamodb.QueryInput{
-	// 		TableName:              aws.String(config.DynamoDBTable),
-	// 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :prefix)"),
-	// 		ExpressionAttributeValues: map[string]types.AttributeValue{
-	// 			":pk":     &types.AttributeValueMemberS{Value: "BUILDING#" + buildingID},
-	// 			":prefix": &types.AttributeValueMemberS{Value: "FLOORINFO#"},
-	// 		},
-	// 		ProjectionExpression: aws.String("FloorNumber, Office, OfficeId"),
-	// 	})
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	//
-	// 	for _, item := range res.Items {
-	// 		var office models.Office
-	// 		office.BuildingID = uuid.MustParse(buildingID)
-	// 		office.FloorNumber, _ = strconv.Atoi(item["FloorNumber"].(*types.AttributeValueMemberN).Value)
-	//
-	// 		if item["Office"] == nil {
-	// 			continue
-	// 		}
-	// 		office.OfficeName = item["Office"].(*types.AttributeValueMemberS).Value
-	//
-	// 		if item["OfficeId"] == nil {
-	// 			continue
-	// 		}
-	// 		office.OfficeID = uuid.MustParse(item["OfficeId"].(*types.AttributeValueMemberS).Value)
-	//
-	// 		offices = append(offices, office)
-	// 	}
-	// }
 
 	items, err := nosqlor.client.Query(ctx, &dynamodb.QueryInput{
 		TableName:              aws.String(config.DynamoDBTable),

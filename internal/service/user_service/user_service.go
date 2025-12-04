@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	errorcodes "github.com/Kaushik1766/ParkingManagement/internal/constants/error_codes"
@@ -74,7 +75,7 @@ func (us *UserService) RegisterVehicle(ctx context.Context, numberplate string, 
 		return err
 	}
 
-	err = us.assignmentService.AutoAssignSlot(ctx, newVehicle.VehicleID.String())
+	err = us.assignmentService.AutoAssignSlot(ctx, newVehicle.NumberPlate)
 	if err != nil {
 		return fmt.Errorf("failed to assign slot: %w", err)
 	}
@@ -145,6 +146,7 @@ func (us *UserService) GetRegisteredVehicles(ctx context.Context) ([]models.Vehi
 	uid, _ := uuid.Parse(currentUser.ID)
 	userVehicles, err := us.vehicleRepo.GetVehiclesByUserId(ctx, uid)
 	if err != nil {
+		log.Println(err)
 		return []models.VehicleDTO{}, err
 	}
 
@@ -152,12 +154,14 @@ func (us *UserService) GetRegisteredVehicles(ctx context.Context) ([]models.Vehi
 	for _, v := range userVehicles {
 		building, err := us.buildingRepo.GetBuildingByID(ctx, v.AssignedBuildingID)
 		if err != nil {
-			return []models.VehicleDTO{}, err
+			log.Println(err)
+			// return []models.VehicleDTO{}, err
 		}
 
 		isParked, err := us.vehicleRepo.GetParkingStatus(ctx, v.NumberPlate)
 		if err != nil {
-			return []models.VehicleDTO{}, err
+			log.Println(err)
+			// return []models.VehicleDTO{}, err
 		}
 		userVehicleDTO = append(userVehicleDTO, models.VehicleDTO{
 			NumberPlate:          v.NumberPlate,
