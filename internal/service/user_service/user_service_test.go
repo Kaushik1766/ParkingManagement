@@ -659,7 +659,6 @@ func TestUserService_UpdateProfile(t *testing.T) {
 	mockOfficeRepo := mocks.NewMockOfficeStorage(ctrl)
 
 	user := models.User{UserID: userId, Name: "kaushik", Email: "kaushik@a.com"}
-	office := models.Office{OfficeID: uuid.New(), OfficeName: "wg"}
 
 	type fields struct {
 		userRepo   userrepository.UserStorage
@@ -683,7 +682,7 @@ func TestUserService_UpdateProfile(t *testing.T) {
 			args:   args{ctx: adminCtx, userId: userId.String(), updateReq: models.UpdateUserDTO{Name: "kaushik", Office: "wg", Email: "kaushik@a.com", Password: "asdf"}},
 			mock: func() {
 				mockUserRepo.EXPECT().GetUserById(gomock.Any(), userId.String()).Return(user, nil)
-				mockOfficeRepo.EXPECT().GetOfficeByName(gomock.Any(), "wg").Return(office, nil)
+
 				mockUserRepo.EXPECT().Save(gomock.Any(), gomock.Any()).Return(nil)
 			},
 			wantErr: false,
@@ -709,7 +708,7 @@ func TestUserService_UpdateProfile(t *testing.T) {
 			},
 			mock: func() {
 				mockUserRepo.EXPECT().GetUserById(gomock.Any(), userId.String()).Return(user, nil)
-				mockOfficeRepo.EXPECT().GetOfficeByName(gomock.Any(), "wg").Return(office, nil)
+
 				// No Save expectation since bcrypt should fail with a long password
 			},
 			wantErr: true, // bcrypt will fail with very long passwords (>72 bytes)
@@ -736,7 +735,7 @@ func TestUserService_UpdateProfile(t *testing.T) {
 			args:   args{ctx: userCtx, userId: userId.String(), updateReq: models.UpdateUserDTO{Office: "NonExistent Office"}},
 			mock: func() {
 				mockUserRepo.EXPECT().GetUserById(gomock.Any(), userId.String()).Return(user, nil)
-				mockOfficeRepo.EXPECT().GetOfficeByName(gomock.Any(), "NonExistent Office").Return(models.Office{}, errors.New("not found"))
+
 			},
 			wantErr: true,
 		},

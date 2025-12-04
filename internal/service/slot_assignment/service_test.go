@@ -261,13 +261,6 @@ func TestSlotAssignmentService_AutoAssignSlot(t *testing.T) {
 		IsActive:    true,
 	}
 
-	office := models.Office{
-		OfficeID:    officeId,
-		OfficeName:  "wg",
-		BuildingID:  buildingId,
-		FloorNumber: 1,
-	}
-
 	slot := models.Slot{
 		BuildingID:  buildingId,
 		FloorNumber: 1,
@@ -309,7 +302,7 @@ func TestSlotAssignmentService_AutoAssignSlot(t *testing.T) {
 			mock: func() {
 				mockVehicleRepo.EXPECT().GetVehiclesByUserId(gomock.Any(), userId).Return([]models.Vehicle{}, nil)
 				mockVehicleRepo.EXPECT().GetVehicleById(gomock.Any(), vehicleId).Return(vehicle, nil)
-				mockOfficeRepo.EXPECT().GetOfficeByName(gomock.Any(), "wg").Return(office, nil)
+
 				mockSlotRepo.EXPECT().GetFreeSlotsByFloor(gomock.Any(), buildingId, 1).Return([]models.Slot{slot}, nil)
 				mockVehicleRepo.EXPECT().Save(gomock.Any(), gomock.Any()).Return(nil)
 			},
@@ -365,7 +358,7 @@ func TestSlotAssignmentService_AutoAssignSlot(t *testing.T) {
 			mock: func() {
 				mockVehicleRepo.EXPECT().GetVehiclesByUserId(gomock.Any(), userId).Return([]models.Vehicle{}, nil)
 				mockVehicleRepo.EXPECT().GetVehicleById(gomock.Any(), vehicleId).Return(vehicle, nil)
-				mockOfficeRepo.EXPECT().GetOfficeByName(gomock.Any(), "wg").Return(office, nil)
+
 				mockSlotRepo.EXPECT().GetFreeSlotsByFloor(gomock.Any(), buildingId, 1).Return([]models.Slot{}, nil)
 			},
 			wantErr: true,
@@ -450,7 +443,6 @@ func TestSlotAssignmentService_AutoAssignSlot(t *testing.T) {
 			mock: func() {
 				mockVehicleRepo.EXPECT().GetVehiclesByUserId(gomock.Any(), userId).Return([]models.Vehicle{}, nil)
 				mockVehicleRepo.EXPECT().GetVehicleById(gomock.Any(), vehicleId).Return(vehicle, nil)
-				mockOfficeRepo.EXPECT().GetOfficeByName(gomock.Any(), "wg").Return(models.Office{}, errors.New("office not found"))
 			},
 			wantErr: true,
 		},
@@ -469,7 +461,7 @@ func TestSlotAssignmentService_AutoAssignSlot(t *testing.T) {
 			mock: func() {
 				mockVehicleRepo.EXPECT().GetVehiclesByUserId(gomock.Any(), userId).Return([]models.Vehicle{}, nil)
 				mockVehicleRepo.EXPECT().GetVehicleById(gomock.Any(), vehicleId).Return(vehicle, nil)
-				mockOfficeRepo.EXPECT().GetOfficeByName(gomock.Any(), "wg").Return(office, nil)
+
 				mockSlotRepo.EXPECT().GetFreeSlotsByFloor(gomock.Any(), buildingId, 1).Return(nil, errors.New("db error"))
 			},
 			wantErr: true,
@@ -496,7 +488,7 @@ func TestSlotAssignmentService_AutoAssignSlot(t *testing.T) {
 				}
 				mockVehicleRepo.EXPECT().GetVehiclesByUserId(gomock.Any(), userId).Return([]models.Vehicle{}, nil)
 				mockVehicleRepo.EXPECT().GetVehicleById(gomock.Any(), vehicleId).Return(vehicle, nil)
-				mockOfficeRepo.EXPECT().GetOfficeByName(gomock.Any(), "wg").Return(office, nil)
+
 				mockSlotRepo.EXPECT().GetFreeSlotsByFloor(gomock.Any(), buildingId, 1).Return([]models.Slot{differentSlot}, nil)
 			},
 			wantErr: true,
@@ -516,7 +508,7 @@ func TestSlotAssignmentService_AutoAssignSlot(t *testing.T) {
 			mock: func() {
 				mockVehicleRepo.EXPECT().GetVehiclesByUserId(gomock.Any(), userId).Return([]models.Vehicle{}, nil)
 				mockVehicleRepo.EXPECT().GetVehicleById(gomock.Any(), vehicleId).Return(vehicle, nil)
-				mockOfficeRepo.EXPECT().GetOfficeByName(gomock.Any(), "wg").Return(office, nil)
+
 				mockSlotRepo.EXPECT().GetFreeSlotsByFloor(gomock.Any(), buildingId, 1).Return([]models.Slot{slot}, nil)
 				mockVehicleRepo.EXPECT().Save(gomock.Any(), gomock.Any()).Return(errors.New("vehicle save failed"))
 			},
@@ -537,7 +529,7 @@ func TestSlotAssignmentService_AutoAssignSlot(t *testing.T) {
 			mock: func() {
 				mockVehicleRepo.EXPECT().GetVehiclesByUserId(gomock.Any(), userId).Return([]models.Vehicle{}, nil)
 				mockVehicleRepo.EXPECT().GetVehicleById(gomock.Any(), vehicleId).Return(vehicle, nil)
-				mockOfficeRepo.EXPECT().GetOfficeByName(gomock.Any(), "wg").Return(office, nil)
+
 				mockSlotRepo.EXPECT().GetFreeSlotsByFloor(gomock.Any(), buildingId, 1).Return([]models.Slot{slot}, nil)
 				mockVehicleRepo.EXPECT().Save(gomock.Any(), gomock.Any()).Return(nil)
 			},

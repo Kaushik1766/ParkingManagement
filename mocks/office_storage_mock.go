@@ -101,21 +101,6 @@ func (mr *MockOfficeStorageMockRecorder) GetBuildingAndFloorByOffice(ctx, office
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBuildingAndFloorByOffice", reflect.TypeOf((*MockOfficeStorage)(nil).GetBuildingAndFloorByOffice), ctx, officeName)
 }
 
-// GetOfficeByName mocks base method.
-func (m *MockOfficeStorage) GetOfficeByName(ctx context.Context, officeName string) (models.Office, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOfficeByName", ctx, officeName)
-	ret0, _ := ret[0].(models.Office)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetOfficeByName indicates an expected call of GetOfficeByName.
-func (mr *MockOfficeStorageMockRecorder) GetOfficeByName(ctx, officeName any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOfficeByName", reflect.TypeOf((*MockOfficeStorage)(nil).GetOfficeByName), ctx, officeName)
-}
-
 // GetOfficesByBuilding mocks base method.
 func (m *MockOfficeStorage) GetOfficesByBuilding(ctx context.Context, buildingID string) ([]models.Office, error) {
 	m.ctrl.T.Helper()

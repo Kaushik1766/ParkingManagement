@@ -52,18 +52,6 @@ func (vs *VehicleService) Park(ctx context.Context, numberplate string) (string,
 }
 
 func (vs *VehicleService) Unpark(ctx context.Context, ticketId string) error {
-	// TODO: check if auth is correct in usecase
-	// userCtx := ctx.Value(constants.User).(models.UserJwt)
-
-	// vehicle, err := vs.vehicleRepo.GetVehicleByNumberPlate(ticketId)
-	// if err != nil {
-	// 	return err
-	// }
-	//
-	// if vehicle.UserId.String() != userCtx.ID {
-	// 	return customerrors.Unauthorized{}
-	// }
-
 	return vs.parkingRepo.Unpark(ctx, ticketId)
 }
 

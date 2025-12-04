@@ -211,8 +211,3 @@ func (nosqlor *NOSQLOfficeRepository) GetOfficeById(ctx context.Context, officeI
 
 	return office, nil
 }
-
-// TODO: remove this as no references
-func (nosqlor *NOSQLOfficeRepository) GetOfficeByName(ctx context.Context, officeName string) (models.Office, error) {
-	panic("not implemented coz not used")
-}

@@ -243,7 +243,6 @@ func (us *UserService) DeleteProfile(ctx context.Context, userId string) error {
 	return err
 }
 
-// TODO:FIX
 func (us *UserService) GetVehiclesByUserId(ctx context.Context, userId string) ([]models.VehicleDTO, error) {
 	uid, err := uuid.Parse(userId)
 	if err != nil {
