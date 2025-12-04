@@ -42,7 +42,7 @@ func init() {
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var userId string
 	if ctxUser, ok := ctx.Value(constants.User).(models.UserJwt); ok {
-		userId = ctxUser.Email
+		userId = ctxUser.ID
 	}
 
 	if userId == "" {

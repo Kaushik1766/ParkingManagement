@@ -65,6 +65,7 @@ func (auth *AuthService) Login(ctx context.Context, loginReq models.LoginRequest
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		models.UserJwt{
 			Email:    user.Email,
+			ID:       user.UserID.String(),
 			Role:     user.Role,
 			OfficeId: user.Office.OfficeID.String(),
 			RegisteredClaims: jwt.RegisteredClaims{

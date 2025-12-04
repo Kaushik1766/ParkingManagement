@@ -42,6 +42,8 @@ tr:nth-child(even) {
 <table>
   <tr>
     <th>Date</th>
+    <th>Start Time</th>
+    <th>End Time</th>
     <th>Vehicle Type</th>
     <th>Number Plate</th>
     <th>Duration (Hours)</th>

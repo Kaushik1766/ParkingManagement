@@ -212,31 +212,6 @@ func (nosqlvr *NOSQLVehicleRepository) GetVehicleByNumberPlate(ctx context.Conte
 }
 
 func (nosqlvr *NOSQLVehicleRepository) GetVehiclesWithUnassignedSlots(ctx context.Context) (vehicles []models.Vehicle, err error) {
-	// scanRes, err := nosqlvr.client.Scan(ctx, &dynamodb.ScanInput{
-	// 	TableName:        aws.String(config.DynamoDBTable),
-	// 	FilterExpression: aws.String("attribute_not_exists(AssignedSlot) AND begins_with(SK, :sk)"),
-	// 	ExpressionAttributeValues: map[string]types.AttributeValue{
-	// 		":sk": &types.AttributeValueMemberS{Value: "VEHICLE#"},
-	// 	},
-	// })
-	// if err != nil {
-	// 	log.Println(err.Error())
-	// 	return nil, errors.New("error fetching vehicles with unassigned slots")
-	// }
-
-	// for _, item := range scanRes.Items {
-	// 	vehicle := nosqlvr.itemToVehicle(item)
-	// 	// Fetch UserID from email
-	// 	userID, err := nosqlvr.getUserIDFromEmail(ctx, vehicle.UserEmail)
-	// 	if err != nil {
-	// 		log.Println("Warning: could not fetch UserID:", err.Error())
-	// 	} else {
-	// 		vehicle.UserID = userID
-	// 	}
-	// 	vehicles = append(vehicles, vehicle)
-	// }
-
-	// return vehicles, nil
 	panic("Not implemented yet coz not used")
 }
 

@@ -170,8 +170,10 @@ func formatBillBody(bill models.BillDTO) string {
 			cost = duration * billingrates.FourWheeler
 		}
 
-		rows.WriteString(fmt.Sprintf("<tr><td>%s</td><td>%s</td><td>%s</td><td>%.2f</td><td>%.2f</td></tr>",
+		rows.WriteString(fmt.Sprintf("<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%.2f</td><td>%.2f</td></tr>",
 			parking.StartTime.Format("2006-01-02"),
+			parking.StartTime.Format("15:04:05"),
+			parking.EndTime.Format("15:04:05"),
 			parking.VechicleType,
 			parking.NumberPlate,
 			duration,
