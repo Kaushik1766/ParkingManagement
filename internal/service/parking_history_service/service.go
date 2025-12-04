@@ -43,12 +43,6 @@ func (phs *ParkingHistoryService) GetParkingHistoryByNumberPlate(ctx context.Con
 	return phs.parkingRepo.GetParkingHistoryByNumberPlate(ctx, numberplate, startTime, endTime)
 }
 
-func (phs *ParkingHistoryService) GetActiveUserParkings(ctx context.Context) ([]models.ParkingHistoryDTO, error) {
-	userCtx := ctx.Value(constants.User).(models.UserJwt)
-
-	return phs.parkingRepo.GetActiveUserParkings(ctx, userCtx.ID)
-}
-
 func NewParkingHistoryService(parkingRepo parkinghistoryrepository.ParkingHistoryStorage, vehicleRepo vehiclerepository.VehicleStorage) *ParkingHistoryService {
 	return &ParkingHistoryService{
 		parkingRepo: parkingRepo,

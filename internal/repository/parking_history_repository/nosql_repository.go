@@ -56,89 +56,89 @@ func (nosqlpr *NOSQLParkingRepository) AddParking(ctx context.Context, vehicle m
 	parkingID := uuid.New()
 	timestamp := time.Now().Unix()
 
-	item := map[string]types.AttributeValue{
-		"PK":          &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userId)},
-		"SK":          &types.AttributeValueMemberS{Value: fmt.Sprintf("PARKING#%d", timestamp)},
-		"ParkingId":   &types.AttributeValueMemberS{Value: parkingID.String()},
-		"Numberplate": &types.AttributeValueMemberS{Value: vehicle.NumberPlate},
-		"BuildingId":  &types.AttributeValueMemberS{Value: vehicle.AssignedBuildingID.String()},
-		"FloorNumber": &types.AttributeValueMemberN{Value: strconv.Itoa(vehicle.AssignedFloorNumber)},
-		"SlotId":      &types.AttributeValueMemberN{Value: strconv.Itoa(vehicle.AssignedSlotNumber)},
-		"StartTime":   &types.AttributeValueMemberN{Value: strconv.FormatInt(timestamp, 10)},
-		"VehicleType": &types.AttributeValueMemberS{Value: vehicle.VehicleType.String()},
+	// Use TransactWriteItems for atomic operation
+	transactItems := []types.TransactWriteItem{
+		// 1. Put parking history record
+		{
+			Put: &types.Put{
+				TableName: aws.String(config.DynamoDBTable),
+				Item: map[string]types.AttributeValue{
+					"PK":          &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userId)},
+					"SK":          &types.AttributeValueMemberS{Value: fmt.Sprintf("PARKING#%d", timestamp)},
+					"ParkingId":   &types.AttributeValueMemberS{Value: parkingID.String()},
+					"Numberplate": &types.AttributeValueMemberS{Value: vehicle.NumberPlate},
+					"BuildingId":  &types.AttributeValueMemberS{Value: vehicle.AssignedBuildingID.String()},
+					"FloorNumber": &types.AttributeValueMemberN{Value: strconv.Itoa(vehicle.AssignedFloorNumber)},
+					"SlotId":      &types.AttributeValueMemberN{Value: strconv.Itoa(vehicle.AssignedSlotNumber)},
+					"StartTime":   &types.AttributeValueMemberN{Value: strconv.FormatInt(timestamp, 10)},
+					"VehicleType": &types.AttributeValueMemberS{Value: vehicle.VehicleType.String()},
+				},
+			},
+		},
+		// 2. Update vehicle IsParked status
+		{
+			Update: &types.Update{
+				TableName: aws.String(config.DynamoDBTable),
+				Key: map[string]types.AttributeValue{
+					"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userId)},
+					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", vehicle.NumberPlate)},
+				},
+				UpdateExpression: aws.String("SET IsParked = :isParked"),
+				ExpressionAttributeValues: map[string]types.AttributeValue{
+					":isParked": &types.AttributeValueMemberBOOL{Value: true},
+				},
+			},
+		},
+		// 3. Decrement floor AvailableSlots
+		{
+			Update: &types.Update{
+				TableName: aws.String(config.DynamoDBTable),
+				Key: map[string]types.AttributeValue{
+					"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", vehicle.AssignedBuildingID.String())},
+					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOORINFO#%d", vehicle.AssignedFloorNumber)},
+				},
+				UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots - :decrement"),
+				ExpressionAttributeValues: map[string]types.AttributeValue{
+					":decrement": &types.AttributeValueMemberN{Value: "1"},
+				},
+			},
+		},
+		// 4. Decrement building AvailableSlots
+		{
+			Update: &types.Update{
+				TableName: aws.String(config.DynamoDBTable),
+				Key: map[string]types.AttributeValue{
+					"PK": &types.AttributeValueMemberS{Value: "BUILDING"},
+					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", vehicle.AssignedBuildingID.String())},
+				},
+				UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots - :decrement"),
+				ExpressionAttributeValues: map[string]types.AttributeValue{
+					":decrement": &types.AttributeValueMemberN{Value: "1"},
+				},
+			},
+		},
+		// 5. Mark slot as occupied
+		{
+			Update: &types.Update{
+				TableName: aws.String(config.DynamoDBTable),
+				Key: map[string]types.AttributeValue{
+					"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", vehicle.AssignedBuildingID.String())},
+					"SK": &types.AttributeValueMemberS{Value: slotKey},
+				},
+				UpdateExpression: aws.String("SET IsOccupied = :isOccupied"),
+				ExpressionAttributeValues: map[string]types.AttributeValue{
+					":isOccupied": &types.AttributeValueMemberBOOL{Value: true},
+				},
+			},
+		},
 	}
 
-	_, err = nosqlpr.client.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName: aws.String(config.DynamoDBTable),
-		Item:      item,
+	_, err = nosqlpr.client.TransactWriteItems(ctx, &dynamodb.TransactWriteItemsInput{
+		TransactItems: transactItems,
 	})
 	if err != nil {
-		log.Println(err.Error())
+		log.Println("Error in transaction:", err.Error())
 		return "", errors.New("error adding parking history")
-	}
-
-	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
-		TableName: aws.String(config.DynamoDBTable),
-		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userId)},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", vehicle.NumberPlate)},
-		},
-		UpdateExpression: aws.String("SET IsParked = :isParked"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":isParked": &types.AttributeValueMemberBOOL{Value: true},
-		},
-	})
-	if err != nil {
-		log.Println("Warning: could not update IsParked status:", err.Error())
-		return "", nil
-	}
-
-	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
-		TableName: aws.String(config.DynamoDBTable),
-		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", vehicle.AssignedBuildingID.String())},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOORINFO#%d", vehicle.AssignedFloorNumber)},
-		},
-		UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots - :decrement"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":decrement": &types.AttributeValueMemberN{Value: "1"},
-		},
-	})
-	if err != nil {
-		log.Println("Warning: could not update floor AvailableSlots:", err.Error())
-		return "", nil
-	}
-
-	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
-		TableName: aws.String(config.DynamoDBTable),
-		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: "BUILDING"},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", vehicle.AssignedBuildingID.String())},
-		},
-		UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots - :decrement"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":decrement": &types.AttributeValueMemberN{Value: "1"},
-		},
-	})
-	if err != nil {
-		log.Println("Warning: could not update building AvailableSlots:", err.Error())
-		return "", nil
-	}
-
-	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
-		TableName: aws.String(config.DynamoDBTable),
-		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", vehicle.AssignedBuildingID.String())},
-			"SK": &types.AttributeValueMemberS{Value: slotKey},
-		},
-		UpdateExpression: aws.String("SET IsParked = :isParked"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":isParked": &types.AttributeValueMemberBOOL{Value: true},
-		},
-	})
-	if err != nil {
-		log.Println("Warning: could not update slot IsOccupied status:", err.Error())
-		return "", nil
 	}
 
 	return parkingID.String(), nil
@@ -179,82 +179,87 @@ func (nosqlpr *NOSQLParkingRepository) Unpark(ctx context.Context, ticketId stri
 	slotId, _ := strconv.Atoi(item["SlotId"].(*types.AttributeValueMemberN).Value)
 
 	endTime := time.Now().Unix()
-	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
-		TableName: aws.String(config.DynamoDBTable),
-		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: PK},
-			"SK": &types.AttributeValueMemberS{Value: SK},
-		},
-		UpdateExpression: aws.String("SET EndTime = :endTime"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":endTime": &types.AttributeValueMemberN{Value: strconv.FormatInt(endTime, 10)},
-		},
-	})
-	if err != nil {
-		log.Println(err.Error())
-		return errors.New("error updating parking record")
-	}
-
 	numberplate := item["Numberplate"].(*types.AttributeValueMemberS).Value
-	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
-		TableName: aws.String(config.DynamoDBTable),
-		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: PK},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", numberplate)},
+
+	transactItems := []types.TransactWriteItem{
+		// 1. Update parking record with EndTime
+		{
+			Update: &types.Update{
+				TableName: aws.String(config.DynamoDBTable),
+				Key: map[string]types.AttributeValue{
+					"PK": &types.AttributeValueMemberS{Value: PK},
+					"SK": &types.AttributeValueMemberS{Value: SK},
+				},
+				UpdateExpression: aws.String("SET EndTime = :endTime"),
+				ExpressionAttributeValues: map[string]types.AttributeValue{
+					":endTime": &types.AttributeValueMemberN{Value: strconv.FormatInt(endTime, 10)},
+				},
+			},
 		},
-		UpdateExpression: aws.String("SET IsParked = :isParked"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":isParked": &types.AttributeValueMemberBOOL{Value: false},
+		// 2. Update vehicle IsParked status
+		{
+			Update: &types.Update{
+				TableName: aws.String(config.DynamoDBTable),
+				Key: map[string]types.AttributeValue{
+					"PK": &types.AttributeValueMemberS{Value: PK},
+					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", numberplate)},
+				},
+				UpdateExpression: aws.String("SET IsParked = :isParked"),
+				ExpressionAttributeValues: map[string]types.AttributeValue{
+					":isParked": &types.AttributeValueMemberBOOL{Value: false},
+				},
+			},
 		},
-	})
-	if err != nil {
-		log.Println("Warning: could not update IsParked status:", err.Error())
+		// 3. Increment floor AvailableSlots
+		{
+			Update: &types.Update{
+				TableName: aws.String(config.DynamoDBTable),
+				Key: map[string]types.AttributeValue{
+					"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
+					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOORINFO#%d", floorNumber)},
+				},
+				UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots + :increment"),
+				ExpressionAttributeValues: map[string]types.AttributeValue{
+					":increment": &types.AttributeValueMemberN{Value: "1"},
+				},
+			},
+		},
+		// 4. Increment building AvailableSlots
+		{
+			Update: &types.Update{
+				TableName: aws.String(config.DynamoDBTable),
+				Key: map[string]types.AttributeValue{
+					"PK": &types.AttributeValueMemberS{Value: "BUILDING"},
+					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
+				},
+				UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots + :increment"),
+				ExpressionAttributeValues: map[string]types.AttributeValue{
+					":increment": &types.AttributeValueMemberN{Value: "1"},
+				},
+			},
+		},
+		// 5. Mark slot as unoccupied
+		{
+			Update: &types.Update{
+				TableName: aws.String(config.DynamoDBTable),
+				Key: map[string]types.AttributeValue{
+					"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
+					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%d#SLOT#%d", floorNumber, slotId)},
+				},
+				UpdateExpression: aws.String("SET IsOccupied = :isOccupied"),
+				ExpressionAttributeValues: map[string]types.AttributeValue{
+					":isOccupied": &types.AttributeValueMemberBOOL{Value: false},
+				},
+			},
+		},
 	}
 
-	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
-		TableName: aws.String(config.DynamoDBTable),
-		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOORINFO#%d", floorNumber)},
-		},
-		UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots + :increment"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":increment": &types.AttributeValueMemberN{Value: "1"},
-		},
+	_, err = nosqlpr.client.TransactWriteItems(ctx, &dynamodb.TransactWriteItemsInput{
+		TransactItems: transactItems,
 	})
 	if err != nil {
-		log.Println("Warning: could not update floor AvailableSlots:", err.Error())
-	}
-
-	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
-		TableName: aws.String(config.DynamoDBTable),
-		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: "BUILDING"},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
-		},
-		UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots + :increment"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":increment": &types.AttributeValueMemberN{Value: "1"},
-		},
-	})
-	if err != nil {
-		log.Println("Warning: could not update building AvailableSlots:", err.Error())
-	}
-
-	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
-		TableName: aws.String(config.DynamoDBTable),
-		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%d#SLOT#%d", floorNumber, slotId)},
-		},
-		UpdateExpression: aws.String("SET IsParked = :isParked"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":isParked": &types.AttributeValueMemberBOOL{Value: true},
-		},
-	})
-	if err != nil {
-		log.Println("Warning: could not update slot IsOccupied status:", err.Error())
-		return nil
+		log.Println("Error in transaction:", err.Error())
+		return errors.New("error unparking vehicle")
 	}
 
 	return nil
@@ -376,68 +381,6 @@ func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByUser(ctx context.Conte
 	})
 
 	return history, nil
-}
-
-func (nosqlpr *NOSQLParkingRepository) GetActiveUserParkings(ctx context.Context, userId string) ([]models.ParkingHistoryDTO, error) {
-	activeParkings := []models.ParkingHistoryDTO{}
-
-	var userEmail string
-
-	if ctxUser, ok := ctx.Value(constants.User).(models.UserJwt); ok {
-		userEmail = ctxUser.Email
-	} else {
-		// TODO: can be fixed by querying USER#userid, begins_with SK PARKING# and filter EndTime not exists
-		scanRes, err := nosqlpr.client.Scan(ctx, &dynamodb.ScanInput{
-			TableName:        aws.String(config.DynamoDBTable),
-			FilterExpression: aws.String("Id = :userId AND begins_with(SK, :sk)"),
-			ExpressionAttributeValues: map[string]types.AttributeValue{
-				":userId": &types.AttributeValueMemberS{Value: userId},
-				":sk":     &types.AttributeValueMemberS{Value: "PROFILE#"},
-			},
-		})
-		if err != nil {
-			log.Println("Error fetching user profile:", err.Error())
-			return activeParkings, errors.New("error fetching user profile")
-		}
-
-		if len(scanRes.Items) == 0 {
-			log.Printf("User not found with ID: %s", userId)
-			return activeParkings, errors.New("user not found")
-		}
-
-		userEmail = scanRes.Items[0]["Email"].(*types.AttributeValueMemberS).Value
-	}
-
-	queryRes, err := nosqlpr.client.Query(ctx, &dynamodb.QueryInput{
-		TableName:              aws.String(config.DynamoDBTable),
-		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
-		FilterExpression:       aws.String("attribute_not_exists(EndTime)"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userEmail)},
-			":sk": &types.AttributeValueMemberS{Value: "PARKING#"},
-		},
-	})
-	if err != nil {
-		log.Println(err.Error())
-		return nil, errors.New("error fetching active parkings")
-	}
-
-	for _, item := range queryRes.Items {
-		var dto models.ParkingHistoryDTO
-		dto.TicketId = item["ParkingId"].(*types.AttributeValueMemberS).Value
-		dto.NumberPlate = item["Numberplate"].(*types.AttributeValueMemberS).Value
-		dto.BuildingId = item["BuildingId"].(*types.AttributeValueMemberS).Value
-		dto.FLoorNumber, _ = strconv.Atoi(item["FloorNumber"].(*types.AttributeValueMemberN).Value)
-		dto.SlotNumber, _ = strconv.Atoi(item["SlotId"].(*types.AttributeValueMemberN).Value)
-		dto.VechicleType = item["VehicleType"].(*types.AttributeValueMemberS).Value
-
-		startTimeUnix, _ := strconv.ParseInt(item["StartTime"].(*types.AttributeValueMemberN).Value, 10, 64)
-		dto.StartTime = time.Unix(startTimeUnix, 0).Local()
-
-		activeParkings = append(activeParkings, dto)
-	}
-
-	return activeParkings, nil
 }
 
 func (nosqlpr *NOSQLParkingRepository) UnparkByNumberPlate(ctx context.Context, numberplate string) error {
