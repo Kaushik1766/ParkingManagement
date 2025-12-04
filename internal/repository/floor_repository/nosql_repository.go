@@ -40,7 +40,6 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(ctx context.Context, buildingId st
 		return errors.New("error adding floor")
 	}
 
-	// adding slots to the floor
 	slots := []types.WriteRequest{}
 
 	for i, s := range constants.SlotLayout {
@@ -83,7 +82,19 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(ctx context.Context, buildingId st
 		}
 	}
 
-	// update building details
+	if len(slots) > 0 {
+		_, err := nosqlfr.client.
+			BatchWriteItem(ctx, &dynamodb.BatchWriteItemInput{
+				RequestItems: map[string][]types.WriteRequest{
+					config.DynamoDBTable: slots,
+				},
+			})
+		if err != nil {
+			log.Println(err.Error())
+			return errors.New("error adding remaining slots in floor" + strconv.Itoa(floorNumber))
+		}
+	}
+
 	_, err = nosqlfr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{

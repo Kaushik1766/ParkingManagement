@@ -28,6 +28,25 @@ func NewNOSQLVehicleRepository(client *dynamodb.Client) *NOSQLVehicleRepository 
 }
 
 func (nosqlvr *NOSQLVehicleRepository) AddVehicle(ctx context.Context, numberplate string, userid uuid.UUID, vehicleType vehicletypes.VehicleType) (models.Vehicle, error) {
+
+	// check if vehicle with same numberplate already exists for the user
+	existingVehicleRes, err := nosqlvr.client.GetItem(ctx, &dynamodb.GetItemInput{
+		TableName: aws.String(config.DynamoDBTable),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userid.String())},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", numberplate)},
+		},
+	})
+	if err != nil {
+		log.Println("Error checking existing vehicle:", err.Error())
+		return models.Vehicle{}, errors.New("error adding vehicle")
+	}
+
+	if existingVehicleRes.Item != nil {
+		log.Println("Vehicle with same numberplate already exists for the user")
+		return models.Vehicle{}, errors.New("vehicle with same numberplate already exists")
+	}
+
 	userCtx := ctx.Value(constants.User).(models.UserJwt)
 	userEmail := userCtx.Email
 
@@ -55,28 +74,9 @@ func (nosqlvr *NOSQLVehicleRepository) AddVehicle(ctx context.Context, numberpla
 	if err != nil {
 		log.Println("Error fetching user vehicles:", err.Error())
 		return models.Vehicle{}, errors.New("error adding vehicle")
-	} else {
-		// Look for an existing vehicle of the same type with an assigned slot
-		// for _, item := range vehiclesRes.Items {
-		// 	existingVehicleType := item["VehicleType"].(*types.AttributeValueMemberS).Value
-		// 	if existingVehicleType == vehicleType.String() && item["AssignedSlot"] != nil {
-		// 		// Reuse the slot assignment
-		// 		assignedSlotMap := item["AssignedSlot"].(*types.AttributeValueMemberM).Value
-		// 		if buildingId, ok := assignedSlotMap["BuildingId"]; ok {
-		// 			vehicle.AssignedBuildingID = uuid.MustParse(buildingId.(*types.AttributeValueMemberS).Value)
-		// 		}
-		// 		if floorNumber, ok := assignedSlotMap["FloorNumber"]; ok {
-		// 			vehicle.AssignedFloorNumber, _ = strconv.Atoi(floorNumber.(*types.AttributeValueMemberN).Value)
-		// 		}
-		// 		if slotId, ok := assignedSlotMap["SlotId"]; ok {
-		// 			vehicle.AssignedSlotNumber, _ = strconv.Atoi(slotId.(*types.AttributeValueMemberN).Value)
-		// 		}
-		// 		log.Println("Reusing slot assignment from existing vehicle of same type")
-		// 		break
-		// 	}
-		// }
 	}
 
+	// vehicle of same type found
 	if vehiclesRes.Count > 0 {
 		item := vehiclesRes.Items[0]
 		assignedSlotMap := item["AssignedSlot"].(*types.AttributeValueMemberM).Value
@@ -297,7 +297,7 @@ func (nosqlvr *NOSQLVehicleRepository) GetParkingStatus(ctx context.Context, num
 func (nosqlvr *NOSQLVehicleRepository) Save(ctx context.Context, vehicle models.Vehicle) error {
 	// Get user email from context
 	userCtx := ctx.Value(constants.User).(models.UserJwt)
-	userEmail := userCtx.Email
+	userId := userCtx.ID
 
 	updateExpression := "SET VehicleType = :vehicleType"
 	expressionValues := map[string]types.AttributeValue{
@@ -318,7 +318,7 @@ func (nosqlvr *NOSQLVehicleRepository) Save(ctx context.Context, vehicle models.
 	_, err := nosqlvr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userEmail)},
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userId)},
 			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", vehicle.NumberPlate)},
 		},
 		UpdateExpression:          aws.String(updateExpression),
