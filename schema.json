@@ -39,7 +39,7 @@
     "Numberplate": "UP32KK2222",
     "BuildingId": "BUILDING#B1",
     "FloorNumber": 1,
-    "SlotId": "SLOT#S1",
+    "SlotId": 2,
     "StartTime": 1763572066,
     "EndTime": 1763572066
   },
