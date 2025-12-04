@@ -56,6 +56,25 @@ func (nosqlpr *NOSQLParkingRepository) AddParking(ctx context.Context, vehicle m
 	parkingID := uuid.New()
 	timestamp := time.Now().Unix()
 
+	// Fetch user profile to get Username and Email
+	userRes, err := nosqlpr.client.Query(ctx, &dynamodb.QueryInput{
+		TableName:              aws.String(config.DynamoDBTable),
+		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userId)},
+			":sk": &types.AttributeValueMemberS{Value: "PROFILE"},
+		},
+	})
+	if err != nil {
+		log.Println("Error fetching user profile:", err.Error())
+		return "", errors.New("error fetching user profile")
+	}
+	if len(userRes.Items) == 0 {
+		return "", errors.New("user profile not found")
+	}
+	username := userRes.Items[0]["Username"].(*types.AttributeValueMemberS).Value
+	email := userRes.Items[0]["Email"].(*types.AttributeValueMemberS).Value
+
 	// Use TransactWriteItems for atomic operation
 	transactItems := []types.TransactWriteItem{
 		// 1. Put parking history record
@@ -125,9 +144,15 @@ func (nosqlpr *NOSQLParkingRepository) AddParking(ctx context.Context, vehicle m
 					"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", vehicle.AssignedBuildingID.String())},
 					"SK": &types.AttributeValueMemberS{Value: slotKey},
 				},
-				UpdateExpression: aws.String("SET IsOccupied = :isOccupied"),
+				UpdateExpression: aws.String("SET IsOccupied = :isOccupied, OccupiedBy = :occupiedBy"),
 				ExpressionAttributeValues: map[string]types.AttributeValue{
 					":isOccupied": &types.AttributeValueMemberBOOL{Value: true},
+					":occupiedBy": &types.AttributeValueMemberM{Value: map[string]types.AttributeValue{
+						"Username":    &types.AttributeValueMemberS{Value: username},
+						"Numberplate": &types.AttributeValueMemberS{Value: vehicle.NumberPlate},
+						"Email":       &types.AttributeValueMemberS{Value: email},
+						"StartTime":   &types.AttributeValueMemberN{Value: strconv.FormatInt(timestamp, 10)},
+					}},
 				},
 			},
 		},
@@ -246,7 +271,7 @@ func (nosqlpr *NOSQLParkingRepository) Unpark(ctx context.Context, ticketId stri
 					"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
 					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%d#SLOT#%d", floorNumber, slotId)},
 				},
-				UpdateExpression: aws.String("SET IsOccupied = :isOccupied"),
+				UpdateExpression: aws.String("SET IsOccupied = :isOccupied REMOVE OccupiedBy"),
 				ExpressionAttributeValues: map[string]types.AttributeValue{
 					":isOccupied": &types.AttributeValueMemberBOOL{Value: false},
 				},
@@ -411,6 +436,7 @@ func (nosqlpr *NOSQLParkingRepository) UnparkByNumberPlate(ctx context.Context, 
 	timestamp := item["SK"].(*types.AttributeValueMemberS).Value
 	buildingID := item["BuildingId"].(*types.AttributeValueMemberS).Value
 	floorNumber, _ := strconv.Atoi(item["FloorNumber"].(*types.AttributeValueMemberN).Value)
+	slotId, _ := strconv.Atoi(item["SlotId"].(*types.AttributeValueMemberN).Value)
 
 	endTime := time.Now().Unix()
 	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
@@ -474,6 +500,22 @@ func (nosqlpr *NOSQLParkingRepository) UnparkByNumberPlate(ctx context.Context, 
 	})
 	if err != nil {
 		log.Println("Warning: could not update building AvailableSlots:", err.Error())
+	}
+
+	// Mark slot as unoccupied
+	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		TableName: aws.String(config.DynamoDBTable),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%d#SLOT#%d", floorNumber, slotId)},
+		},
+		UpdateExpression: aws.String("SET IsOccupied = :isOccupied REMOVE OccupiedBy"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":isOccupied": &types.AttributeValueMemberBOOL{Value: false},
+		},
+	})
+	if err != nil {
+		log.Println("Warning: could not update slot status:", err.Error())
 	}
 
 	return nil

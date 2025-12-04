@@ -51,6 +51,8 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(ctx context.Context, buildingId st
 						"SK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%d#SLOT#%d", floorNumber, i)},
 						"SlotNumber": &types.AttributeValueMemberN{Value: strconv.Itoa(i)},
 						"SlotType":   &types.AttributeValueMemberS{Value: vehicletypes.TwoWheeler.String()},
+						"IsOccupied": &types.AttributeValueMemberBOOL{Value: false},
+						"IsAssigned": &types.AttributeValueMemberBOOL{Value: false},
 					},
 				},
 			})
@@ -62,6 +64,8 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(ctx context.Context, buildingId st
 						"SK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%d#SLOT#%d", floorNumber, i)},
 						"SlotNumber": &types.AttributeValueMemberN{Value: strconv.Itoa(i)},
 						"SlotType":   &types.AttributeValueMemberS{Value: vehicletypes.FourWheeler.String()},
+						"IsOccupied": &types.AttributeValueMemberBOOL{Value: false},
+						"IsAssigned": &types.AttributeValueMemberBOOL{Value: false},
 					},
 				},
 			})

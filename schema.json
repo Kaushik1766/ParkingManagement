@@ -72,12 +72,14 @@
     "SK": "FLOOR#F1#SLOT#1",
     "SlotId": "1",
     "SlotType": "TwoWheeler",
+    "IsAssigned": false,
     "IsOccupied": true,
     // this can be null
     "OccupiedBy?": {
       "Username": "Kaushik Saha",
       "Numberplate": "UP32KK2222",
-      "Email": "kaushik@a.com"
+      "Email": "kaushik@a.com",
+      "StartTime": 1763572066
     }
   },
   "Bill": {

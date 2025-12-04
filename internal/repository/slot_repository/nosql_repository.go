@@ -79,66 +79,6 @@ func (nosqlsr *NOSQLSlotRepository) GetSlotsByFloor(ctx context.Context, buildin
 		return nil, errors.New("error fetching slots")
 	}
 
-	// Get all active parkings to determine which slots have parked vehicles
-	activeParkings := make(map[string]models.Vehicle)
-
-	// TODO: fix, slot occupancy can be inferred by occupiedby optional attr.
-	scanRes, err := nosqlsr.client.Scan(ctx, &dynamodb.ScanInput{
-		TableName:        aws.String(config.DynamoDBTable),
-		FilterExpression: aws.String("attribute_not_exists(EndTime) AND begins_with(SK, :sk)"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":sk": &types.AttributeValueMemberS{Value: "PARKING#"},
-		},
-	})
-	if err == nil {
-		for _, item := range scanRes.Items {
-			if item["BuildingId"] != nil && item["FloorNumber"] != nil && item["SlotId"] != nil {
-				bId := item["BuildingId"].(*types.AttributeValueMemberS).Value
-				fNum, _ := strconv.Atoi(item["FloorNumber"].(*types.AttributeValueMemberN).Value)
-				sNum, _ := strconv.Atoi(item["SlotId"].(*types.AttributeValueMemberN).Value)
-
-				if bId == buildingId.String() && fNum == floorNumber {
-					slotKey := fmt.Sprintf("%s_%d_%d", bId, fNum, sNum)
-
-					var vehicle models.Vehicle
-					vehicle.NumberPlate = item["Numberplate"].(*types.AttributeValueMemberS).Value
-
-					// Get user email from PK
-					userPK := item["PK"].(*types.AttributeValueMemberS).Value
-					vehicle.UserEmail = userPK[5:] // Remove "USER#" prefix
-
-					// Fetch user details
-					userRes, err := nosqlsr.client.Query(ctx, &dynamodb.QueryInput{
-						TableName:              aws.String(config.DynamoDBTable),
-						KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
-						ExpressionAttributeValues: map[string]types.AttributeValue{
-							":pk": &types.AttributeValueMemberS{Value: userPK},
-							":sk": &types.AttributeValueMemberS{Value: "PROFILE#"},
-						},
-					})
-					if err == nil && len(userRes.Items) > 0 {
-						vehicle.User.Name = userRes.Items[0]["Username"].(*types.AttributeValueMemberS).Value
-						vehicle.User.Email = userRes.Items[0]["Email"].(*types.AttributeValueMemberS).Value
-					}
-
-					// Parse parking history
-					if item["StartTime"] != nil {
-						startTimeUnix, _ := strconv.ParseInt(item["StartTime"].(*types.AttributeValueMemberN).Value, 10, 64)
-						startTime := time.Unix(startTimeUnix, 0)
-						vehicle.ParkingHistory = []models.ParkingHistory{
-							{
-								ParkingID: uuid.MustParse(item["ParkingId"].(*types.AttributeValueMemberS).Value),
-								StartTime: startTime,
-							},
-						}
-					}
-
-					activeParkings[slotKey] = vehicle
-				}
-			}
-		}
-	}
-
 	for _, item := range queryRes.Items {
 		var slot models.Slot
 		slot.BuildingID = buildingId
@@ -146,15 +86,34 @@ func (nosqlsr *NOSQLSlotRepository) GetSlotsByFloor(ctx context.Context, buildin
 		slot.SlotNumber, _ = strconv.Atoi(item["SlotNumber"].(*types.AttributeValueMemberN).Value)
 
 		slotTypeStr := item["SlotType"].(*types.AttributeValueMemberS).Value
-		if slotTypeStr == "TwoWheeler" {
+		if slotTypeStr == vehicletypes.TwoWheeler.String() {
 			slot.SlotType = vehicletypes.TwoWheeler
 		} else {
 			slot.SlotType = vehicletypes.FourWheeler
 		}
 
-		// Check if slot has parked vehicle
-		slotKey := fmt.Sprintf("%s_%d_%d", buildingId.String(), floorNumber, slot.SlotNumber)
-		if vehicle, ok := activeParkings[slotKey]; ok {
+		if item["OccupiedBy"] != nil {
+			occupiedByMap := item["OccupiedBy"].(*types.AttributeValueMemberM).Value
+			var vehicle models.Vehicle
+			if val, ok := occupiedByMap["Numberplate"]; ok {
+				vehicle.NumberPlate = val.(*types.AttributeValueMemberS).Value
+			}
+			if val, ok := occupiedByMap["Username"]; ok {
+				vehicle.User.Name = val.(*types.AttributeValueMemberS).Value
+			}
+			if val, ok := occupiedByMap["Email"]; ok {
+				vehicle.UserEmail = val.(*types.AttributeValueMemberS).Value
+				vehicle.User.Email = val.(*types.AttributeValueMemberS).Value
+			}
+			if val, ok := occupiedByMap["StartTime"]; ok {
+				startTimeUnix, _ := strconv.ParseInt(val.(*types.AttributeValueMemberN).Value, 10, 64)
+				startTime := time.Unix(startTimeUnix, 0)
+				vehicle.ParkingHistory = []models.ParkingHistory{
+					{
+						StartTime: startTime,
+					},
+				}
+			}
 			slot.Vehicles = []models.Vehicle{vehicle}
 		}
 
@@ -165,43 +124,44 @@ func (nosqlsr *NOSQLSlotRepository) GetSlotsByFloor(ctx context.Context, buildin
 }
 
 func (nosqlsr *NOSQLSlotRepository) GetFreeSlotsByFloor(ctx context.Context, buildingId uuid.UUID, floorNumber int) ([]models.Slot, error) {
-	allSlots, err := nosqlsr.GetSlotsByFloor(ctx, buildingId, floorNumber)
-	if err != nil {
-		return nil, err
-	}
 
-	// Get all vehicles that have this slot assigned (regardless of parking status)
-	assignedSlots := make(map[string]bool)
-
-	// TODO: slot occupancy can be inferred by occupiedby optional attr.
-	scanRes, err := nosqlsr.client.Scan(ctx, &dynamodb.ScanInput{
-		TableName:        aws.String(config.DynamoDBTable),
-		FilterExpression: aws.String("begins_with(SK, :sk) AND attribute_exists(AssignedSlot)"),
+	// Filter for free slots (not assigned AND not occupied)
+	var freeSlots []models.Slot
+	queryRes, err := nosqlsr.client.Query(ctx, &dynamodb.QueryInput{
+		TableName:              aws.String(config.DynamoDBTable),
+		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
+		FilterExpression:       aws.String("IsAssigned = :isAssigned"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":sk": &types.AttributeValueMemberS{Value: "VEHICLE#"},
+			":pk":         &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId.String())},
+			":sk":         &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%d#SLOT#", floorNumber)},
+			":isAssigned": &types.AttributeValueMemberBOOL{Value: false},
 		},
 	})
-	if err == nil {
-		for _, item := range scanRes.Items {
-			if assignedSlot, ok := item["AssignedSlot"]; ok {
-				assignedSlotMap := assignedSlot.(*types.AttributeValueMemberM).Value
-				bId := assignedSlotMap["BuildingId"].(*types.AttributeValueMemberS).Value
-				fNum, _ := strconv.Atoi(assignedSlotMap["FloorNumber"].(*types.AttributeValueMemberN).Value)
-				sNum, _ := strconv.Atoi(assignedSlotMap["SlotId"].(*types.AttributeValueMemberN).Value)
-
-				if bId == buildingId.String() && fNum == floorNumber {
-					slotKey := fmt.Sprintf("%s_%d_%d", bId, fNum, sNum)
-					assignedSlots[slotKey] = true
-				}
-			}
-		}
+	if err != nil {
+		log.Println(err.Error())
+		return nil, errors.New("error fetching slots")
 	}
 
-	var freeSlots []models.Slot
-	for _, slot := range allSlots {
-		slotKey := fmt.Sprintf("%s_%d_%d", buildingId.String(), floorNumber, slot.SlotNumber)
-		// Slot is free if it's not currently parked AND not assigned to any vehicle
-		if len(slot.Vehicles) == 0 && !assignedSlots[slotKey] {
+	for _, item := range queryRes.Items {
+		var slot models.Slot
+		slot.BuildingID = buildingId
+		slot.FloorNumber = floorNumber
+		slot.SlotNumber, _ = strconv.Atoi(item["SlotNumber"].(*types.AttributeValueMemberN).Value)
+
+		slotTypeStr := item["SlotType"].(*types.AttributeValueMemberS).Value
+		if slotTypeStr == vehicletypes.TwoWheeler.String() {
+			slot.SlotType = vehicletypes.TwoWheeler
+		} else {
+			slot.SlotType = vehicletypes.FourWheeler
+		}
+
+		isAssigned := false
+		if val, ok := item["IsAssigned"]; ok {
+			isAssigned = val.(*types.AttributeValueMemberBOOL).Value
+		}
+
+		// Slot is free if it's not assigned
+		if !isAssigned {
 			freeSlots = append(freeSlots, slot)
 		}
 	}
@@ -251,6 +211,10 @@ func (nosqlsr *NOSQLSlotRepository) Save(ctx context.Context, slot models.Slot) 
 			"Username":    &types.AttributeValueMemberS{Value: vehicle.User.Name},
 			"Numberplate": &types.AttributeValueMemberS{Value: vehicle.NumberPlate},
 			"Email":       &types.AttributeValueMemberS{Value: vehicle.User.Email},
+		}
+		if len(vehicle.ParkingHistory) > 0 {
+			startTime := vehicle.ParkingHistory[0].StartTime.Unix()
+			occupiedBy["StartTime"] = &types.AttributeValueMemberN{Value: strconv.FormatInt(startTime, 10)}
 		}
 		updateExpression += ", OccupiedBy = :occupiedBy, IsOccupied = :isOccupied"
 		expressionValues[":occupiedBy"] = &types.AttributeValueMemberM{Value: occupiedBy}
