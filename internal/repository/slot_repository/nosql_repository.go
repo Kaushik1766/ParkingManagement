@@ -31,7 +31,7 @@ func NewNOSQLSlotRepository(client *dynamodb.Client) *NOSQLSlotRepository {
 func (nosqlsr *NOSQLSlotRepository) AddSlot(ctx context.Context, buildingId uuid.UUID, floorNumber, slotNumber int, slotType vehicletypes.VehicleType) error {
 	item := map[string]types.AttributeValue{
 		"PK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingId.String())},
-		"SK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d%s%d", constants.PrefixFloor, floorNumber, constants.PrefixSlot, slotNumber)},
+		"SK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d#%s%d", constants.PrefixFloor, floorNumber, constants.PrefixSlot, slotNumber)},
 		"SlotNumber": &types.AttributeValueMemberN{Value: strconv.Itoa(slotNumber)},
 		"SlotType":   &types.AttributeValueMemberS{Value: slotType.String()},
 	}
@@ -53,7 +53,7 @@ func (nosqlsr *NOSQLSlotRepository) DeleteSlot(ctx context.Context, buildingId u
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
 			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingId.String())},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d%s%d", constants.PrefixFloor, floorNumber, constants.PrefixSlot, slotNumber)},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d#%s%d", constants.PrefixFloor, floorNumber, constants.PrefixSlot, slotNumber)},
 		},
 	})
 	if err != nil {
@@ -72,7 +72,7 @@ func (nosqlsr *NOSQLSlotRepository) GetSlotsByFloor(ctx context.Context, buildin
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingId.String())},
-			":sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d%s", constants.PrefixFloor, floorNumber, constants.PrefixSlot)},
+			":sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d#%s", constants.PrefixFloor, floorNumber, constants.PrefixSlot)},
 		},
 	})
 	if err != nil {
@@ -126,7 +126,7 @@ func (nosqlsr *NOSQLSlotRepository) GetSlotsByFloor(ctx context.Context, buildin
 
 func (nosqlsr *NOSQLSlotRepository) GetFreeSlotsByFloor(ctx context.Context, buildingId uuid.UUID, floorNumber int) ([]models.Slot, error) {
 
-	// Filter for free slots (not assigned AND not occupied)
+	// filter for free slots (not assigned AND not occupied)
 	var freeSlots []models.Slot
 	queryRes, err := nosqlsr.client.Query(ctx, &dynamodb.QueryInput{
 		TableName:              aws.String(config.DynamoDBTable),
@@ -134,7 +134,7 @@ func (nosqlsr *NOSQLSlotRepository) GetFreeSlotsByFloor(ctx context.Context, bui
 		FilterExpression:       aws.String("IsAssigned = :isAssigned"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingId.String())},
-			":sk":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d%s", constants.PrefixFloor, floorNumber, constants.PrefixSlot)},
+			":sk":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d#%s", constants.PrefixFloor, floorNumber, constants.PrefixSlot)},
 			":isAssigned": &types.AttributeValueMemberBOOL{Value: false},
 		},
 	})
@@ -161,7 +161,6 @@ func (nosqlsr *NOSQLSlotRepository) GetFreeSlotsByFloor(ctx context.Context, bui
 			isAssigned = val.(*types.AttributeValueMemberBOOL).Value
 		}
 
-		// Slot is free if it's not assigned
 		if !isAssigned {
 			freeSlots = append(freeSlots, slot)
 		}
@@ -173,7 +172,7 @@ func (nosqlsr *NOSQLSlotRepository) GetFreeSlotsByFloor(ctx context.Context, bui
 func (nosqlsr *NOSQLSlotRepository) GetFreeSlotsByBuilding(ctx context.Context, buildingId uuid.UUID) ([]models.Slot, error) {
 	var freeSlots []models.Slot
 
-	// Get all floors for this building
+	// get all floors for this building
 	floorsRes, err := nosqlsr.client.Query(ctx, &dynamodb.QueryInput{
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
@@ -187,7 +186,7 @@ func (nosqlsr *NOSQLSlotRepository) GetFreeSlotsByBuilding(ctx context.Context, 
 		return nil, errors.New(constants.ErrFetchingFloors)
 	}
 
-	// For each floor, get free slots
+	// for each floor get free slots
 	for _, floorItem := range floorsRes.Items {
 		floorNum, _ := strconv.Atoi(floorItem["FloorNumber"].(*types.AttributeValueMemberN).Value)
 		floorFreeSlots, err := nosqlsr.GetFreeSlotsByFloor(ctx, buildingId, floorNum)
@@ -205,7 +204,7 @@ func (nosqlsr *NOSQLSlotRepository) Save(ctx context.Context, slot models.Slot) 
 		":slotType": &types.AttributeValueMemberS{Value: slot.SlotType.String()},
 	}
 
-	// Add OccupiedBy if slot has vehicles
+	// add OccupiedBy if slot has vehicles
 	if len(slot.Vehicles) > 0 {
 		vehicle := slot.Vehicles[0]
 		occupiedBy := map[string]types.AttributeValue{
@@ -230,7 +229,7 @@ func (nosqlsr *NOSQLSlotRepository) Save(ctx context.Context, slot models.Slot) 
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
 			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, slot.BuildingID.String())},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d%s%d", constants.PrefixFloor, slot.FloorNumber, constants.PrefixSlot, slot.SlotNumber)},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d#%s%d", constants.PrefixFloor, slot.FloorNumber, constants.PrefixSlot, slot.SlotNumber)},
 		},
 		UpdateExpression:          aws.String(updateExpression),
 		ExpressionAttributeValues: expressionValues,

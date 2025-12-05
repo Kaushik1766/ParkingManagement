@@ -126,6 +126,20 @@ func (nosqlbr *NOSQLBuidlingRepository) AddBuilding(ctx context.Context, buildin
 		log.Println("cannot add admin building")
 		return errors.New(constants.ErrCannotAddAdminBuilding)
 	}
+
+	// check if building with same name already exists
+	out, err := nosqlbr.client.ExecuteStatement(ctx, &dynamodb.ExecuteStatementInput{
+		Statement: aws.String(fmt.Sprintf("SELECT * FROM \"%s\" WHERE PK = '%s' AND BuildingName = '%s'", config.DynamoDBTable, constants.PKBuilding, buildingName)),
+	})
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+
+	if len(out.Items) > 0 {
+		log.Println("building with same name already exists")
+		return errors.New(constants.ErrBuildingNameExists)
+	}
 	building := models.BuildingSummary{
 		BuildingName:   buildingName,
 		BuildingId:     uuid.New(),

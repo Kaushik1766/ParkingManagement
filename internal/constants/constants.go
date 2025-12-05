@@ -59,7 +59,7 @@ tr:nth-child(even) {
 </body>
 </html>
 `
-	// DynamoDB Keys
+	// dynamoDB Keys
 	PKBuilding      string = "BUILDING"
 	PKUser          string = "USER"
 	PKOffice        string = "OFFICE"
@@ -71,7 +71,7 @@ tr:nth-child(even) {
 	PrefixProfile   string = "PROFILE"
 	PrefixFloorInfo string = "FLOORINFO#"
 
-	// Error Messages
+	// error Messages
 	ErrInvalidBuildingID        string = "invalid building ID"
 	ErrAddingOffice             string = "error adding office"
 	ErrNotImplemented           string = "not implemented"
@@ -121,6 +121,8 @@ tr:nth-child(even) {
 	ErrSavingVehicle            string = "error saving vehicle"
 	ErrSavingBill               string = "error saving bill"
 	ErrFetchingBill             string = "error fetching bill"
+	ErrBuildingNameExists       string = "building with same name already exists"
+	ErrFloorExists              string = "floor already exists"
 
 	PKParking string = "PARKING#"
 	PKVehicle string = "VEHICLE#"

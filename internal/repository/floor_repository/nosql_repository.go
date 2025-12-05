@@ -22,6 +22,24 @@ type NOSQLFloorRepository struct {
 }
 
 func (nosqlfr *NOSQLFloorRepository) AddFloor(ctx context.Context, buildingId string, floorNumber int) error {
+	// check if floor already exists
+	res, err := nosqlfr.client.GetItem(ctx, &dynamodb.GetItemInput{
+		TableName: aws.String(config.DynamoDBTable),
+		Key: map[string]types.AttributeValue{
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingId)},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d", constants.PrefixFloorInfo, floorNumber)},
+		},
+	})
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+
+	if res.Item != nil {
+		log.Println("floor already exists")
+		return errors.New(constants.ErrFloorExists)
+	}
+
 	item := map[string]types.AttributeValue{}
 
 	item["PK"] = &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingId)}
@@ -30,7 +48,7 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(ctx context.Context, buildingId st
 	item["TotalSlots"] = &types.AttributeValueMemberN{Value: strconv.Itoa(len(constants.SlotLayout))}
 	item["AvailableSlots"] = &types.AttributeValueMemberN{Value: strconv.Itoa(len(constants.SlotLayout))}
 
-	_, err := nosqlfr.client.
+	_, err = nosqlfr.client.
 		PutItem(ctx, &dynamodb.PutItemInput{
 			TableName: aws.String(config.DynamoDBTable),
 			Item:      item,
@@ -48,7 +66,7 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(ctx context.Context, buildingId st
 				PutRequest: &types.PutRequest{
 					Item: map[string]types.AttributeValue{
 						"PK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingId)},
-						"SK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d%s%d", constants.PrefixFloor, floorNumber, constants.PrefixSlot, i)},
+						"SK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d#%s%d", constants.PrefixFloor, floorNumber, constants.PrefixSlot, i)},
 						"SlotNumber": &types.AttributeValueMemberN{Value: strconv.Itoa(i)},
 						"SlotType":   &types.AttributeValueMemberS{Value: vehicletypes.TwoWheeler.String()},
 						"IsOccupied": &types.AttributeValueMemberBOOL{Value: false},
@@ -61,7 +79,7 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(ctx context.Context, buildingId st
 				PutRequest: &types.PutRequest{
 					Item: map[string]types.AttributeValue{
 						"PK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingId)},
-						"SK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d%s%d", constants.PrefixFloor, floorNumber, constants.PrefixSlot, i)},
+						"SK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d#%s%d", constants.PrefixFloor, floorNumber, constants.PrefixSlot, i)},
 						"SlotNumber": &types.AttributeValueMemberN{Value: strconv.Itoa(i)},
 						"SlotType":   &types.AttributeValueMemberS{Value: vehicletypes.FourWheeler.String()},
 						"IsOccupied": &types.AttributeValueMemberBOOL{Value: false},
