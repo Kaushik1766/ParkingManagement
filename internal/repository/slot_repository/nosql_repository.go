@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"time"
 
@@ -121,7 +122,14 @@ func (nosqlsr *NOSQLSlotRepository) GetSlotsByFloor(ctx context.Context, buildin
 		slots = append(slots, slot)
 	}
 
+	sortSlots(slots)
 	return slots, nil
+}
+
+func sortSlots(slots []models.Slot) {
+	sort.Slice(slots, func(i, j int) bool {
+		return slots[i].SlotNumber < slots[j].SlotNumber
+	})
 }
 
 func (nosqlsr *NOSQLSlotRepository) GetFreeSlotsByFloor(ctx context.Context, buildingId uuid.UUID, floorNumber int) ([]models.Slot, error) {
