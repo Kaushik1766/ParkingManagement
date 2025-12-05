@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
+	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	models "github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/Kaushik1766/ParkingManagement/internal/models/enums/roles"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -34,18 +35,18 @@ func (nosqlur *NOSQLUserRepository) GetUserByEmail(ctx context.Context, email st
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk AND SK = :sk"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: "USER"},
+			":pk": &types.AttributeValueMemberS{Value: constants.PKUser},
 			":sk": &types.AttributeValueMemberS{Value: email},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return user, errors.New("error fetching user")
+		return user, errors.New(constants.ErrFetchingUser)
 	}
 
 	if len(lookupQuery.Items) == 0 {
 		log.Println("user not found in GetUserByEmail")
-		return user, errors.New("user not found")
+		return user, errors.New(constants.ErrUserNotFound)
 	}
 
 	id := lookupQuery.Items[0]["UUID"].(*types.AttributeValueMemberS).Value
@@ -54,13 +55,13 @@ func (nosqlur *NOSQLUserRepository) GetUserByEmail(ctx context.Context, email st
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk and begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", id)},
-			":sk": &types.AttributeValueMemberS{Value: "PROFILE"},
+			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, id)},
+			":sk": &types.AttributeValueMemberS{Value: constants.PrefixProfile},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return user, errors.New("error fetching user")
+		return user, errors.New(constants.ErrFetchingUser)
 	}
 
 	item := userQuery.Items[0]
@@ -76,18 +77,18 @@ func (nosqlur *NOSQLUserRepository) GetUserById(ctx context.Context, id string) 
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk and begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", id)},
-			":sk": &types.AttributeValueMemberS{Value: "PROFILE"},
+			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, id)},
+			":sk": &types.AttributeValueMemberS{Value: constants.PrefixProfile},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return user, errors.New("error fetching user")
+		return user, errors.New(constants.ErrFetchingUser)
 	}
 
 	if len(userQuery.Items) == 0 {
 		log.Println("user not found in GetUserById")
-		return user, errors.New("user not found")
+		return user, errors.New(constants.ErrUserNotFound)
 	}
 
 	item := userQuery.Items[0]
@@ -102,12 +103,12 @@ func (nosqlur *NOSQLUserRepository) GetAllUsers(ctx context.Context) ([]models.U
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: "USER"},
+			":pk": &types.AttributeValueMemberS{Value: constants.PKUser},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return nil, errors.New("error fetching user list")
+		return nil, errors.New(constants.ErrFetchingUserList)
 	}
 
 	var userKeys []map[string]types.AttributeValue
@@ -115,8 +116,8 @@ func (nosqlur *NOSQLUserRepository) GetAllUsers(ctx context.Context) ([]models.U
 		if val, ok := item["UUID"]; ok {
 			uid := val.(*types.AttributeValueMemberS).Value
 			userKeys = append(userKeys, map[string]types.AttributeValue{
-				"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", uid)},
-				"SK": &types.AttributeValueMemberS{Value: "PROFILE"},
+				"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, uid)},
+				"SK": &types.AttributeValueMemberS{Value: constants.PrefixProfile},
 			})
 		}
 	}
@@ -205,8 +206,8 @@ func (nosqlur *NOSQLUserRepository) Save(ctx context.Context, user models.User) 
 	_, err := nosqlur.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", user.UserID.String())},
-			"SK": &types.AttributeValueMemberS{Value: "PROFILE"},
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, user.UserID.String())},
+			"SK": &types.AttributeValueMemberS{Value: constants.PrefixProfile},
 		},
 		UpdateExpression:          aws.String(updateExpression),
 		ExpressionAttributeValues: expressionValues,
@@ -214,7 +215,7 @@ func (nosqlur *NOSQLUserRepository) Save(ctx context.Context, user models.User) 
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return errors.New("error saving user")
+		return errors.New(constants.ErrSavingUser)
 	}
 
 	return nil
@@ -224,7 +225,7 @@ func (nosqlur *NOSQLUserRepository) Save(ctx context.Context, user models.User) 
 func (nosqlur *NOSQLUserRepository) CreateUser(ctx context.Context, name, email, password, officeId string, role roles.Role) error {
 	if officeId == "" {
 		log.Println("no office id provided")
-		return errors.New("office id is required")
+		return errors.New(constants.ErrOfficeIDRequired)
 	}
 
 	// check if office exists
@@ -232,17 +233,17 @@ func (nosqlur *NOSQLUserRepository) CreateUser(ctx context.Context, name, email,
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk AND SK = :sk"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: "OFFICE"},
-			":sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("DETAILS#%s", officeId)},
+			":pk": &types.AttributeValueMemberS{Value: constants.PKOffice},
+			":sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixDetails, officeId)},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return errors.New("error fetching office")
+		return errors.New(constants.ErrFetchingOffice)
 	}
 	if len(officeQuery.Items) == 0 {
 		log.Printf("no office with id %s found", officeId)
-		return errors.New("specified office not found")
+		return errors.New(constants.ErrSpecifiedOfficeNotFound)
 	}
 
 	// check if user exists
@@ -250,24 +251,24 @@ func (nosqlur *NOSQLUserRepository) CreateUser(ctx context.Context, name, email,
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk AND SK = :sk"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: "USER"},
+			":pk": &types.AttributeValueMemberS{Value: constants.PKUser},
 			":sk": &types.AttributeValueMemberS{Value: email},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return errors.New("error checking existing user")
+		return errors.New(constants.ErrCheckingExistingUser)
 	}
 	if len(userQuery.Items) > 0 {
 		log.Printf("user with email %s already exists", email)
-		return errors.New("user with given email already exists")
+		return errors.New(constants.ErrUserAlreadyExists)
 	}
 
 	userID := uuid.New().String()
 
 	item := map[string]types.AttributeValue{
-		"PK":           &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userID)},
-		"SK":           &types.AttributeValueMemberS{Value: "PROFILE"},
+		"PK":           &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, userID)},
+		"SK":           &types.AttributeValueMemberS{Value: constants.PrefixProfile},
 		"Email":        &types.AttributeValueMemberS{Value: email},
 		"Id":           &types.AttributeValueMemberS{Value: userID},
 		"Username":     &types.AttributeValueMemberS{Value: name},
@@ -284,7 +285,7 @@ func (nosqlur *NOSQLUserRepository) CreateUser(ctx context.Context, name, email,
 				Put: &types.Put{
 					TableName: aws.String(config.DynamoDBTable),
 					Item: map[string]types.AttributeValue{
-						"PK":   &types.AttributeValueMemberS{Value: "USER"},
+						"PK":   &types.AttributeValueMemberS{Value: constants.PKUser},
 						"SK":   &types.AttributeValueMemberS{Value: email},
 						"UUID": &types.AttributeValueMemberS{Value: userID},
 					},
@@ -300,7 +301,7 @@ func (nosqlur *NOSQLUserRepository) CreateUser(ctx context.Context, name, email,
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return errors.New("error creating user")
+		return errors.New(constants.ErrCreatingUser)
 	}
 
 	return nil
@@ -341,8 +342,8 @@ func (nosqlur *NOSQLUserRepository) itemToUser(ctx context.Context, item map[str
 			TableName:              aws.String(config.DynamoDBTable),
 			KeyConditionExpression: aws.String("PK = :pk AND SK = :sk"),
 			ExpressionAttributeValues: map[string]types.AttributeValue{
-				":pk": &types.AttributeValueMemberS{Value: "OFFICE"},
-				":sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("DETAILS#%s", user.OfficeID.String())},
+				":pk": &types.AttributeValueMemberS{Value: constants.PKOffice},
+				":sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixDetails, user.OfficeID.String())},
 			},
 			AttributesToGet: []string{
 				"OfficeName",

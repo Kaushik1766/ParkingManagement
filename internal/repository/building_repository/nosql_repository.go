@@ -34,10 +34,10 @@ func (nosqlbr *NOSQLBuidlingRepository) DeleteBuildingByID(ctx context.Context, 
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
 			"PK": &types.AttributeValueMemberS{
-				Value: "BUILDING",
+				Value: constants.PKBuilding,
 			},
 			"SK": &types.AttributeValueMemberS{
-				Value: fmt.Sprintf("BUILDING#%s", buildingID),
+				Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingID),
 			},
 		},
 	})
@@ -51,7 +51,7 @@ func (nosqlbr *NOSQLBuidlingRepository) GetAllBuildingSummary(ctx context.Contex
 	var buildings []models.BuildingSummary
 
 	res, err := nosqlbr.client.ExecuteStatement(ctx, &dynamodb.ExecuteStatementInput{
-		Statement: aws.String(`SELECT * FROM "` + config.DynamoDBTable + `" WHERE PK = 'BUILDING'`),
+		Statement: aws.String(`SELECT * FROM "` + config.DynamoDBTable + `" WHERE PK = '` + constants.PKBuilding + `'`),
 	})
 	if err != nil {
 		log.Println(err.Error())
@@ -99,10 +99,10 @@ func (nosqlbr *NOSQLBuidlingRepository) GetBuildingByID(ctx context.Context, bui
 			TableName: aws.String(config.DynamoDBTable),
 			Key: map[string]types.AttributeValue{
 				"PK": &types.AttributeValueMemberS{
-					Value: "BUILDING",
+					Value: constants.PKBuilding,
 				},
 				"SK": &types.AttributeValueMemberS{
-					Value: fmt.Sprintf("BUILDING#%s", buildingID.String()),
+					Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingID.String()),
 				},
 			},
 		})
@@ -113,7 +113,7 @@ func (nosqlbr *NOSQLBuidlingRepository) GetBuildingByID(ctx context.Context, bui
 
 	if res.Item == nil {
 		log.Println("building not found")
-		return building, errors.New("building not found")
+		return building, errors.New(constants.ErrBuildingNotFound)
 	}
 
 	building.BuildingID = buildingID
@@ -124,7 +124,7 @@ func (nosqlbr *NOSQLBuidlingRepository) GetBuildingByID(ctx context.Context, bui
 func (nosqlbr *NOSQLBuidlingRepository) AddBuilding(ctx context.Context, buildingName string) error {
 	if buildingName == constants.AdminBuilding {
 		log.Println("cannot add admin building")
-		return errors.New("buildingrepo: cannot add admin building")
+		return errors.New(constants.ErrCannotAddAdminBuilding)
 	}
 	building := models.BuildingSummary{
 		BuildingName:   buildingName,
@@ -140,8 +140,8 @@ func (nosqlbr *NOSQLBuidlingRepository) AddBuilding(ctx context.Context, buildin
 		return err
 	}
 
-	item["PK"] = &types.AttributeValueMemberS{Value: "BUILDING"}
-	item["SK"] = &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", building.BuildingId.String())}
+	item["PK"] = &types.AttributeValueMemberS{Value: constants.PKBuilding}
+	item["SK"] = &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, building.BuildingId.String())}
 	item["BuildingId"] = &types.AttributeValueMemberS{Value: building.BuildingId.String()}
 
 	_, err = nosqlbr.client.
@@ -151,7 +151,7 @@ func (nosqlbr *NOSQLBuidlingRepository) AddBuilding(ctx context.Context, buildin
 		})
 	if err != nil {
 		log.Println(err.Error())
-		return errors.New("error adding building")
+		return errors.New(constants.ErrAddingBuilding)
 	}
 
 	return nil

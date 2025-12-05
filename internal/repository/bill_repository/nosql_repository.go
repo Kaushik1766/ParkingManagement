@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
+	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -26,8 +27,8 @@ func NewNOSQLBillRepository(client *dynamodb.Client) *NOSQLBillRepository {
 
 func (nosqlbr *NOSQLBillRepository) SaveBill(ctx context.Context, bill models.BillDTO) error {
 	// bill.UserId contains the user uuid
-	pk := fmt.Sprintf("USER#%s", bill.UserId)
-	sk := fmt.Sprintf("BILL#%d#%d", bill.BillingYear, bill.BillingMonth)
+	pk := fmt.Sprintf("%s%s", constants.PrefixUser, bill.UserId)
+	sk := fmt.Sprintf("%s%d#%d", constants.PKBill, bill.BillingYear, bill.BillingMonth)
 
 	// Convert ParkingHistory to a list of maps for DynamoDB
 	var parkingHistoryItems []types.AttributeValue
@@ -71,8 +72,8 @@ func (nosqlbr *NOSQLBillRepository) SaveBill(ctx context.Context, bill models.Bi
 }
 
 func (nosqlbr *NOSQLBillRepository) GetBill(ctx context.Context, userId string, month, year int) (models.BillDTO, error) {
-	pk := fmt.Sprintf("USER#%s", userId)
-	sk := fmt.Sprintf("BILL#%d#%d", year, month)
+	pk := fmt.Sprintf("%s%s", constants.PrefixUser, userId)
+	sk := fmt.Sprintf("%s%d#%d", constants.PKBill, year, month)
 
 	res, err := nosqlbr.client.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: aws.String(config.DynamoDBTable),

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
+	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	vehicletypes "github.com/Kaushik1766/ParkingManagement/internal/models/enums/vehicle_types"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -29,8 +30,8 @@ func NewNOSQLSlotRepository(client *dynamodb.Client) *NOSQLSlotRepository {
 
 func (nosqlsr *NOSQLSlotRepository) AddSlot(ctx context.Context, buildingId uuid.UUID, floorNumber, slotNumber int, slotType vehicletypes.VehicleType) error {
 	item := map[string]types.AttributeValue{
-		"PK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId.String())},
-		"SK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%d#SLOT#%d", floorNumber, slotNumber)},
+		"PK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingId.String())},
+		"SK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d%s%d", constants.PrefixFloor, floorNumber, constants.PrefixSlot, slotNumber)},
 		"SlotNumber": &types.AttributeValueMemberN{Value: strconv.Itoa(slotNumber)},
 		"SlotType":   &types.AttributeValueMemberS{Value: slotType.String()},
 	}
@@ -41,7 +42,7 @@ func (nosqlsr *NOSQLSlotRepository) AddSlot(ctx context.Context, buildingId uuid
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return errors.New("error adding slot")
+		return errors.New(constants.ErrAddingSlot)
 	}
 
 	return nil
@@ -51,13 +52,13 @@ func (nosqlsr *NOSQLSlotRepository) DeleteSlot(ctx context.Context, buildingId u
 	_, err := nosqlsr.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId.String())},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%d#SLOT#%d", floorNumber, slotNumber)},
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingId.String())},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d%s%d", constants.PrefixFloor, floorNumber, constants.PrefixSlot, slotNumber)},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return errors.New("error deleting slot")
+		return errors.New(constants.ErrDeletingSlot)
 	}
 
 	return nil
@@ -70,13 +71,13 @@ func (nosqlsr *NOSQLSlotRepository) GetSlotsByFloor(ctx context.Context, buildin
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId.String())},
-			":sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%d#SLOT#", floorNumber)},
+			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingId.String())},
+			":sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d%s", constants.PrefixFloor, floorNumber, constants.PrefixSlot)},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return nil, errors.New("error fetching slots")
+		return nil, errors.New(constants.ErrFetchingSlots)
 	}
 
 	for _, item := range queryRes.Items {
@@ -132,14 +133,14 @@ func (nosqlsr *NOSQLSlotRepository) GetFreeSlotsByFloor(ctx context.Context, bui
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		FilterExpression:       aws.String("IsAssigned = :isAssigned"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk":         &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId.String())},
-			":sk":         &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%d#SLOT#", floorNumber)},
+			":pk":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingId.String())},
+			":sk":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d%s", constants.PrefixFloor, floorNumber, constants.PrefixSlot)},
 			":isAssigned": &types.AttributeValueMemberBOOL{Value: false},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return nil, errors.New("error fetching slots")
+		return nil, errors.New(constants.ErrFetchingSlots)
 	}
 
 	for _, item := range queryRes.Items {
@@ -177,13 +178,13 @@ func (nosqlsr *NOSQLSlotRepository) GetFreeSlotsByBuilding(ctx context.Context, 
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId.String())},
-			":sk": &types.AttributeValueMemberS{Value: "FLOORINFO#"},
+			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingId.String())},
+			":sk": &types.AttributeValueMemberS{Value: constants.PrefixFloorInfo},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return nil, errors.New("error fetching floors")
+		return nil, errors.New(constants.ErrFetchingFloors)
 	}
 
 	// For each floor, get free slots
@@ -228,15 +229,15 @@ func (nosqlsr *NOSQLSlotRepository) Save(ctx context.Context, slot models.Slot) 
 	_, err := nosqlsr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", slot.BuildingID.String())},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%d#SLOT#%d", slot.FloorNumber, slot.SlotNumber)},
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, slot.BuildingID.String())},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d%s%d", constants.PrefixFloor, slot.FloorNumber, constants.PrefixSlot, slot.SlotNumber)},
 		},
 		UpdateExpression:          aws.String(updateExpression),
 		ExpressionAttributeValues: expressionValues,
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return errors.New("error saving slot")
+		return errors.New(constants.ErrSavingSlot)
 	}
 
 	return nil

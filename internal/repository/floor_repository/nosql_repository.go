@@ -24,8 +24,8 @@ type NOSQLFloorRepository struct {
 func (nosqlfr *NOSQLFloorRepository) AddFloor(ctx context.Context, buildingId string, floorNumber int) error {
 	item := map[string]types.AttributeValue{}
 
-	item["PK"] = &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId)}
-	item["SK"] = &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOORINFO#%s", strconv.Itoa(floorNumber))}
+	item["PK"] = &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingId)}
+	item["SK"] = &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixFloorInfo, strconv.Itoa(floorNumber))}
 	item["FloorNumber"] = &types.AttributeValueMemberN{Value: strconv.Itoa(floorNumber)}
 	item["TotalSlots"] = &types.AttributeValueMemberN{Value: strconv.Itoa(len(constants.SlotLayout))}
 	item["AvailableSlots"] = &types.AttributeValueMemberN{Value: strconv.Itoa(len(constants.SlotLayout))}
@@ -37,7 +37,7 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(ctx context.Context, buildingId st
 		})
 	if err != nil {
 		log.Println(err.Error())
-		return errors.New("error adding floor")
+		return errors.New(constants.ErrAddingFloor)
 	}
 
 	slots := []types.WriteRequest{}
@@ -47,8 +47,8 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(ctx context.Context, buildingId st
 			slots = append(slots, types.WriteRequest{
 				PutRequest: &types.PutRequest{
 					Item: map[string]types.AttributeValue{
-						"PK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId)},
-						"SK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%d#SLOT#%d", floorNumber, i)},
+						"PK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingId)},
+						"SK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d%s%d", constants.PrefixFloor, floorNumber, constants.PrefixSlot, i)},
 						"SlotNumber": &types.AttributeValueMemberN{Value: strconv.Itoa(i)},
 						"SlotType":   &types.AttributeValueMemberS{Value: vehicletypes.TwoWheeler.String()},
 						"IsOccupied": &types.AttributeValueMemberBOOL{Value: false},
@@ -60,8 +60,8 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(ctx context.Context, buildingId st
 			slots = append(slots, types.WriteRequest{
 				PutRequest: &types.PutRequest{
 					Item: map[string]types.AttributeValue{
-						"PK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId)},
-						"SK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%d#SLOT#%d", floorNumber, i)},
+						"PK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingId)},
+						"SK":         &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d%s%d", constants.PrefixFloor, floorNumber, constants.PrefixSlot, i)},
 						"SlotNumber": &types.AttributeValueMemberN{Value: strconv.Itoa(i)},
 						"SlotType":   &types.AttributeValueMemberS{Value: vehicletypes.FourWheeler.String()},
 						"IsOccupied": &types.AttributeValueMemberBOOL{Value: false},
@@ -102,8 +102,8 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(ctx context.Context, buildingId st
 	_, err = nosqlfr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: "BUILDING"},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId)},
+			"PK": &types.AttributeValueMemberS{Value: constants.PKBuilding},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingId)},
 		},
 		UpdateExpression: aws.String("SET TotalFloors = TotalFloors + :inc, TotalSlots = TotalSlots + :slots, AvailableSlots = AvailableSlots + :avail"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -114,7 +114,7 @@ func (nosqlfr *NOSQLFloorRepository) AddFloor(ctx context.Context, buildingId st
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return errors.New("error updating building details")
+		return errors.New(constants.ErrUpdatingBuildingDetails)
 	}
 
 	return nil
@@ -126,20 +126,20 @@ func (nosqlfr *NOSQLFloorRepository) DeleteFloor(ctx context.Context, buildingId
 		DeleteItem(ctx, &dynamodb.DeleteItemInput{
 			TableName: aws.String(config.DynamoDBTable),
 			Key: map[string]types.AttributeValue{
-				"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId)},
-				"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOORINFO#%d", floorNumber)},
+				"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingId)},
+				"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d", constants.PrefixFloorInfo, floorNumber)},
 			},
 		})
 	if err != nil {
 		log.Println(err.Error())
-		return errors.New("error deleting floor")
+		return errors.New(constants.ErrDeletingFloor)
 	}
 
 	return nil
 }
 
 func (nosqlfr *NOSQLFloorRepository) GetFloor(ctx context.Context, buildingId uuid.UUID, floorNumber int) (int, error) {
-	panic("not implemented coz not used")
+	panic(constants.ErrNotImplemented)
 }
 
 func (nosqlfr *NOSQLFloorRepository) GetFloorsByBuildingId(ctx context.Context, buildingId string) ([]models.FloorSummary, error) {
@@ -151,13 +151,13 @@ func (nosqlfr *NOSQLFloorRepository) GetFloorsByBuildingId(ctx context.Context, 
 			TableName:              aws.String(config.DynamoDBTable),
 			KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 			ExpressionAttributeValues: map[string]types.AttributeValue{
-				":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingId)},
-				":sk": &types.AttributeValueMemberS{Value: "FLOORINFO#"},
+				":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingId)},
+				":sk": &types.AttributeValueMemberS{Value: constants.PrefixFloorInfo},
 			},
 		})
 	if err != nil {
 		log.Println("Error details:", err.Error())
-		return nil, errors.New("error fetching floors")
+		return nil, errors.New(constants.ErrFetchingFloors)
 	}
 
 	for _, item := range res.Items {
@@ -173,13 +173,13 @@ func (nosqlfr *NOSQLFloorRepository) GetFloorsByBuildingId(ctx context.Context, 
 				TableName:              aws.String(config.DynamoDBTable),
 				KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 				ExpressionAttributeValues: map[string]types.AttributeValue{
-					":pk": &types.AttributeValueMemberS{Value: "OFFICE"},
-					":sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("DETAILS#%s", officeId)},
+					":pk": &types.AttributeValueMemberS{Value: constants.PKOffice},
+					":sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixDetails, officeId)},
 				},
 			})
 			if err != nil {
 				log.Println("Error details:", err.Error())
-				return nil, errors.New("error fetching office")
+				return nil, errors.New(constants.ErrFetchingOffice)
 			}
 			floor.AssignedOffice = officeQuery.Items[0]["OfficeName"].(*types.AttributeValueMemberS).Value
 		}

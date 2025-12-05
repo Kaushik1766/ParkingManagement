@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/Kaushik1766/ParkingManagement/internal/config"
+	"github.com/Kaushik1766/ParkingManagement/internal/constants"
 	"github.com/Kaushik1766/ParkingManagement/internal/models"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -29,7 +30,7 @@ func (nosqlor *NOSQLOfficeRepository) AddOffice(ctx context.Context, officeName 
 	_, err := uuid.Parse(buildingID)
 	if err != nil {
 		log.Println("invalid building ID:", err.Error())
-		return errors.New("invalid building ID")
+		return errors.New(constants.ErrInvalidBuildingID)
 	}
 
 	// _, err = nosqlor.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
@@ -53,8 +54,8 @@ func (nosqlor *NOSQLOfficeRepository) AddOffice(ctx context.Context, officeName 
 				Put: &types.Put{
 					TableName: aws.String(config.DynamoDBTable),
 					Item: map[string]types.AttributeValue{
-						"PK":          &types.AttributeValueMemberS{Value: "OFFICE"},
-						"SK":          &types.AttributeValueMemberS{Value: fmt.Sprintf("DETAILS#%s", officeId)},
+						"PK":          &types.AttributeValueMemberS{Value: constants.PKOffice},
+						"SK":          &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixDetails, officeId)},
 						"OfficeName":  &types.AttributeValueMemberS{Value: officeName},
 						"BuildingId":  &types.AttributeValueMemberS{Value: buildingID},
 						"FloorNumber": &types.AttributeValueMemberN{Value: strconv.Itoa(floorNumber)},
@@ -66,8 +67,8 @@ func (nosqlor *NOSQLOfficeRepository) AddOffice(ctx context.Context, officeName 
 				Update: &types.Update{
 					TableName: aws.String(config.DynamoDBTable),
 					Key: map[string]types.AttributeValue{
-						"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
-						"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOORINFO#%d", floorNumber)},
+						"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingID)},
+						"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d", constants.PrefixFloorInfo, floorNumber)},
 					},
 					UpdateExpression: aws.String("SET OfficeId = :id"),
 					ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -79,7 +80,7 @@ func (nosqlor *NOSQLOfficeRepository) AddOffice(ctx context.Context, officeName 
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return errors.New("error adding office")
+		return errors.New(constants.ErrAddingOffice)
 	}
 
 	return nil
@@ -98,7 +99,7 @@ func (nosqlor *NOSQLOfficeRepository) GetOfficesByBuilding(ctx context.Context, 
 	_, err := uuid.Parse(buildingID)
 	if err != nil {
 		log.Println("invalid building id:", err.Error())
-		return nil, errors.New("invalid building id")
+		return nil, errors.New(constants.ErrInvalidBuildingID)
 	}
 
 	// err = nosqlor.db.Where("building_id = ? AND office_name <> ?", buildingUUID, constants.AdminOffice).Find(&offices).Error
@@ -134,14 +135,14 @@ func (nosqlor *NOSQLOfficeRepository) GetOfficesByBuilding(ctx context.Context, 
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		FilterExpression:       aws.String("BuildingId = :buildingId"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk":         &types.AttributeValueMemberS{Value: "OFFICE"},
-			":sk":         &types.AttributeValueMemberS{Value: "DETAILS#"},
+			":pk":         &types.AttributeValueMemberS{Value: constants.PKOffice},
+			":sk":         &types.AttributeValueMemberS{Value: constants.PrefixDetails},
 			":buildingId": &types.AttributeValueMemberS{Value: buildingID},
 		},
 	})
 	if err != nil {
 		log.Println("error querying offices by building:", err.Error())
-		return nil, errors.New("error fetching offices by building")
+		return nil, errors.New(constants.ErrFetchingOffices)
 	}
 
 	for _, item := range items.Items {
@@ -163,13 +164,13 @@ func (nosqlor *NOSQLOfficeRepository) GetAllOffices(ctx context.Context) ([]mode
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: "OFFICE"},
-			":sk": &types.AttributeValueMemberS{Value: "DETAILS#"},
+			":pk": &types.AttributeValueMemberS{Value: constants.PKOffice},
+			":sk": &types.AttributeValueMemberS{Value: constants.PrefixDetails},
 		},
 	})
 	if err != nil {
 		log.Println("error querying all offices:", err.Error())
-		return nil, errors.New("error fetching all offices")
+		return nil, errors.New(constants.ErrFetchingAllOffices)
 	}
 
 	for _, item := range items.Items {
@@ -190,8 +191,8 @@ func (nosqlor *NOSQLOfficeRepository) GetOfficeById(ctx context.Context, officeI
 	itemRes, err := nosqlor.client.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: "OFFICE"},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("DETAILS#%s", officeID)},
+			"PK": &types.AttributeValueMemberS{Value: constants.PKOffice},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixDetails, officeID)},
 		},
 	})
 	if err != nil {
@@ -200,7 +201,7 @@ func (nosqlor *NOSQLOfficeRepository) GetOfficeById(ctx context.Context, officeI
 	}
 	if itemRes.Item == nil {
 		log.Printf("No office found with ID: %s", officeID)
-		return models.Office{}, errors.New("office not found")
+		return models.Office{}, errors.New(constants.ErrOfficeNotFound)
 	}
 
 	item := itemRes.Item

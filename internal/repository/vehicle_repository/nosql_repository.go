@@ -33,18 +33,18 @@ func (nosqlvr *NOSQLVehicleRepository) AddVehicle(ctx context.Context, numberpla
 	existingVehicleRes, err := nosqlvr.client.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userid.String())},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", numberplate)},
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, userid.String())},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PKVehicle, numberplate)},
 		},
 	})
 	if err != nil {
 		log.Println("Error checking existing vehicle:", err.Error())
-		return models.Vehicle{}, errors.New("error adding vehicle")
+		return models.Vehicle{}, errors.New(constants.ErrAddingVehicle)
 	}
 
 	if existingVehicleRes.Item != nil {
 		log.Println("Vehicle with same numberplate already exists for the user")
-		return models.Vehicle{}, errors.New("vehicle with same numberplate already exists")
+		return models.Vehicle{}, errors.New(constants.ErrVehicleAlreadyExists)
 	}
 
 	userCtx := ctx.Value(constants.User).(models.UserJwt)
@@ -66,14 +66,14 @@ func (nosqlvr *NOSQLVehicleRepository) AddVehicle(ctx context.Context, numberpla
 		FilterExpression:       aws.String("VehicleType = :vehicleType AND attribute_exists(AssignedSlot)"),
 		Limit:                  aws.Int32(1),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk":          &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userid.String())},
-			":sk":          &types.AttributeValueMemberS{Value: "VEHICLE#"},
+			":pk":          &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, userid.String())},
+			":sk":          &types.AttributeValueMemberS{Value: constants.PKVehicle},
 			":vehicleType": &types.AttributeValueMemberS{Value: vehicleType.String()},
 		},
 	})
 	if err != nil {
 		log.Println("Error fetching user vehicles:", err.Error())
-		return models.Vehicle{}, errors.New("error adding vehicle")
+		return models.Vehicle{}, errors.New(constants.ErrAddingVehicle)
 	}
 
 	// vehicle of same type found
@@ -92,8 +92,8 @@ func (nosqlvr *NOSQLVehicleRepository) AddVehicle(ctx context.Context, numberpla
 	}
 
 	item := map[string]types.AttributeValue{
-		"PK":          &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userid.String())},
-		"SK":          &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", numberplate)},
+		"PK":          &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, userid.String())},
+		"SK":          &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PKVehicle, numberplate)},
 		"VehicleId":   &types.AttributeValueMemberS{Value: vehicle.VehicleID.String()},
 		"Numberplate": &types.AttributeValueMemberS{Value: numberplate},
 		"VehicleType": &types.AttributeValueMemberS{Value: vehicleType.String()},
@@ -116,7 +116,7 @@ func (nosqlvr *NOSQLVehicleRepository) AddVehicle(ctx context.Context, numberpla
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return models.Vehicle{}, errors.New("error adding vehicle")
+		return models.Vehicle{}, errors.New(constants.ErrAddingVehicle)
 	}
 
 	return vehicle, nil
@@ -131,7 +131,7 @@ func (nosqlvr *NOSQLVehicleRepository) RemoveVehicle(ctx context.Context, number
 
 	if isParked {
 		log.Println("vehicle is parked")
-		return errors.New("vehicle is parked please unpark it first")
+		return errors.New(constants.ErrVehicleIsParked)
 	}
 
 	// get user id from ctx
@@ -142,13 +142,13 @@ func (nosqlvr *NOSQLVehicleRepository) RemoveVehicle(ctx context.Context, number
 	_, err = nosqlvr.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userId)},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", numberplate)},
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, userId)},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PKVehicle, numberplate)},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return errors.New("error removing vehicle")
+		return errors.New(constants.ErrRemovingVehicle)
 	}
 
 	return nil
@@ -163,13 +163,13 @@ func (nosqlvr *NOSQLVehicleRepository) GetVehiclesByUserId(ctx context.Context, 
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userId)},
-			":sk": &types.AttributeValueMemberS{Value: "VEHICLE#"},
+			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, userId)},
+			":sk": &types.AttributeValueMemberS{Value: constants.PKVehicle},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return nil, errors.New("error fetching vehicles")
+		return nil, errors.New(constants.ErrFetchingVehicles)
 	}
 
 	for _, item := range vehiclesRes.Items {
@@ -191,17 +191,17 @@ func (nosqlvr *NOSQLVehicleRepository) GetVehicleByNumberPlate(ctx context.Conte
 	getRes, err := nosqlvr.client.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userId)},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", numberplate)},
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, userId)},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PKVehicle, numberplate)},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return vehicle, errors.New("error fetching vehicle")
+		return vehicle, errors.New(constants.ErrFetchingVehicle)
 	}
 
 	if len(getRes.Item) == 0 {
-		return vehicle, errors.New("vehicle not found")
+		return vehicle, errors.New(constants.ErrVehicleNotFound)
 	}
 
 	vehicle = nosqlvr.itemToVehicle(getRes.Item)
@@ -212,7 +212,7 @@ func (nosqlvr *NOSQLVehicleRepository) GetVehicleByNumberPlate(ctx context.Conte
 }
 
 func (nosqlvr *NOSQLVehicleRepository) GetVehiclesWithUnassignedSlots(ctx context.Context) (vehicles []models.Vehicle, err error) {
-	panic("Not implemented yet coz not used")
+	panic(constants.ErrNotImplemented)
 }
 
 func (nosqlvr *NOSQLVehicleRepository) GetParkingStatus(ctx context.Context, numberplate string) (bool, error) {
@@ -226,14 +226,14 @@ func (nosqlvr *NOSQLVehicleRepository) GetParkingStatus(ctx context.Context, num
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		FilterExpression:       aws.String("Numberplate = :numberplate AND attribute_not_exists(EndTime)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk":          &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userId)},
-			":sk":          &types.AttributeValueMemberS{Value: "PARKING#"},
+			":pk":          &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, userId)},
+			":sk":          &types.AttributeValueMemberS{Value: constants.PKParking},
 			":numberplate": &types.AttributeValueMemberS{Value: numberplate},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return false, errors.New("error checking parking status")
+		return false, errors.New(constants.ErrCheckingParkingStatus)
 	}
 
 	return len(queryRes.Items) > 0, nil
@@ -263,15 +263,15 @@ func (nosqlvr *NOSQLVehicleRepository) Save(ctx context.Context, vehicle models.
 	_, err := nosqlvr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userId)},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", vehicle.NumberPlate)},
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, userId)},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PKVehicle, vehicle.NumberPlate)},
 		},
 		UpdateExpression:          aws.String(updateExpression),
 		ExpressionAttributeValues: expressionValues,
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return errors.New("error saving vehicle")
+		return errors.New(constants.ErrSavingVehicle)
 	}
 
 	return nil
@@ -283,18 +283,18 @@ func (nosqlvr *NOSQLVehicleRepository) getUserIDFromEmail(ctx context.Context, e
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", email)},
-			":sk": &types.AttributeValueMemberS{Value: "PROFILE#"},
+			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, email)},
+			":sk": &types.AttributeValueMemberS{Value: constants.PrefixProfile},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return uuid.Nil, errors.New("error fetching user")
+		return uuid.Nil, errors.New(constants.ErrFetchingUser)
 	}
 
 	if len(userRes.Items) == 0 {
 		log.Println("user not found in getUserIDFromEmail")
-		return uuid.Nil, errors.New("user not found")
+		return uuid.Nil, errors.New(constants.ErrUserNotFound)
 	}
 
 	userID := uuid.MustParse(userRes.Items[0]["Id"].(*types.AttributeValueMemberS).Value)

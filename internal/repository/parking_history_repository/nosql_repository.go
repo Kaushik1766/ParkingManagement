@@ -33,23 +33,23 @@ func (nosqlpr *NOSQLParkingRepository) AddParking(ctx context.Context, vehicle m
 	userId := userCtx.ID
 
 	// check if slot already occupied
-	slotKey := fmt.Sprintf("FLOOR#%d#SLOT#%d", vehicle.AssignedFloorNumber, vehicle.AssignedSlotNumber)
+	slotKey := fmt.Sprintf("%s%d%s%d", constants.PrefixFloor, vehicle.AssignedFloorNumber, constants.PrefixSlot, vehicle.AssignedSlotNumber)
 	slotRes, err := nosqlpr.client.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", vehicle.AssignedBuildingID.String())},
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, vehicle.AssignedBuildingID.String())},
 			"SK": &types.AttributeValueMemberS{Value: slotKey},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return "", errors.New("error checking slot availability")
+		return "", errors.New(constants.ErrCheckingSlotAvailability)
 	}
 
 	if slotRes.Item != nil && slotRes.Item["IsOccupied"] != nil {
 		if slotRes.Item["IsOccupied"].(*types.AttributeValueMemberBOOL).Value {
 			log.Println("slot is already occupied")
-			return "", errors.New("parkingrepo: vehicle is already parked")
+			return "", errors.New(constants.ErrSlotAlreadyOccupied)
 		}
 	}
 
@@ -61,16 +61,16 @@ func (nosqlpr *NOSQLParkingRepository) AddParking(ctx context.Context, vehicle m
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userId)},
-			":sk": &types.AttributeValueMemberS{Value: "PROFILE"},
+			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, userId)},
+			":sk": &types.AttributeValueMemberS{Value: constants.PrefixProfile},
 		},
 	})
 	if err != nil {
 		log.Println("Error fetching user profile:", err.Error())
-		return "", errors.New("error fetching user profile")
+		return "", errors.New(constants.ErrFetchingUserProfile)
 	}
 	if len(userRes.Items) == 0 {
-		return "", errors.New("user profile not found")
+		return "", errors.New(constants.ErrUserProfileNotFound)
 	}
 	username := userRes.Items[0]["Username"].(*types.AttributeValueMemberS).Value
 	email := userRes.Items[0]["Email"].(*types.AttributeValueMemberS).Value
@@ -82,8 +82,8 @@ func (nosqlpr *NOSQLParkingRepository) AddParking(ctx context.Context, vehicle m
 			Put: &types.Put{
 				TableName: aws.String(config.DynamoDBTable),
 				Item: map[string]types.AttributeValue{
-					"PK":          &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userId)},
-					"SK":          &types.AttributeValueMemberS{Value: fmt.Sprintf("PARKING#%d", timestamp)},
+					"PK":          &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, userId)},
+					"SK":          &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d", constants.PKParking, timestamp)},
 					"ParkingId":   &types.AttributeValueMemberS{Value: parkingID.String()},
 					"Numberplate": &types.AttributeValueMemberS{Value: vehicle.NumberPlate},
 					"BuildingId":  &types.AttributeValueMemberS{Value: vehicle.AssignedBuildingID.String()},
@@ -99,8 +99,8 @@ func (nosqlpr *NOSQLParkingRepository) AddParking(ctx context.Context, vehicle m
 			Update: &types.Update{
 				TableName: aws.String(config.DynamoDBTable),
 				Key: map[string]types.AttributeValue{
-					"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userId)},
-					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", vehicle.NumberPlate)},
+					"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, userId)},
+					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PKVehicle, vehicle.NumberPlate)},
 				},
 				UpdateExpression: aws.String("SET IsParked = :isParked"),
 				ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -113,8 +113,8 @@ func (nosqlpr *NOSQLParkingRepository) AddParking(ctx context.Context, vehicle m
 			Update: &types.Update{
 				TableName: aws.String(config.DynamoDBTable),
 				Key: map[string]types.AttributeValue{
-					"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", vehicle.AssignedBuildingID.String())},
-					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOORINFO#%d", vehicle.AssignedFloorNumber)},
+					"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, vehicle.AssignedBuildingID.String())},
+					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d", constants.PrefixFloorInfo, vehicle.AssignedFloorNumber)},
 				},
 				UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots - :decrement"),
 				ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -127,8 +127,8 @@ func (nosqlpr *NOSQLParkingRepository) AddParking(ctx context.Context, vehicle m
 			Update: &types.Update{
 				TableName: aws.String(config.DynamoDBTable),
 				Key: map[string]types.AttributeValue{
-					"PK": &types.AttributeValueMemberS{Value: "BUILDING"},
-					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", vehicle.AssignedBuildingID.String())},
+					"PK": &types.AttributeValueMemberS{Value: constants.PKBuilding},
+					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, vehicle.AssignedBuildingID.String())},
 				},
 				UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots - :decrement"),
 				ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -141,7 +141,7 @@ func (nosqlpr *NOSQLParkingRepository) AddParking(ctx context.Context, vehicle m
 			Update: &types.Update{
 				TableName: aws.String(config.DynamoDBTable),
 				Key: map[string]types.AttributeValue{
-					"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", vehicle.AssignedBuildingID.String())},
+					"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, vehicle.AssignedBuildingID.String())},
 					"SK": &types.AttributeValueMemberS{Value: slotKey},
 				},
 				UpdateExpression: aws.String("SET IsOccupied = :isOccupied, OccupiedBy = :occupiedBy"),
@@ -163,7 +163,7 @@ func (nosqlpr *NOSQLParkingRepository) AddParking(ctx context.Context, vehicle m
 	})
 	if err != nil {
 		log.Println("Error in transaction:", err.Error())
-		return "", errors.New("error adding parking history")
+		return "", errors.New(constants.ErrAddingParkingHistory)
 	}
 
 	return parkingID.String(), nil
@@ -182,18 +182,18 @@ func (nosqlpr *NOSQLParkingRepository) Unpark(ctx context.Context, ticketId stri
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":parkingId": &types.AttributeValueMemberS{Value: ticketId},
-			":pk":        &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userCtx.Email)},
-			":sk":        &types.AttributeValueMemberS{Value: "PARKING#"},
+			":pk":        &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, userCtx.Email)},
+			":sk":        &types.AttributeValueMemberS{Value: constants.PKParking},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return errors.New("error finding parking record")
+		return errors.New(constants.ErrFindingParkingRecord)
 	}
 
 	if len(queryRes.Items) == 0 {
 		log.Println("parking record not found or already unparked in Unpark")
-		return errors.New("parking record not found or already unparked")
+		return errors.New(constants.ErrParkingRecordNotFound)
 	}
 
 	item := queryRes.Items[0]
@@ -227,7 +227,7 @@ func (nosqlpr *NOSQLParkingRepository) Unpark(ctx context.Context, ticketId stri
 				TableName: aws.String(config.DynamoDBTable),
 				Key: map[string]types.AttributeValue{
 					"PK": &types.AttributeValueMemberS{Value: PK},
-					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", numberplate)},
+					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PKVehicle, numberplate)},
 				},
 				UpdateExpression: aws.String("SET IsParked = :isParked"),
 				ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -240,8 +240,8 @@ func (nosqlpr *NOSQLParkingRepository) Unpark(ctx context.Context, ticketId stri
 			Update: &types.Update{
 				TableName: aws.String(config.DynamoDBTable),
 				Key: map[string]types.AttributeValue{
-					"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
-					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOORINFO#%d", floorNumber)},
+					"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingID)},
+					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d", constants.PrefixFloorInfo, floorNumber)},
 				},
 				UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots + :increment"),
 				ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -254,8 +254,8 @@ func (nosqlpr *NOSQLParkingRepository) Unpark(ctx context.Context, ticketId stri
 			Update: &types.Update{
 				TableName: aws.String(config.DynamoDBTable),
 				Key: map[string]types.AttributeValue{
-					"PK": &types.AttributeValueMemberS{Value: "BUILDING"},
-					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
+					"PK": &types.AttributeValueMemberS{Value: constants.PKBuilding},
+					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingID)},
 				},
 				UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots + :increment"),
 				ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -268,8 +268,8 @@ func (nosqlpr *NOSQLParkingRepository) Unpark(ctx context.Context, ticketId stri
 			Update: &types.Update{
 				TableName: aws.String(config.DynamoDBTable),
 				Key: map[string]types.AttributeValue{
-					"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
-					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%d#SLOT#%d", floorNumber, slotId)},
+					"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingID)},
+					"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d%s%d", constants.PrefixFloor, floorNumber, constants.PrefixSlot, slotId)},
 				},
 				UpdateExpression: aws.String("SET IsOccupied = :isOccupied REMOVE OccupiedBy"),
 				ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -284,7 +284,7 @@ func (nosqlpr *NOSQLParkingRepository) Unpark(ctx context.Context, ticketId stri
 	})
 	if err != nil {
 		log.Println("Error in transaction:", err.Error())
-		return errors.New("error unparking vehicle")
+		return errors.New(constants.ErrUnparkingVehicle)
 	}
 
 	return nil
@@ -306,13 +306,13 @@ func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByNumberPlate(ctx contex
 			":numberplate": &types.AttributeValueMemberS{Value: numberplate},
 			":startTime":   &types.AttributeValueMemberN{Value: strconv.FormatInt(startTimestamp, 10)},
 			":endTime":     &types.AttributeValueMemberN{Value: strconv.FormatInt(endTimestamp, 10)},
-			":pk":          &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userCtx.Email)},
-			":sk":          &types.AttributeValueMemberS{Value: "PARKING#"},
+			":pk":          &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, userCtx.Email)},
+			":sk":          &types.AttributeValueMemberS{Value: constants.PKParking},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return nil, errors.New("error fetching parking history")
+		return nil, errors.New(constants.ErrFetchingParkingHistory)
 	}
 
 	for _, item := range queryRes.Items {
@@ -348,13 +348,13 @@ func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByUser(ctx context.Conte
 		TableName:              aws.String(config.DynamoDBTable),
 		KeyConditionExpression: aws.String("PK = :pk AND begins_with(SK, :sk)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userId)},
-			":sk": &types.AttributeValueMemberS{Value: "PARKING#"},
+			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, userId)},
+			":sk": &types.AttributeValueMemberS{Value: constants.PKParking},
 		},
 	})
 	if err != nil {
 		log.Println("Error fetching parking history:", err.Error())
-		return history, errors.New("error fetching parking history")
+		return history, errors.New(constants.ErrFetchingParkingHistory)
 	}
 
 	log.Printf("Found %d parking records for user %s", len(queryRes.Items), userId)
@@ -391,8 +391,8 @@ func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByUser(ctx context.Conte
 		buildingRes, err := nosqlpr.client.GetItem(ctx, &dynamodb.GetItemInput{
 			TableName: aws.String(config.DynamoDBTable),
 			Key: map[string]types.AttributeValue{
-				"PK": &types.AttributeValueMemberS{Value: "BUILDING"},
-				"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", dto.BuildingId)},
+				"PK": &types.AttributeValueMemberS{Value: constants.PKBuilding},
+				"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, dto.BuildingId)},
 			},
 		})
 		if err == nil && buildingRes.Item != nil {
@@ -417,18 +417,18 @@ func (nosqlpr *NOSQLParkingRepository) UnparkByNumberPlate(ctx context.Context, 
 		FilterExpression:       aws.String("Numberplate = :numberplate AND attribute_not_exists(EndTime)"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":numberplate": &types.AttributeValueMemberS{Value: numberplate},
-			":pk":          &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", userCtx.ID)},
-			":sk":          &types.AttributeValueMemberS{Value: "PARKING#"},
+			":pk":          &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixUser, userCtx.ID)},
+			":sk":          &types.AttributeValueMemberS{Value: constants.PKParking},
 		},
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return errors.New("error finding parking record")
+		return errors.New(constants.ErrFindingParkingRecord)
 	}
 
 	if len(queryRes.Items) == 0 {
 		log.Println("no active parking found for numberplate:", numberplate)
-		return errors.New("no active parking found for this numberplate")
+		return errors.New(constants.ErrNoActiveParkingFound)
 	}
 
 	item := queryRes.Items[0]
@@ -452,14 +452,14 @@ func (nosqlpr *NOSQLParkingRepository) UnparkByNumberPlate(ctx context.Context, 
 	})
 	if err != nil {
 		log.Println(err.Error())
-		return errors.New("error updating parking record")
+		return errors.New(constants.ErrUpdatingParkingRecord)
 	}
 
 	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
 			"PK": &types.AttributeValueMemberS{Value: pk},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("VEHICLE#%s", numberplate)},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PKVehicle, numberplate)},
 		},
 		UpdateExpression: aws.String("SET IsParked = :isParked"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -474,8 +474,8 @@ func (nosqlpr *NOSQLParkingRepository) UnparkByNumberPlate(ctx context.Context, 
 	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOORINFO#%d", floorNumber)},
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingID)},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d", constants.PrefixFloorInfo, floorNumber)},
 		},
 		UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots + :increment"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -490,8 +490,8 @@ func (nosqlpr *NOSQLParkingRepository) UnparkByNumberPlate(ctx context.Context, 
 	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: "BUILDING"},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
+			"PK": &types.AttributeValueMemberS{Value: constants.PKBuilding},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingID)},
 		},
 		UpdateExpression: aws.String("SET AvailableSlots = AvailableSlots + :increment"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
@@ -506,8 +506,8 @@ func (nosqlpr *NOSQLParkingRepository) UnparkByNumberPlate(ctx context.Context, 
 	_, err = nosqlpr.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(config.DynamoDBTable),
 		Key: map[string]types.AttributeValue{
-			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("BUILDING#%s", buildingID)},
-			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("FLOOR#%d#SLOT#%d", floorNumber, slotId)},
+			"PK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixBuilding, buildingID)},
+			"SK": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%d%s%d", constants.PrefixFloor, floorNumber, constants.PrefixSlot, slotId)},
 		},
 		UpdateExpression: aws.String("SET IsOccupied = :isOccupied REMOVE OccupiedBy"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
