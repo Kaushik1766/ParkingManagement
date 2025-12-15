@@ -12,8 +12,9 @@ Parameters:
 Globals:
   Function:
     Architectures:
-      - x86_64
+      - arm64
     Timeout: 30
+    MemorySize: 1024
     Handler: bootstrap
     Runtime: provided.al2023
 
