@@ -41,7 +41,8 @@
     "FloorNumber": 1,
     "SlotId": 2,
     "StartTime": 1763572066,
-    "EndTime": 1763572066
+    "EndTime": 1763572066,
+    "ParkingId": "uuid"
   },
   "Building": {
     "PK": "BUILDING",
