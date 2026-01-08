@@ -50,7 +50,8 @@
     "BuildingId": "B1",
     "BuildingName": "<building_name>",
     "TotalFloors": 3,
-    "AvailableSlots": 50
+    "AvailableSlots": 50,
+    "TotalSlots":30
   },
   "Floor": {
     "PK": "BUILDING#B1",
