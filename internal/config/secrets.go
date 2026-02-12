@@ -13,6 +13,6 @@ const (
 	SlotsPath          = "data/slots.json"
 	VehiclesPath       = "data/vehicles.json"
 	EnvPath            = "./.env"
-	DynamoDBTable      = "parking-management"
+	DynamoDBTable      = "parking-management-test"
 	AwsRegion          = "ap-south-1"
 )

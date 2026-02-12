@@ -65,7 +65,12 @@ func (nosqlur *NOSQLUserRepository) GetUserByEmail(ctx context.Context, email st
 	}
 
 	item := userQuery.Items[0]
-	user = nosqlur.itemToUser(ctx, item)
+	var ok bool
+	user, ok = nosqlur.itemToUser(ctx, item)
+	if !ok {
+		log.Println("invalid user data in GetUserByEmail")
+		return models.User{}, errors.New(constants.ErrFetchingUser)
+	}
 
 	return user, nil
 }
@@ -92,7 +97,12 @@ func (nosqlur *NOSQLUserRepository) GetUserById(ctx context.Context, id string) 
 	}
 
 	item := userQuery.Items[0]
-	user = nosqlur.itemToUser(ctx, item)
+	var ok bool
+	user, ok = nosqlur.itemToUser(ctx, item)
+	if !ok {
+		log.Println("invalid user data in GetUserById")
+		return models.User{}, errors.New(constants.ErrFetchingUser)
+	}
 
 	return user, nil
 }
@@ -161,22 +171,29 @@ func (nosqlur *NOSQLUserRepository) GetAllUsers(ctx context.Context) ([]models.U
 	var users []models.User
 	var mu sync.Mutex
 	var wg sync.WaitGroup
+	var validCount, skippedCount int
 
 	for _, item := range userItems {
 		wg.Add(1)
 		go func(itm map[string]types.AttributeValue) {
 			defer wg.Done()
-			user := nosqlur.itemToUser(ctx, itm)
-			// filter inactive users
-			if user.IsActive {
+			user, ok := nosqlur.itemToUser(ctx, itm)
+			// filter inactive users or records with invalid data
+			if ok && user.IsActive {
 				mu.Lock()
 				users = append(users, user)
+				validCount++
+				mu.Unlock()
+			} else {
+				mu.Lock()
+				skippedCount++
 				mu.Unlock()
 			}
 		}(item)
 	}
 
 	wg.Wait()
+	log.Printf("userrepository: fetched %d user profiles, kept %d active/valid, skipped %d", len(userItems), validCount, skippedCount)
 	return users, nil
 }
 
@@ -307,52 +324,78 @@ func (nosqlur *NOSQLUserRepository) CreateUser(ctx context.Context, name, email,
 	return nil
 }
 
-// helper for dynamo to user
-func (nosqlur *NOSQLUserRepository) itemToUser(ctx context.Context, item map[string]types.AttributeValue) models.User {
+// helper for dynamo to user; returns false when data is malformed (e.g., bad UUIDs)
+func (nosqlur *NOSQLUserRepository) itemToUser(ctx context.Context, item map[string]types.AttributeValue) (models.User, bool) {
 	var user models.User
+	valid := true
 
-	user.UserID = uuid.MustParse(item["Id"].(*types.AttributeValueMemberS).Value)
-	user.Name = item["Username"].(*types.AttributeValueMemberS).Value
-	user.Email = item["Email"].(*types.AttributeValueMemberS).Value
-
-	if item["PasswordHash"] != nil {
-		user.Password = item["PasswordHash"].(*types.AttributeValueMemberS).Value
+	if idAttr, ok := item["Id"].(*types.AttributeValueMemberS); ok && idAttr != nil {
+		if userUUID, err := uuid.Parse(idAttr.Value); err == nil {
+			user.UserID = userUUID
+		} else {
+			log.Printf("invalid user Id uuid: %v", err)
+			valid = false
+		}
+	} else {
+		log.Printf("missing user Id attribute in item")
+		valid = false
 	}
 
-	roleStr := item["Role"].(*types.AttributeValueMemberS).Value
-	switch roleStr {
-	case roles.Admin.String():
-		user.Role = roles.Admin
-	case roles.Customer.String():
-		user.Role = roles.Customer
-	default:
-		user.Role = roles.Customer
+	if usernameAttr, ok := item["Username"].(*types.AttributeValueMemberS); ok && usernameAttr != nil {
+		user.Name = usernameAttr.Value
 	}
 
-	user.IsActive = item["IsActive"].(*types.AttributeValueMemberBOOL).Value
+	if emailAttr, ok := item["Email"].(*types.AttributeValueMemberS); ok && emailAttr != nil {
+		user.Email = emailAttr.Value
+	}
 
-	// if item["Office"] != nil {
-	// 	user.Office.OfficeName = item["Office"].(*types.AttributeValueMemberS).Value
-	// }
-	if item["OfficeId"] != nil {
-		user.OfficeID = uuid.MustParse(item["OfficeId"].(*types.AttributeValueMemberS).Value)
-		user.Office.OfficeID = user.OfficeID
+	if pwAttr, ok := item["PasswordHash"].(*types.AttributeValueMemberS); ok && pwAttr != nil {
+		user.Password = pwAttr.Value
+	}
 
-		res, err := nosqlur.client.Query(ctx, &dynamodb.QueryInput{
-			TableName:              aws.String(config.DynamoDBTable),
-			KeyConditionExpression: aws.String("PK = :pk AND SK = :sk"),
-			ExpressionAttributeValues: map[string]types.AttributeValue{
-				":pk": &types.AttributeValueMemberS{Value: constants.PKOffice},
-				":sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixDetails, user.OfficeID.String())},
-			},
-			AttributesToGet: []string{
-				"OfficeName",
-			},
-		})
-		if err == nil && len(res.Items) > 0 {
-			user.Office.OfficeName = res.Items[0]["OfficeName"].(*types.AttributeValueMemberS).Value
+	if roleAttr, ok := item["Role"].(*types.AttributeValueMemberS); ok && roleAttr != nil {
+		roleStr := roleAttr.Value
+		switch roleStr {
+		case roles.Admin.String():
+			user.Role = roles.Admin
+		case roles.Customer.String():
+			user.Role = roles.Customer
+		default:
+			user.Role = roles.Customer
 		}
 	}
 
-	return user
+	// handle missing IsActive gracefully for legacy rows; default to true
+	if isActiveAttr, ok := item["IsActive"].(*types.AttributeValueMemberBOOL); ok && isActiveAttr != nil {
+		user.IsActive = isActiveAttr.Value
+	} else {
+		user.IsActive = true
+	}
+
+	if officeAttr, ok := item["OfficeId"].(*types.AttributeValueMemberS); ok && officeAttr != nil {
+		if officeUUID, err := uuid.Parse(officeAttr.Value); err == nil {
+			user.OfficeID = officeUUID
+			user.Office.OfficeID = user.OfficeID
+
+			res, err := nosqlur.client.Query(ctx, &dynamodb.QueryInput{
+				TableName:              aws.String(config.DynamoDBTable),
+				KeyConditionExpression: aws.String("PK = :pk AND SK = :sk"),
+				ExpressionAttributeValues: map[string]types.AttributeValue{
+					":pk": &types.AttributeValueMemberS{Value: constants.PKOffice},
+					":sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", constants.PrefixDetails, user.OfficeID.String())},
+				},
+				AttributesToGet: []string{
+					"OfficeName",
+				},
+			})
+			if err == nil && len(res.Items) > 0 {
+				user.Office.OfficeName = res.Items[0]["OfficeName"].(*types.AttributeValueMemberS).Value
+			}
+		} else {
+			log.Printf("invalid OfficeId uuid for user %s: %v", user.UserID.String(), err)
+			valid = false
+		}
+	}
+
+	return user, valid
 }

@@ -367,9 +367,14 @@ func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByUser(ctx context.Conte
 		}
 
 		if item["StartTime"] != nil {
-			itemStartTime, _ := strconv.ParseInt(item["StartTime"].(*types.AttributeValueMemberN).Value, 10, 64)
-			if itemStartTime < startTimestamp || itemStartTime > endTimestamp {
-				log.Printf("Skipping parking record with StartTime %d (outside range %d-%d)", itemStartTime, startTimestamp, endTimestamp)
+			if startNum, ok := item["StartTime"].(*types.AttributeValueMemberN); ok && startNum != nil {
+				itemStartTime, _ := strconv.ParseInt(startNum.Value, 10, 64)
+				if itemStartTime < startTimestamp || itemStartTime > endTimestamp {
+					log.Printf("Skipping parking record with StartTime %d (outside range %d-%d)", itemStartTime, startTimestamp, endTimestamp)
+					continue
+				}
+			} else {
+				log.Printf("Skipping parking record with unexpected StartTime type (expected number)")
 				continue
 			}
 		}
@@ -378,15 +383,29 @@ func (nosqlpr *NOSQLParkingRepository) GetParkingHistoryByUser(ctx context.Conte
 		dto.TicketId = item["ParkingId"].(*types.AttributeValueMemberS).Value
 		dto.NumberPlate = item["Numberplate"].(*types.AttributeValueMemberS).Value
 		dto.BuildingId = item["BuildingId"].(*types.AttributeValueMemberS).Value
-		dto.FLoorNumber, _ = strconv.Atoi(item["FloorNumber"].(*types.AttributeValueMemberN).Value)
-		dto.SlotNumber, _ = strconv.Atoi(item["SlotId"].(*types.AttributeValueMemberN).Value)
+		if floorNum, ok := item["FloorNumber"].(*types.AttributeValueMemberN); ok && floorNum != nil {
+			dto.FLoorNumber, _ = strconv.Atoi(floorNum.Value)
+		}
+		if slotNum, ok := item["SlotId"].(*types.AttributeValueMemberN); ok && slotNum != nil {
+			dto.SlotNumber, _ = strconv.Atoi(slotNum.Value)
+		}
 		dto.VechicleType = item["VehicleType"].(*types.AttributeValueMemberS).Value
 
-		startTimeUnix, _ := strconv.ParseInt(item["StartTime"].(*types.AttributeValueMemberN).Value, 10, 64)
-		dto.StartTime = time.Unix(startTimeUnix, 0).Local()
+		if startNum, ok := item["StartTime"].(*types.AttributeValueMemberN); ok && startNum != nil {
+			startTimeUnix, _ := strconv.ParseInt(startNum.Value, 10, 64)
+			dto.StartTime = time.Unix(startTimeUnix, 0).Local()
+		} else {
+			log.Printf("Skipping parking record %s due to invalid StartTime", dto.TicketId)
+			continue
+		}
 
-		endTimeUnix, _ := strconv.ParseInt(item["EndTime"].(*types.AttributeValueMemberN).Value, 10, 64)
-		dto.EndTime = time.Unix(endTimeUnix, 0).Local()
+		if endNum, ok := item["EndTime"].(*types.AttributeValueMemberN); ok && endNum != nil {
+			endTimeUnix, _ := strconv.ParseInt(endNum.Value, 10, 64)
+			dto.EndTime = time.Unix(endTimeUnix, 0).Local()
+		} else {
+			log.Printf("Skipping parking record %s due to invalid EndTime", dto.TicketId)
+			continue
+		}
 
 		buildingRes, err := nosqlpr.client.GetItem(ctx, &dynamodb.GetItemInput{
 			TableName: aws.String(config.DynamoDBTable),

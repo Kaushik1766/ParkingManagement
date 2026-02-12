@@ -67,6 +67,8 @@ func (bs *BillingService) GenerateMonthlyBills(ctx context.Context) {
 		return
 	}
 
+	var billedUsers []string
+
 	// gen for current month
 	now := time.Now()
 	startTime := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.Local)
@@ -130,7 +132,14 @@ func (bs *BillingService) GenerateMonthlyBills(ctx context.Context) {
 			log.Printf("billingservice: Error saving bill for user %s: %v\n", userEmail, err)
 		} else {
 			log.Printf("billingservice: Generated and saved bill for user %s\n", userEmail)
+			billedUsers = append(billedUsers, fmt.Sprintf("%s (%s)", userEmail, userId))
 		}
+	}
+
+	if len(billedUsers) > 0 {
+		log.Printf("billingservice: Bills generated and stored for users: %s", strings.Join(billedUsers, ", "))
+	} else {
+		log.Printf("billingservice: No bills were generated and stored in this run")
 	}
 }
 
